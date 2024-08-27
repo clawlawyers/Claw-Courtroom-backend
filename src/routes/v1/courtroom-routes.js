@@ -116,6 +116,18 @@ router.get(
   CourtroomController.getHistory
 );
 
+router.post(
+  "/api/evidence",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.evidence
+);
+
+router.post(
+  "/api/ask_query",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.askQuery
+);
+
 // AddContactUsQuery Route
 
 router.post("/add/ContactUsQuery", CourtroomController.AddContactUsQuery);
