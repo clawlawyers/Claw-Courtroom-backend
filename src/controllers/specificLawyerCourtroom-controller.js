@@ -1191,6 +1191,92 @@ async function getHistory(req, res) {
   }
 }
 
+async function evidence(req, res) {
+  const user_id = req.body?.courtroomClient?.userId;
+  const { action, evidence_text } = req.body;
+  try {
+    const fetchedEvidence = await getEvidence({
+      user_id,
+      action,
+      evidence_text,
+    });
+    res.status(StatusCodes.OK).json(SuccessResponse({ fetchedEvidence }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function getEvidence(body) {
+  try {
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/evidence`, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch evidence");
+  }
+}
+
+async function askQuery(req, res) {
+  const user_id = req.body?.courtroomClient?.userId;
+  const { action, query } = req.body;
+  try {
+    const fetchedAskQuery = await fetchAskQuery({
+      user_id,
+      action,
+      query,
+    });
+    res.status(StatusCodes.OK).json(SuccessResponse({ fetchedAskQuery }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function fetchAskQuery(body) {
+  console.log(body);
+  try {
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/ask_query`, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch ask query");
+  }
+}
+
 async function AddContactUsQuery(req, res) {
   const {
     firstName,
@@ -1371,4 +1457,6 @@ module.exports = {
   getSessionCaseHistory,
   storeTime,
   getusername,
+  evidence,
+  askQuery,
 };

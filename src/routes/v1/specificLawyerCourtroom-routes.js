@@ -133,6 +133,18 @@ router.get(
   SpecificLawyerCourtroomController.getHistory
 );
 
+router.post(
+  "/api/evidence",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  SpecificLawyerCourtroomController.evidence
+);
+
+router.post(
+  "/api/ask_query",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  SpecificLawyerCourtroomController.askQuery
+);
+
 // AddContactUsQuery Route
 
 router.post(
