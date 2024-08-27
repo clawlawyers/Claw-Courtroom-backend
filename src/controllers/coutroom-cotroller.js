@@ -741,7 +741,7 @@ async function FetchRestCase(body) {
 }
 
 async function endCase(req, res) {
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  // const user_id = req.body?.courtroomClient?.userBooking?.userId;
   const { userId } = req.body;
   try {
     const endCase = await FetchEndCase({ userId });
