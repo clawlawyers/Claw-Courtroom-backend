@@ -76,7 +76,7 @@ router.post(
 );
 router.post(
   "/api/end",
-  authMiddleware.checkCourtroomAuth,
+  // authMiddleware.checkCourtroomAuth,
   CourtroomController.endCase
 );
 router.post(
