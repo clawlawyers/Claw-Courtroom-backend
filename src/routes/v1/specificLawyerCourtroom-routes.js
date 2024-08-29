@@ -153,7 +153,7 @@ router.post(
 
 router.post(
   "/api/relevant_case_law",
-  // authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
   SpecificLawyerCourtroomController.relevantCaseLaw
 );
 
