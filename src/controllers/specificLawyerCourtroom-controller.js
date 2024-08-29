@@ -156,6 +156,13 @@ async function loginToCourtRoom(req, res) {
 async function getUserDetails(req, res) {
   const { courtroomClient } = req.body;
   try {
+    if (courtroomClient.totalHours <= courtroomClient.totalUsedHours) {
+      return res.status(StatusCodes.OK).json(
+        SuccessResponse({
+          message: "You have exceeded your time limit",
+        })
+      );
+    }
     console.log(courtroomClient);
 
     let userId;
@@ -1277,6 +1284,40 @@ async function fetchAskQuery(body) {
   }
 }
 
+async function resetUserId(req, res) {
+  const { courtroomClient } = req.body;
+  try {
+    console.log(courtroomClient);
+
+    let userId;
+
+    const userId1 = await registerNewCourtRoomUser();
+    const updateUser = await SpecificLawyerCourtroomUser.findByIdAndUpdate(
+      courtroomClient._id,
+      { userId: userId1.user_id },
+      { new: true }
+    );
+    userId = updateUser.userId;
+
+    return res.status(StatusCodes.OK).json(
+      SuccessResponse({
+        username: courtroomClient.name,
+        courtroomFeatures: courtroomClient.features,
+        userId: courtroomClient.userId,
+        phoneNumber: courtroomClient.phoneNumber,
+        totalHours: courtroomClient.totalHours,
+        totalUsedHours: courtroomClient.totalUsedHours,
+      })
+    );
+  } catch (error) {
+    const errorResponse = ErrorResponse({}, error);
+    console.log(error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
 async function AddContactUsQuery(req, res) {
   const {
     firstName,
@@ -1459,4 +1500,5 @@ module.exports = {
   getusername,
   evidence,
   askQuery,
+  resetUserId,
 };

@@ -187,11 +187,20 @@ async function registerNewCourtRoomUser(body) {
 
 async function getClientByDomainName(Domain) {
   try {
-    // Find existing booking for the current date and hour
-    const userBooking = await SpecificLawyerCourtroomUser.findOne({
-      // Domain: "shubham.courtroom.clawlaw.in",
-      Domain: Domain,
-    });
+    let userBooking;
+    if (process.env.NODE_ENV === "production") {
+      // Find existing booking for the current date and hour
+      userBooking = await SpecificLawyerCourtroomUser.findOne({
+        // Domain: "shubham.courtroom.clawlaw.in",
+        Domain: Domain,
+      });
+    } else {
+      // Find existing booking for the current date and hour
+      userBooking = await SpecificLawyerCourtroomUser.findOne({
+        Domain: "shubham.courtroom.clawlaw.in",
+        // Domain: Domain,
+      });
+    }
 
     // console.log(userBooking);
     if (!userBooking) {

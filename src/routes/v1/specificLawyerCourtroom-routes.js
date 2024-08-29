@@ -145,6 +145,12 @@ router.post(
   SpecificLawyerCourtroomController.askQuery
 );
 
+router.post(
+  "/resetUserid",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  SpecificLawyerCourtroomController.resetUserId
+);
+
 // AddContactUsQuery Route
 
 router.post(
