@@ -134,6 +134,18 @@ router.post(
   CourtroomController.askQuery
 );
 
+router.post(
+  "/resetUserid",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.resetUserId
+);
+
+router.post(
+  "/api/relevant_case_law",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.relevantCaseLaw
+);
+
 // AddContactUsQuery Route
 
 router.post("/add/ContactUsQuery", CourtroomController.AddContactUsQuery);

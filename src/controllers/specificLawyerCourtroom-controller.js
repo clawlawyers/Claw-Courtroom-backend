@@ -1318,6 +1318,46 @@ async function resetUserId(req, res) {
   }
 }
 
+async function relevantCaseLaw(req, res) {
+  const user_id = req.body?.courtroomClient?.userId;
+  try {
+    const relevantCases = await FetchRelevantCases({ user_id });
+    res.status(StatusCodes.OK).json(SuccessResponse({ relevantCases }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function FetchRelevantCases({ user_id }) {
+  try {
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/relevant_case_law`,
+      {
+        method: "POST",
+        body: JSON.stringify({ user_id }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch relevant cases");
+  }
+}
+
 async function AddContactUsQuery(req, res) {
   const {
     firstName,
@@ -1501,4 +1541,5 @@ module.exports = {
   evidence,
   askQuery,
   resetUserId,
+  relevantCaseLaw,
 };

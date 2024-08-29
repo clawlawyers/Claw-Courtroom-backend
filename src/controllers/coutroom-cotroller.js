@@ -1298,6 +1298,80 @@ async function fetchAskQuery(body) {
   }
 }
 
+async function resetUserId(req, res) {
+  const { courtroomClient } = req.body;
+  try {
+    console.log(courtroomClient);
+
+    let userId;
+
+    const userId1 = await registerNewCourtRoomUser();
+    const updateUser = await SpecificLawyerCourtroomUser.findByIdAndUpdate(
+      courtroomClient._id,
+      { userId: userId1.user_id },
+      { new: true }
+    );
+    userId = updateUser.userId;
+
+    return res.status(StatusCodes.OK).json(
+      SuccessResponse({
+        username: courtroomClient.name,
+        courtroomFeatures: courtroomClient.features,
+        userId: courtroomClient.userId,
+        phoneNumber: courtroomClient.phoneNumber,
+        totalHours: courtroomClient.totalHours,
+        totalUsedHours: courtroomClient.totalUsedHours,
+      })
+    );
+  } catch (error) {
+    const errorResponse = ErrorResponse({}, error);
+    console.log(error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function relevantCaseLaw(req, res) {
+  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  try {
+    const relevantCases = await FetchRelevantCases({ user_id });
+    res.status(StatusCodes.OK).json(SuccessResponse({ relevantCases }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function FetchRelevantCases({ user_id }) {
+  try {
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/relevant_case_law`,
+      {
+        method: "POST",
+        body: JSON.stringify({ user_id }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch relevant cases");
+  }
+}
+
 async function AddContactUsQuery(req, res) {
   const {
     firstName,
@@ -1389,4 +1463,6 @@ module.exports = {
   getSessionCaseHistory,
   evidence,
   askQuery,
+  resetUserId,
+  relevantCaseLaw,
 };

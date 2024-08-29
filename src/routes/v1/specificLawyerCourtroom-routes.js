@@ -151,6 +151,12 @@ router.post(
   SpecificLawyerCourtroomController.resetUserId
 );
 
+router.post(
+  "/api/relevant_case_law",
+  // authMiddleware.checkSpecificLawyerCourtroomAuth,
+  SpecificLawyerCourtroomController.relevantCaseLaw
+);
+
 // AddContactUsQuery Route
 
 router.post(
