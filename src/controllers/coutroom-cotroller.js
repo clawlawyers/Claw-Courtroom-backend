@@ -990,7 +990,8 @@ async function downloadCaseHistory(req, res) {
 }
 
 async function downloadSessionCaseHistory(req, res) {
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  // const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
 
   console.log(user_id);
   try {
@@ -1101,12 +1102,30 @@ async function downloadSessionCaseHistory(req, res) {
   }
 }
 
+const formatText = (text) => {
+  return text
+    .replace(/\\n\\n/g, "\n \n")
+    .replace(/\\n/g, "\n")
+    .replace(/\\/g, " ");
+};
+
 async function downloadFirtDraft(req, res) {
   const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  // const user_id = req.body?.userId;
   try {
     const draft = await FetchGetDraft({ user_id });
 
+    const revelentCaseLaws = await FetchRelevantCases({ user_id });
+
+    const relevant = revelentCaseLaws.relevant_case_law;
+
     const draftDetail = draft.detailed_draft;
+
+    const formattedRelevantCases = formatText(relevant);
+
+    console.log(formattedRelevantCases);
+
+    // console.log(draftDetail);
 
     const doc = new PDFDocument();
     const regularFontPath = path.join(
@@ -1145,6 +1164,20 @@ async function downloadFirtDraft(req, res) {
     doc.font("NotoSans").fontSize(12);
 
     doc.text(draftDetail);
+
+    doc.moveDown();
+
+    // Add the header
+    doc
+      .font("NotoSans-Bold")
+      .fontSize(14)
+      .text("Relevant Case Law", { align: "center" });
+
+    doc.moveDown();
+
+    doc.font("NotoSans").fontSize(12);
+
+    doc.text(formattedRelevantCases);
 
     // Collect the PDF in chunks
     const chunks = [];
