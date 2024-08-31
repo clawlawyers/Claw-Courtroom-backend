@@ -360,7 +360,7 @@ async function getOverview(formData) {
 
 async function newCaseText(req, res) {
   try {
-    const { userId } = req.body?.courtroomClient?.userBooking;
+    const { userId } = req.body?.courtroomClient;
     const { case_overview } = req.body;
     const fetchedOverview = await fetchOverview({ userId, case_overview });
     console.log(fetchedOverview);

@@ -47,8 +47,8 @@ router.post(
 
 router.post(
   "api/new_case/text",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomController.newCaseText
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  SpecificLawyerCourtroomController.newCaseText
 );
 
 router.post(
