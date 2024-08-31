@@ -34,6 +34,13 @@ router.post(
   authMiddleware.checkCourtroomAuth,
   CourtroomController.newcase
 );
+
+router.post(
+  "api/new_case/text",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.newCaseText
+);
+
 router.post(
   "/edit_case",
   authMiddleware.checkCourtroomAuth,
