@@ -378,6 +378,51 @@ async function getOverview(formData) {
   }
 }
 
+async function newCaseText(req, res) {
+  try {
+    const { userId } = req.body?.courtroomClient?.userBooking;
+    const { case_overview } = req.body;
+    const fetchedOverview = await fetchOverview({ userId, case_overview });
+    console.log(fetchedOverview);
+    return res
+      .status(StatusCodes.OK)
+      .json(SuccessResponse({ fetchedOverview }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function fetchOverview({ userId, case_overview }) {
+  try {
+    // Dynamically import node-fetch
+    const fetch = (await import("node-fetch")).default;
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/new_case`, {
+      method: "POST",
+      body: JSON.stringify({ userId, case_overview }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error("Error in fetchOverview:", error);
+    // console.error("Error in fetchOverview:");
+    throw error;
+  }
+}
+
 // async function newcase(req, res) {
 //   const file = req.file;
 //   if (!file) {
@@ -1500,4 +1545,5 @@ module.exports = {
   askQuery,
   resetUserId,
   relevantCaseLaw,
+  newCaseText,
 };
