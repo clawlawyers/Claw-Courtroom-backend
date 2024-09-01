@@ -1507,13 +1507,13 @@ const flushInMemoryDataToDatabase = async () => {
   session.startTransaction();
 
   try {
-    for (const phoneNumber in inMemoryEngagementData) {
-      const userEngagement = inMemoryEngagementData[phoneNumber];
+    for (const Domain in inMemoryEngagementData) {
+      const userEngagement = inMemoryEngagementData[Domain];
 
       // Find the user by phone number
       const user =
-        await SpecificLawyerCourtroomService.getClientByPhoneNumberWithSession(
-          phoneNumber,
+        await SpecificLawyerCourtroomService.getClientByDomainWithSession(
+          Domain,
           session
         );
 
@@ -1531,8 +1531,8 @@ const flushInMemoryDataToDatabase = async () => {
       if (user) {
         const totalEngagementTime = userEngagement.total / 3600; // Convert seconds to hours
 
-        await SpecificLawyerCourtroomService.updateClientByPhoneNumberWithSession(
-          phoneNumber,
+        await SpecificLawyerCourtroomService.updateClientByDomainWithSession(
+          Domain,
           {
             $inc: {
               totalUsedHours: totalEngagementTime,
@@ -1541,7 +1541,7 @@ const flushInMemoryDataToDatabase = async () => {
           session
         );
       } else {
-        console.log(`User not found for phone number: ${phoneNumber}`);
+        console.log(`User not found for phone number: ${Domain}`);
       }
     }
 
@@ -1560,15 +1560,20 @@ const flushInMemoryDataToDatabase = async () => {
 
 async function storeTime(req, res) {
   const engagementData = req.body;
+  const Domain = req.body?.courtroomClient?.Domain;
+  for (let i = 0; i < engagementData.length; i++) {
+    engagementData[i].Domain = Domain;
+  }
+  console.log(engagementData);
 
-  engagementData?.forEach(({ phoneNumber, engagementTime, timestamp }) => {
+  engagementData?.forEach(({ Domain, engagementTime, timestamp }) => {
     const date = new Date(timestamp); // Convert seconds to milliseconds
     const day = date.toISOString().slice(0, 10);
     // const month = date.toISOString().slice(0, 7);
     // const year = date.getFullYear();
 
-    if (!inMemoryEngagementData[phoneNumber]) {
-      inMemoryEngagementData[phoneNumber] = {
+    if (!inMemoryEngagementData[Domain]) {
+      inMemoryEngagementData[Domain] = {
         daily: {},
         // monthly: {},
         // yearly: {},
@@ -1576,9 +1581,9 @@ async function storeTime(req, res) {
       };
     }
 
-    inMemoryEngagementData[phoneNumber].daily[day] =
-      (inMemoryEngagementData[phoneNumber].daily[day] || 0) + engagementTime;
-    inMemoryEngagementData[phoneNumber].total += engagementTime; // Add to total engagement time
+    inMemoryEngagementData[Domain].daily[day] =
+      (inMemoryEngagementData[Domain].daily[day] || 0) + engagementTime;
+    inMemoryEngagementData[Domain].total += engagementTime; // Add to total engagement time
   });
 
   await flushInMemoryDataToDatabase();

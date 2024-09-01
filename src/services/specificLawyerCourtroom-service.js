@@ -278,10 +278,10 @@ async function getSessionCaseHistory(userId) {
 }
 
 // Service to get a client by phone number with a session
-async function getClientByPhoneNumberWithSession(phoneNumber, session) {
+async function getClientByDomainWithSession(Domain, session) {
   try {
     const user = await SpecificLawyerCourtroomUser.findOne({
-      phoneNumber,
+      Domain,
     }).session(session);
     return user;
   } catch (error) {
@@ -291,14 +291,10 @@ async function getClientByPhoneNumberWithSession(phoneNumber, session) {
 }
 
 // Service to update a client by phone number with a session
-async function updateClientByPhoneNumberWithSession(
-  phoneNumber,
-  updateData,
-  session
-) {
+async function updateClientByDomainWithSession(Domain, updateData, session) {
   try {
     const user = await SpecificLawyerCourtroomUser.findOneAndUpdate(
-      { phoneNumber },
+      { Domain },
       updateData,
       { new: true, session }
     );
@@ -317,6 +313,6 @@ module.exports = {
   storeCaseHistory,
   getSessionCaseHistory,
   addContactUsQuery,
-  getClientByPhoneNumberWithSession,
-  updateClientByPhoneNumberWithSession,
+  getClientByDomainWithSession,
+  updateClientByDomainWithSession,
 };
