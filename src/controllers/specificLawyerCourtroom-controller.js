@@ -678,6 +678,51 @@ async function FetchJudge_arguemnt(body) {
   return response.json();
 }
 
+async function relevantCasesJudgeLawyer(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userId;
+    const { text_input } = req.body;
+    const relevantCases = await FetchRelevantCasesJudgeLawyer({
+      user_id,
+      text_input,
+    });
+    return res.status(StatusCodes.OK).json(SuccessResponse({ relevantCases }));
+  } catch (error) {
+    const errorResponse = ErrorResponse({}, error);
+    console.log(error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function FetchRelevantCasesJudgeLawyer(body) {
+  try {
+    console.log(body);
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/relevant_cases_judge_lawyer`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const res = response.json();
+    console.log(res);
+
+    return res;
+  } catch (error) {
+    console.error(error.message);
+    throw error;
+  }
+}
+
 async function getDraft(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
   try {
@@ -1628,4 +1673,5 @@ module.exports = {
   resetUserId,
   relevantCaseLaw,
   newCaseText,
+  relevantCasesJudgeLawyer,
 };

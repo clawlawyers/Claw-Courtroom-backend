@@ -76,6 +76,13 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   SpecificLawyerCourtroomController.judge_arguemnt
 );
+
+router.post(
+  "/api/relevant_cases_judge_lawyer",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  SpecificLawyerCourtroomController.relevantCasesJudgeLawyer
+);
+
 router.post(
   "/api/draft",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
