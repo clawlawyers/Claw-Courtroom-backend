@@ -379,7 +379,7 @@ async function newCaseText(req, res) {
   }
 }
 
-async function fetchOverview({ userId, case_overview }) {
+async function fetchOverview({ user_id, case_overview }) {
   try {
     // Dynamically import node-fetch
     const fetch = (await import("node-fetch")).default;
