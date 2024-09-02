@@ -362,7 +362,10 @@ async function newCaseText(req, res) {
   try {
     const { userId } = req.body?.courtroomClient;
     const { case_overview } = req.body;
-    const fetchedOverview = await fetchOverview({ userId, case_overview });
+    const fetchedOverview = await fetchOverview({
+      user_id: userId,
+      case_overview,
+    });
     console.log(fetchedOverview);
     return res
       .status(StatusCodes.OK)
