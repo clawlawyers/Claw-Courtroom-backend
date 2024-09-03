@@ -300,7 +300,7 @@ async function updateClientByDomainWithSession(Domain, updateData, session) {
     );
     return user;
   } catch (error) {
-    console.error(`Error updating user by phone number ${phoneNumber}:`, error);
+    console.error(`Error updating user by phone number ${Domain}:`, error);
     throw error;
   }
 }

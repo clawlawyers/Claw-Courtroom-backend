@@ -13,6 +13,7 @@ const {
   hashPasswordSpecial,
   generateTokenSpecial,
 } = require("../utils/SpecificCourtroom/auth");
+const { checkUserIdValidity } = require("../utils/common/auth");
 
 async function bookCourtRoom(req, res) {
   try {
@@ -163,7 +164,7 @@ async function getUserDetails(req, res) {
         })
       );
     }
-    console.log(courtroomClient);
+    // console.log(courtroomClient);
 
     let userId;
 
@@ -171,15 +172,24 @@ async function getUserDetails(req, res) {
       const userId1 = await registerNewCourtRoomUser();
       const updateUser = await SpecificLawyerCourtroomUser.findByIdAndUpdate(
         courtroomClient._id,
-        { userId: userId1.user_id },
+        { userId: userId1.user_id, caseOverview: "NA" },
         { new: true }
       );
       userId = updateUser.userId;
     }
-    // else {
-    //   userId = userBooking.userId;
-    // }
 
+    const resp = await checkUserIdValidity(courtroomClient.userId);
+
+    if (resp === "VM Restarted, Create User ID") {
+      const userId1 = await registerNewCourtRoomUser();
+      console.log(userId1);
+      const updateUser = await SpecificLawyerCourtroomUser.findByIdAndUpdate(
+        courtroomClient._id,
+        { userId: userId1.user_id, caseOverview: "NA" },
+        { new: true }
+      );
+      userId = updateUser.userId;
+    }
     return res.status(StatusCodes.OK).json(
       SuccessResponse({
         username: courtroomClient.name,
@@ -202,7 +212,7 @@ async function getUserDetails(req, res) {
 async function getusername(req, res) {
   const { courtroomClient } = req.body;
   try {
-    console.log(courtroomClient);
+    // console.log(courtroomClient);
 
     let userId;
 
@@ -558,7 +568,7 @@ async function getCaseOverview(req, res) {
       userId: user_id,
     });
 
-    console.log(FetchedUser);
+    // console.log(FetchedUser);
 
     if (!FetchedUser) {
       return res
@@ -737,7 +747,7 @@ async function getDraft(req, res) {
 }
 
 async function FetchGetDraft(body) {
-  console.log(body);
+  // console.log(body);
   const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/generate_draft`, {
     method: "POST",
     headers: {
@@ -1612,7 +1622,7 @@ async function storeTime(req, res) {
   for (let i = 0; i < engagementData.length; i++) {
     engagementData[i].Domain = Domain;
   }
-  console.log(engagementData);
+  // console.log(engagementData);
 
   engagementData?.forEach(({ Domain, engagementTime, timestamp }) => {
     const date = new Date(timestamp); // Convert seconds to milliseconds
