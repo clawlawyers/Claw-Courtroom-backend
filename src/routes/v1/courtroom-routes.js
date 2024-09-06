@@ -31,7 +31,7 @@ router.post(
     { name: "file2" },
     { name: "file3" },
   ]),
-  authMiddleware.checkCourtroomAuth,
+  // authMiddleware.checkCourtroomAuth,
   CourtroomController.newcase
 );
 
@@ -146,6 +146,12 @@ router.post(
   "/api/relevant_case_law",
   authMiddleware.checkCourtroomAuth,
   CourtroomController.relevantCaseLaw
+);
+
+router.post(
+  "/api/testimony_questions",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.testimonyQuestions
 );
 
 // AddContactUsQuery Route
