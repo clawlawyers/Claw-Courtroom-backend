@@ -884,7 +884,8 @@ async function endCase(req, res) {
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ endCase }));
   } catch (error) {
-    const errorResponse = ErrorResponse({}, error);
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
