@@ -194,8 +194,14 @@ router.post(
   "/api/relevant_case_law",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
-
   SpecificLawyerCourtroomController.relevantCaseLaw
+);
+
+router.post(
+  "/api/testimony_questions",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.testimonyQuestions
 );
 
 // AddContactUsQuery Route
