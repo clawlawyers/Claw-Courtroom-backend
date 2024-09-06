@@ -12,6 +12,8 @@ const TrailCourtRoomBooking = require("../models/trailCourtRoomBooking");
 const TrailCourtroomUser = require("../models/trailCourtRoomUser");
 const TrailCourtroomHistory = require("../models/trailCourtRoomHistory");
 const TrailBooking = require("../models/trailBookingAllow");
+const TrialCourtroomCoupon = require("../models/trialCourtroomCoupon");
+const TrailCourtroomUser2 = require("../models/trialCourtroomUser2");
 const { COURTROOM_API_ENDPOINT } = process.env;
 
 async function addContactUsQuery(
@@ -183,26 +185,28 @@ async function adminCourtRoomBook(
 }
 
 async function courtRoomBook(
-  name,
-  phoneNumber,
-  email,
+  // name,
+  // phoneNumber,
+  // email,
   hashedPassword,
   bookingDate,
   hour,
-  recording,
-  caseOverview
+  CouponCode,
+  recording
+  // caseOverview
 ) {
-  console.log("Here is caseOverview", caseOverview);
+  // console.log("Here is caseOverview", caseOverview);
   try {
     console.log(bookingDate);
     // Find a TrailBooking that matches the date and hour for the user
-    const trailBooking = await TrailBooking.findOne({
+    const trailBooking = await TrialCourtroomCoupon.findOne({
+      CouponCode: CouponCode,
       StartDate: { $lte: bookingDate },
       EndDate: { $gte: bookingDate },
       // StartHour: { $lte: hour },
       // EndHour: { $gt: hour },
-      phoneNumber: phoneNumber,
-      email: email,
+      // phoneNumber: phoneNumber,
+      // email: email,
     });
 
     console.log(trailBooking);
@@ -212,58 +216,63 @@ async function courtRoomBook(
       trailBooking?.totalSlots <= trailBooking?.bookedSlots
     ) {
       console.log(
-        `User with phone number ${phoneNumber} or email ${email} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `User with CouponCode ${CouponCode} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`
       );
-      return `User with phone number ${phoneNumber} or email ${email} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      return `User with CouponCode ${CouponCode} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`;
     }
 
     // Find existing booking for the same date and hour
-    let booking = await TrailCourtRoomBooking.findOne({
-      date: bookingDate,
-      hour: hour,
+    let booking = await TrialCourtroomCoupon.findOne({
+      CouponCode: CouponCode,
+      StartDate: { $lte: bookingDate },
+      EndDate: { $gte: bookingDate },
     }).populate("courtroomBookings");
 
+    console.log(booking);
+
     if (!booking) {
-      // Create a new booking if it doesn't exist
-      booking = new TrailCourtRoomBooking({
-        date: bookingDate,
-        hour: hour,
-        courtroomBookings: [],
-      });
+      console.log(
+        `User with CouponCode ${CouponCode} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`
+      );
+      return `User with CouponCode ${CouponCode} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`;
     }
 
-    // Check if the total bookings exceed the limit
-    if (booking.courtroomBookings.length >= 4) {
-      console.log(
-        `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
-      );
-      return `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
-    }
+    // // Check if the total bookings exceed the limit
+    // if (booking.courtroomBookings.length >= 4) {
+    //   console.log(
+    //     `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
+    //   );
+    //   return `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
+    // }
 
     // Check if the user with the same mobile number or email already booked a slot at the same hour
     const existingBooking = booking.courtroomBookings.find(
-      (courtroomBooking) =>
-        courtroomBooking.phoneNumber == phoneNumber ||
-        courtroomBooking.email == email
+      (courtroomBooking) => {
+        return (
+          courtroomBooking.hour == hour &&
+          new Date(courtroomBooking.date).toISOString() ==
+            new Date(bookingDate).toISOString()
+        );
+      }
     );
 
     console.log(existingBooking);
 
     if (existingBooking) {
       console.log(
-        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `User with CouponCode ${CouponCode} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`
       );
-      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      return `User with CouponCode ${CouponCode} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`;
     }
 
     // Create a new courtroom user
-    const newCourtroomUser = new TrailCourtroomUser({
-      name,
-      phoneNumber,
-      email,
+    const newCourtroomUser = new TrailCourtroomUser2({
+      CouponCode: CouponCode,
       password: hashedPassword,
       recording: recording, // Assuming recording is required and set to true
-      caseOverview: "NA",
+      caseOverview: "",
+      date: bookingDate,
+      hour: hour,
     });
 
     trailBooking.bookedSlots = trailBooking.bookedSlots + 1;
@@ -292,16 +301,17 @@ async function courtRoomBook(
 }
 
 async function courtRoomBookValidation(
-  name,
-  phoneNumber,
-  email,
-  hashedPassword,
+  // name,
+  // phoneNumber,
+  // email,
+  // hashedPassword,
+  CouponCode,
   bookingDate,
-  hour,
-  recording,
-  caseOverview
+  hour
+  // recording,
+  // caseOverview
 ) {
-  console.log("Here is caseOverview", caseOverview);
+  // console.log("Here is caseOverview", caseOverview);
   try {
     // Ensure hour is an integer and within valid range
     if (hour < 0 || hour > 23) {
@@ -309,68 +319,77 @@ async function courtRoomBookValidation(
       return `Invalid hour: ${hour}. Hour must be between 0 and 23.`;
     }
 
+    console.log("Checking");
+
     // Find a TrailBooking that matches the date and hour for the user
-    const trailBooking = await TrailBooking.findOne({
+    const trailBooking = await TrialCourtroomCoupon.findOne({
+      CouponCode: CouponCode,
       StartDate: { $lte: bookingDate },
       EndDate: { $gte: bookingDate },
       // StartHour: { $lte: hour },
       // EndHour: { $gt: hour },
-      phoneNumber: phoneNumber,
-      email: email,
-    });
+      // phoneNumber: phoneNumber,
+      // email: email,
+    }).populate("courtroomBookings");
+
+    console.log("Checking");
 
     console.log(trailBooking);
 
     if (!trailBooking) {
       console.log(
-        `User with phone number ${phoneNumber} or email ${email} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `User with ${CouponCode} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`
       );
-      return `User with phone number ${phoneNumber} or email ${email} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      return `User with ${CouponCode} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`;
     }
 
-    // Find existing booking for the same date and hour
-    let booking = await TrailCourtRoomBooking.findOne({
-      date: bookingDate,
-      hour: hour,
-    }).populate("courtroomBookings");
+    // // Find existing booking for the same date and hour
+    // let booking = await TrailCourtRoomBooking.findOne({
+    //   date: bookingDate,
+    //   hour: hour,
+    // }).populate("courtroomBookings");
 
-    if (!booking) {
-      // Create a new booking if it doesn't exist
-      booking = new TrailCourtRoomBooking({
-        date: bookingDate,
-        hour: hour,
-        courtroomBookings: [],
-      });
-    }
+    // if (!booking) {
+    //   // Create a new booking if it doesn't exist
+    //   booking = new TrailCourtRoomBooking({
+    //     date: bookingDate,
+    //     hour: hour,
+    //     courtroomBookings: [],
+    //   });
+    // }
 
-    // Check if the total bookings exceed the limit
-    if (booking.courtroomBookings.length >= 4) {
-      console.log(
-        `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
-      );
-      // throw new Error(
-      //   `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
-      // );
-      return `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
-    }
+    // // Check if the total bookings exceed the limit
+    // if (booking.courtroomBookings.length >= 4) {
+    //   console.log(
+    //     `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
+    //   );
+    //   // throw new Error(
+    //   //   `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
+    //   // );
+    //   return `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
+    // }
 
     // Check if the user with the same mobile number or email already booked a slot at the same hour
-    const existingBooking = booking.courtroomBookings.find(
-      (courtroomBooking) =>
-        courtroomBooking.phoneNumber == phoneNumber ||
-        courtroomBooking.email == email
+    const existingBooking = trailBooking.courtroomBookings.find(
+      (courtroomBooking) => {
+        return (
+          courtroomBooking.hour == hour &&
+          new Date(courtroomBooking.date).toISOString() ==
+            new Date(bookingDate).toISOString()
+        );
+      }
     );
 
     console.log(existingBooking);
 
     if (existingBooking) {
       console.log(
-        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `User with coupan ${CouponCode} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
       );
       // throw new Error(
       //   `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
       // );
-      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      return `User with coupan ${CouponCode} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`;
     }
   } catch (error) {
     console.error(error);
@@ -421,7 +440,7 @@ async function getBookedData(startDate, endDate) {
   }
 }
 
-async function loginToCourtRoom(phoneNumber, password) {
+async function loginToCourtRoom(CouponCode, password) {
   try {
     let currentDate, currentHour;
 
@@ -456,31 +475,39 @@ async function loginToCourtRoom(phoneNumber, password) {
     // const currentDate = "2024-07-30";
     // const currentHour = 14;
 
+    const userBooking1 = await TrailCourtroomUser2.find({
+      // date: currentDate,
+      // hour: currentHour,
+      // CouponCode: CouponCode,
+    });
+
+    console.log(userBooking1);
+
     // Find existing booking for the current date and hour
-    const booking = await TrailCourtRoomBooking.findOne({
+    const userBooking = await TrailCourtroomUser2.findOne({
       date: currentDate,
       hour: currentHour,
-    }).populate("courtroomBookings");
+      CouponCode: CouponCode,
+    });
 
-    if (!booking) {
+    if (!userBooking) {
+      console.log("No bookings found for the current time slot.");
       return "No bookings found for the current time slot.";
     }
 
-    console.log(booking);
-
-    console.log(booking.courtroomBookings.length);
-
-    // Check if the user with the given phone number is in the booking
-    const userBooking = booking.courtroomBookings.find((courtroomBooking) => {
-      console.log(courtroomBooking.phoneNumber, phoneNumber);
-      return courtroomBooking.phoneNumber == phoneNumber;
-    });
-
     console.log(userBooking);
 
-    if (!userBooking) {
-      return "Invalid phone number or password.";
-    }
+    // // Check if the user with the given phone number is in the booking
+    // const userBooking = booking.courtroomBookings.find((courtroomBooking) => {
+    //   console.log(courtroomBooking.phoneNumber, phoneNumber);
+    //   return courtroomBooking.phoneNumber == phoneNumber;
+    // });
+
+    // console.log(userBooking);
+
+    // if (!userBooking) {
+    //   return "Invalid phone number or password.";
+    // }
 
     // Check if the password is correct
     const isPasswordValid = await comparePassword(
@@ -495,7 +522,7 @@ async function loginToCourtRoom(phoneNumber, password) {
     // Generate a JWT token
     const token = generateToken({
       userId: userBooking._id,
-      phoneNumber: userBooking.phoneNumber,
+      CouponCode: CouponCode,
     });
 
     let userId;
@@ -511,10 +538,10 @@ async function loginToCourtRoom(phoneNumber, password) {
 
     // Respond with the token
     return {
-      slotTime: booking.hour,
+      slotTime: userBooking.hour,
       ...token,
       userId: userId,
-      phoneNumber: userBooking.phoneNumber,
+      CouponCode: CouponCode,
     };
   } catch (error) {
     console.error(error);
@@ -537,7 +564,7 @@ async function registerNewCourtRoomUser(body) {
   return response.json();
 }
 
-async function getClientByPhoneNumber(phoneNumber) {
+async function getClientByIdAndCoupon(_id, CouponCode) {
   try {
     let currentDate, currentHour;
 
@@ -571,11 +598,13 @@ async function getClientByPhoneNumber(phoneNumber) {
 
     // const currentDate = "2024-07-30";
     // const currentHour = 14;
+    console.log(CouponCode, _id);
 
     // Find existing booking for the current date and hour
-    const booking = await TrailCourtRoomBooking.findOne({
-      date: currentDate,
-      hour: currentHour,
+    const booking = await TrialCourtroomCoupon.findOne({
+      CouponCode: CouponCode,
+      StartDate: { $lte: currentDate },
+      EndDate: { $gte: currentDate },
     }).populate("courtroomBookings");
 
     if (!booking) {
@@ -586,19 +615,19 @@ async function getClientByPhoneNumber(phoneNumber) {
 
     // Check if the user with the given phone number is in the booking
     const userBooking = booking.courtroomBookings.find((courtroomBooking) => {
-      return courtroomBooking.phoneNumber == phoneNumber;
+      return courtroomBooking._id == _id;
     });
 
     // console.log(userBooking);
 
-    return { userBooking, slotTime: booking.hour };
+    return { userBooking, slotTime: currentHour };
   } catch (error) {
     console.error(error);
     throw new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
   }
 }
 
-async function getClientByUserid(userid) {
+async function getClientByUseridAndCouponCode(userid, CouponCode) {
   try {
     let currentDate, currentHour;
 
@@ -635,9 +664,10 @@ async function getClientByUserid(userid) {
     // const currentHour = 20;
 
     // Find existing booking for the current date and hour
-    const booking = await TrailCourtRoomBooking.findOne({
-      date: currentDate,
-      hour: currentHour,
+    const booking = await TrialCourtroomCoupon.findOne({
+      CouponCode: CouponCode,
+      StartDate: { $lte: currentDate },
+      EndDate: { $gte: currentDate },
     }).populate("courtroomBookings");
 
     // console.log(booking);
@@ -711,8 +741,8 @@ module.exports = {
   adminCourtRoomBook,
   getBookedData,
   loginToCourtRoom,
-  getClientByPhoneNumber,
-  getClientByUserid,
+  getClientByIdAndCoupon,
+  getClientByUseridAndCouponCode,
   storeCaseHistory,
   courtRoomBookValidation,
   getSessionCaseHistory,

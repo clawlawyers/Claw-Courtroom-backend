@@ -54,8 +54,9 @@ async function checkCourtroomAuth(req, res, next) {
     }
     const response = verifyTokenCR(token);
     // console.log(response);
-    const client = await CourtroomService.getClientByPhoneNumber(
-      response.phoneNumber
+    const client = await CourtroomService.getClientByIdAndCoupon(
+      response.userId,
+      response.CouponCode
     );
     if (!client) {
       throw new AppError("No user found", StatusCodes.NOT_FOUND);

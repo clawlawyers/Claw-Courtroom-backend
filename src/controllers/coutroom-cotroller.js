@@ -9,8 +9,9 @@ const CourtroomUser = require("../models/CourtroomUser");
 const FormData = require("form-data");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
-const TrailCourtroomUser = require("../models/trailCourtRoomUser");
+const TrailCourtroomUser2 = require("../models/trialCourtroomUser2");
 const TrailBooking = require("../models/trailBookingAllow");
+const TrialCourtroomCoupon = require("../models/trialCourtroomCoupon");
 
 async function adminBookCourtRoom(req, res) {
   try {
@@ -75,23 +76,26 @@ async function adminBookCourtRoom(req, res) {
 
 async function bookCourtRoom(req, res) {
   try {
-    const { name, phoneNumber, email, password, slots, recording } = req.body;
+    const { slots, recording, CouponCode } = req.body;
+    console.log(req.body);
 
     // Check if required fields are provided
     if (
-      !name ||
-      !phoneNumber ||
-      !email ||
-      !password ||
+      // !name ||
+      // !phoneNumber ||
+      // !email ||
+      // !password ||
+      !CouponCode ||
       !slots ||
       !Array.isArray(slots) ||
-      slots.length === 0
+      slots?.length === 0
     ) {
+      console.log(CouponCode, slots?.length);
       return res.status(400).send("Missing required fields.");
     }
 
-    const hashedPassword = await hashPassword(password);
-    const caseOverview = "";
+    const hashedPassword = await hashPassword(CouponCode);
+    // const caseOverview = "";
 
     for (const slot of slots) {
       const { date, hour } = slot;
@@ -102,32 +106,33 @@ async function bookCourtRoom(req, res) {
       const bookingDate = new Date(date);
 
       const respo = await CourtroomService.courtRoomBook(
-        name,
-        phoneNumber,
-        email,
+        // name,
+        // phoneNumber,
+        // email,
         hashedPassword,
         bookingDate,
         hour,
-        recording,
-        caseOverview
+        CouponCode,
+        recording
+        // caseOverview
       );
 
       if (respo) {
         return res.status(400).send(respo);
       }
     }
-    await sendConfirmationEmail(
-      email,
-      name,
-      phoneNumber,
-      password,
-      slots,
-      (amount = slots.length * 100)
-    );
+    // await sendConfirmationEmail(
+    //   email,
+    //   name,
+    //   phoneNumber,
+    //   password,
+    //   slots,
+    //   (amount = slots.length * 100)
+    // );
 
     res.status(201).send("Courtroom slots booked successfully.");
   } catch (error) {
-    const errorResponse = ErrorResponse({}, error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
@@ -136,14 +141,14 @@ async function bookCourtRoom(req, res) {
 
 async function bookCourtRoomValidation(req, res) {
   try {
-    const { name, phoneNumber, email, password, slots, recording } = req.body;
+    const { CouponCode, slots, recording } = req.body;
 
     // Check if required fields are provided
     if (
-      !name ||
-      !phoneNumber ||
-      !email ||
-      !password ||
+      // !name ||
+      // !phoneNumber ||
+      // !email ||
+      !CouponCode ||
       !slots ||
       !Array.isArray(slots) ||
       slots.length === 0
@@ -151,8 +156,8 @@ async function bookCourtRoomValidation(req, res) {
       return res.status(400).send("Missing required fields.");
     }
 
-    const hashedPassword = await hashPassword(password);
-    const caseOverview = "";
+    // const hashedPassword = await hashPassword(password);
+    // const caseOverview = "";
 
     console.log(req.body);
 
@@ -165,25 +170,26 @@ async function bookCourtRoomValidation(req, res) {
       const bookingDate = new Date(date);
 
       // Find a TrailBooking that matches the date and hour for the user
-      const trailBooking = await TrailBooking.findOne({
+      const trailBooking = await TrialCourtroomCoupon.findOne({
+        CouponCode: CouponCode,
         StartDate: { $lte: bookingDate },
         EndDate: { $gte: bookingDate },
         // StartHour: { $lte: hour },
         // EndHour: { $gt: hour },
-        phoneNumber: phoneNumber,
-        email: email,
+        // phoneNumber: phoneNumber,
+        // email: email,
       });
 
       console.log(trailBooking);
 
       if (!trailBooking) {
         console.log(
-          `User with phone number ${phoneNumber} or email ${email} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`
+          `User with ${CouponCode}  cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`
         );
 
         return res.status(StatusCodes.OK).json(
           SuccessResponse({
-            data: `User with phone number ${phoneNumber} or email ${email} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`,
+            data: `User with ${CouponCode}  cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`,
           })
         );
       }
@@ -193,24 +199,27 @@ async function bookCourtRoomValidation(req, res) {
         trailBooking?.totalSlots <= trailBooking?.bookedSlots
       ) {
         console.log(
-          `User with phone number ${phoneNumber} or email ${email} cannot have enough number of allowed slot.`
+          `User with ${CouponCode}  cannot have enough number of allowed slot.`
         );
         return res.status(StatusCodes.OK).json(
           SuccessResponse({
-            data: `User with phone number ${phoneNumber} or email ${email} cannot have enough number of allowed slot.`,
+            data: `User with ${CouponCode}  cannot have enough number of allowed slot.`,
           })
         );
       }
 
+      console.log("i am here");
+
       const resp = await CourtroomService.courtRoomBookValidation(
-        name,
-        phoneNumber,
-        email,
-        hashedPassword,
+        // name,
+        // phoneNumber,
+        // email,
+        // hashedPassword,
+        CouponCode,
         bookingDate,
-        hour,
-        recording,
-        caseOverview
+        hour
+        // recording,
+        // caseOverview
       );
 
       console.log(resp);
@@ -226,7 +235,7 @@ async function bookCourtRoomValidation(req, res) {
       .status(StatusCodes.OK)
       .json(SuccessResponse({ data: "Slot can be book" }));
   } catch (error) {
-    const errorResponse = ErrorResponse({}, error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
@@ -251,13 +260,13 @@ async function getBookedData(req, res) {
 }
 
 async function loginToCourtRoom(req, res) {
-  const { phoneNumber, password } = req.body;
+  const { CouponCode, password } = req.body;
   try {
-    if (!phoneNumber || !password) {
+    if (!CouponCode || !password) {
       return res.status(400).send("Missing required fields.");
     }
     const response = await CourtroomService.loginToCourtRoom(
-      phoneNumber,
+      CouponCode,
       password
     );
     res.status(200).json(response);
@@ -497,7 +506,7 @@ async function fetchOverview({ user_id, case_overview }) {
 //     console.log(case_overview);
 
 //     // Find the CourtroomUser document by userId
-//     const courtroomUser = await TrailCourtroomUser.findOne({ userId });
+//     const courtroomUser = await TrailCourtroomUser2.findOne({ userId });
 
 //     if (!courtroomUser) {
 //       return res
@@ -567,7 +576,9 @@ async function edit_case(req, res) {
     const editedArgument = await FetchEdit_Case({ user_id, case_overview });
 
     // Find the CourtroomUser document by userId
-    const courtroomUser = await TrailCourtroomUser.findOne({ userId: user_id });
+    const courtroomUser = await TrailCourtroomUser2.findOne({
+      userId: user_id,
+    });
 
     if (!courtroomUser) {
       return res
@@ -613,7 +624,9 @@ async function getCaseOverview(req, res) {
   console.log(user_id);
   try {
     // Find the CourtroomUser document by userId
-    const courtroomUser = await TrailCourtroomUser.findOne({ userId: user_id });
+    const courtroomUser = await TrailCourtroomUser2.findOne({
+      userId: user_id,
+    });
 
     console.log(courtroomUser);
 
@@ -947,13 +960,16 @@ async function FetchHallucinationQuestions(body) {
 
 async function CaseHistory(req, res) {
   const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const CouponCode = req.body?.courtroomClient?.userBooking?.CouponCode;
   try {
     const caseHistory = await FetchCaseHistory({ user_id });
 
     // save into database or update database with new data if case history is already present in the database
-    const { User_id, Booking_id } = await CourtroomService.getClientByUserid(
-      user_id
-    );
+    const { User_id, Booking_id } =
+      await CourtroomService.getClientByUseridAndCouponCode(
+        user_id,
+        CouponCode
+      );
 
     // console.log(User_id, Booking_id);
 
@@ -961,7 +977,8 @@ async function CaseHistory(req, res) {
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ caseHistory }));
   } catch (error) {
-    const errorResponse = ErrorResponse({}, error);
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
