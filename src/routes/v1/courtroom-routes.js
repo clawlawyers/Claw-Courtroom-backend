@@ -31,7 +31,7 @@ router.post(
     { name: "file2" },
     { name: "file3" },
   ]),
-  // authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkCourtroomAuth,
   CourtroomController.newcase
 );
 

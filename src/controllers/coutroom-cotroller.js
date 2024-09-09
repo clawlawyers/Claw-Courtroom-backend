@@ -323,6 +323,7 @@ async function newcase(req, res) {
 
   const { isMultilang } = req.body;
   // console.log(isMultilang);
+  console.log(req.body?.courtroomClient);
   const { userId } = req.body?.courtroomClient?.userBooking;
   // const userId = "aee9ee14-7cbb-451a-a33e-13b5287ee7d8";
   console.log(userId);
