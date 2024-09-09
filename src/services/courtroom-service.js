@@ -670,7 +670,9 @@ async function getClientByUseridAndCouponCode(userid, CouponCode) {
       EndDate: { $gte: currentDate },
     }).populate("courtroomBookings");
 
-    // console.log(booking);
+    console.log(CouponCode, currentDate);
+
+    console.log(booking);
 
     if (!booking) {
       throw Error("No bookings found for the current time slot.");

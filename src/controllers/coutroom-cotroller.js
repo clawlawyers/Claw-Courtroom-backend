@@ -922,16 +922,19 @@ async function FetchRestCase(body) {
 
 async function endCase(req, res) {
   // const user_id = req.body?.courtroomClient?.userBooking?.userId;
-  const { userId } = req.body;
+  const user_id = req.body.userId;
+  const { CouponCode } = req.body;
 
   try {
-    const endCase = await FetchEndCase({ userId });
+    const endCase = await FetchEndCase({ user_id });
 
     // save into database
 
-    const { User_id, Booking_id } = await CourtroomService.getClientByUserid(
-      userId
-    );
+    const { User_id, Booking_id } =
+      await CourtroomService.getClientByUseridAndCouponCode(
+        user_id,
+        CouponCode
+      );
 
     await CourtroomService.storeCaseHistory(User_id, Booking_id, endCase);
 
