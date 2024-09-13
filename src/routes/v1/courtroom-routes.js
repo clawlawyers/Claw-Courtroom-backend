@@ -183,6 +183,12 @@ router.post(
   CourtroomController.viewDocument
 );
 
+router.post(
+  "/api/edit_application",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.editApplication
+);
+
 // AddContactUsQuery Route
 
 router.post("/add/ContactUsQuery", CourtroomController.AddContactUsQuery);

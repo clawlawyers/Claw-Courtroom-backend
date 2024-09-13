@@ -1695,6 +1695,47 @@ async function FetchViewDocument({ folder_id, case_id }) {
   }
 }
 
+async function editApplication(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userBooking?.userId;
+    const { query } = req.body;
+    const editApplication = await fetchEditApplication({ user_id, query });
+    res.status(StatusCodes.OK).json(SuccessResponse({ editApplication }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function fetchEditApplication({ user_id, query }) {
+  try {
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/edit_application`,
+      {
+        method: "POST",
+        body: JSON.stringify({ user_id, query }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch edit application");
+  }
+}
+
 async function AddContactUsQuery(req, res) {
   const {
     firstName,
@@ -1794,4 +1835,5 @@ module.exports = {
   application,
   caseSearch,
   viewDocument,
+  editApplication,
 };
