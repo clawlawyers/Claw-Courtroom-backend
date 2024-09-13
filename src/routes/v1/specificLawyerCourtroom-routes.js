@@ -204,6 +204,34 @@ router.post(
   SpecificLawyerCourtroomController.testimonyQuestions
 );
 
+router.post(
+  "/api/application",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  CourtroomController.application
+);
+
+router.post(
+  "/api/case_search",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  CourtroomController.caseSearch
+);
+
+router.post(
+  "/api/view_document",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  CourtroomController.viewDocument
+);
+
+router.post(
+  "/api/edit_application",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  CourtroomController.editApplication
+);
+
 // AddContactUsQuery Route
 
 router.post(
