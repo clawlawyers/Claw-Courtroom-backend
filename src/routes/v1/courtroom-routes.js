@@ -165,6 +165,24 @@ router.post(
   CourtroomController.testimonyQuestions
 );
 
+router.post(
+  "/api/application",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.application
+);
+
+router.post(
+  "/api/case_search",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.caseSearch
+);
+
+router.post(
+  "/api/view_document",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.viewDocument
+);
+
 // AddContactUsQuery Route
 
 router.post("/add/ContactUsQuery", CourtroomController.AddContactUsQuery);
