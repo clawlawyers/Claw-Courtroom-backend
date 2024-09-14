@@ -194,8 +194,42 @@ router.post(
   "/api/relevant_case_law",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
-
   SpecificLawyerCourtroomController.relevantCaseLaw
+);
+
+router.post(
+  "/api/testimony_questions",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.testimonyQuestions
+);
+
+router.post(
+  "/api/application",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.application
+);
+
+router.post(
+  "/api/case_search",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.caseSearch
+);
+
+router.post(
+  "/api/view_document",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.viewDocument
+);
+
+router.post(
+  "/api/edit_application",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.editApplication
 );
 
 // AddContactUsQuery Route

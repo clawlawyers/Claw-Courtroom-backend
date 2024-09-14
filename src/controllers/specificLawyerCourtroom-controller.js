@@ -262,6 +262,8 @@ async function newcase(req, res) {
 
   // console.log(files);
 
+  const { isMultilang } = req.body;
+
   const { userId } = req.body?.courtroomClient;
   // const userId = "f497c76b-2894-4636-8d2b-6391bc6bccdc";
   console.log(userId);
@@ -306,7 +308,9 @@ async function newcase(req, res) {
 
     console.log(formData);
 
-    const case_overview = await getOverview(formData);
+    const case_overview = isMultilang
+      ? await getOverview(formData)
+      : await getOverviewMultilang(formData);
 
     console.log(case_overview);
 
@@ -351,6 +355,36 @@ async function getOverview(formData) {
       body: formData,
       headers: formData.getHeaders(), // Ensure correct headers are set
     });
+
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error("Error in getOverview:", error);
+    // console.error("Error in getOverview:");
+    throw error;
+  }
+}
+
+async function getOverviewMultilang(formData) {
+  try {
+    // Dynamically import node-fetch
+    const fetch = (await import("node-fetch")).default;
+
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/new_case_multilang`,
+      {
+        method: "POST",
+        body: formData,
+        headers: formData.getHeaders(), // Ensure correct headers are set
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text(); // Get the error message from the response
@@ -1493,6 +1527,209 @@ async function FetchRelevantCases({ user_id }) {
   }
 }
 
+async function testimonyQuestions(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userId;
+    const { testimony_statement } = req.body;
+    const testimonyQuestions = await FetchTestimonyQuestions({
+      user_id,
+      testimony_statement,
+    });
+    res.status(StatusCodes.OK).json(SuccessResponse({ testimonyQuestions }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function FetchTestimonyQuestions({ user_id, testimony_statement }) {
+  try {
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/testimony_questions`,
+      {
+        method: "POST",
+        body: JSON.stringify({ user_id, testimony_statement }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch testimony questions");
+  }
+}
+
+async function application(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userId;
+    const { action } = req.body;
+    const application = await fetchApplication({ user_id, action });
+    res.status(StatusCodes.OK).json(SuccessResponse({ application }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function fetchApplication({ user_id, action }) {
+  try {
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/application`, {
+      method: "POST",
+      body: JSON.stringify({ user_id, action }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch application");
+  }
+}
+
+async function caseSearch(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userId;
+    const { query } = req.body;
+    const caseSearch = await FetchCaseSearch({ user_id, query });
+    res.status(StatusCodes.OK).json(SuccessResponse({ caseSearch }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function FetchCaseSearch({ user_id, query }) {
+  try {
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/case_search`, {
+      method: "POST",
+      body: JSON.stringify({ user_id, query }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch case search");
+  }
+}
+
+async function viewDocument(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userId;
+    const { folder_id, case_id } = req.body;
+    const viewDocument = await FetchViewDocument({ folder_id, case_id });
+    res.status(StatusCodes.OK).json(SuccessResponse({ viewDocument }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function FetchViewDocument({ folder_id, case_id }) {
+  try {
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/view_document`,
+      {
+        method: "POST",
+        body: JSON.stringify({ folder_id, case_id }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch view document");
+  }
+}
+
+async function editApplication(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userId;
+    const { query } = req.body;
+    const editApplication = await fetchEditApplication({ user_id, query });
+    res.status(StatusCodes.OK).json(SuccessResponse({ editApplication }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function fetchEditApplication({ user_id, query }) {
+  try {
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/edit_application`,
+      {
+        method: "POST",
+        body: JSON.stringify({ user_id, query }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch edit application");
+  }
+}
+
 async function AddContactUsQuery(req, res) {
   const {
     firstName,
@@ -1684,4 +1921,9 @@ module.exports = {
   relevantCaseLaw,
   newCaseText,
   relevantCasesJudgeLawyer,
+  testimonyQuestions,
+  application,
+  caseSearch,
+  viewDocument,
+  editApplication,
 };

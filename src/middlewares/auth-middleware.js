@@ -53,7 +53,7 @@ async function checkClientAuth(req, res, next) {
 async function checkCourtroomAuth(req, res, next) {
   try {
     const token = req.headers["authorization"].split(" ")[1];
-    // console.log(token);
+    console.log(token);
     if (!token) {
       throw new AppError("Missing jwt token", StatusCodes.BAD_REQUEST);
     }
