@@ -106,7 +106,6 @@ router.post(
   "/api/downloadCaseHistory",
   authMiddleware.checkCourtroomAuth,
   CourtroomController.downloadCaseHistory
- 
 );
 router.post(
   "/api/downloadSessionCaseHistory",
@@ -134,8 +133,7 @@ router.post(
   authMiddleware.checkCourtroomAuth,
   CourtroomController.download
 );
-);
-  router.get(
+router.get(
   "/getHistory",
   authMiddleware.checkCourtroomAuth,
   authMiddleware.checkCourtroomAuth,
@@ -148,16 +146,14 @@ router.post(
   authMiddleware.checkCourtroomAuth,
   CourtroomController.evidence
 );
-);
-  
+
 router.post(
   "/api/ask_query",
   authMiddleware.checkCourtroomAuth,
   authMiddleware.checkCourtroomAuth,
   CourtroomController.askQuery
 );
-);
-  
+
 router.post(
   "/resetUserid",
   authMiddleware.checkCourtroomAuth,
