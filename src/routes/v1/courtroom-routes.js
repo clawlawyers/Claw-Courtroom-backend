@@ -109,14 +109,14 @@ router.post(
 );
 router.post(
   "/api/downloadSessionCaseHistory",
-  "/api/downloadSessionCaseHistory",
+
   authMiddleware.checkCourtroomAuth,
   CourtroomController.downloadSessionCaseHistory
 );
 
 router.post(
   "/api/getSessionCaseHistory",
-  "/api/getSessionCaseHistory",
+
   authMiddleware.checkCourtroomAuth,
   CourtroomController.getSessionCaseHistory
 );
