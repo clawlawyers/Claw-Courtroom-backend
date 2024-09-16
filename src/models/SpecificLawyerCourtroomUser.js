@@ -66,8 +66,7 @@ const SpecificLawyerCourtroomUserSchema = new Schema({
   recording: { type: Boolean, required: true },
   caseOverview: {
     type: String,
-    required: true,
-    default: "",
+    default: "NA",
   },
   totalHours: { type: Number, required: true },
   totalUsedHours: { type: Number, required: true, default: 0 },
