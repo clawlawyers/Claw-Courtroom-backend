@@ -109,12 +109,14 @@ router.post(
 );
 router.post(
   "/api/downloadSessionCaseHistory",
+
   authMiddleware.checkCourtroomAuth,
   CourtroomController.downloadSessionCaseHistory
 );
 
 router.post(
   "/api/getSessionCaseHistory",
+
   authMiddleware.checkCourtroomAuth,
   CourtroomController.getSessionCaseHistory
 );
@@ -122,15 +124,18 @@ router.post(
 router.post(
   "/api/downloadFirtDraft",
   authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkCourtroomAuth,
   CourtroomController.downloadFirtDraft
 );
 router.post(
   "/api/download",
   authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkCourtroomAuth,
   CourtroomController.download
 );
 router.get(
   "/getHistory",
+  authMiddleware.checkCourtroomAuth,
   authMiddleware.checkCourtroomAuth,
   CourtroomController.getHistory
 );
@@ -138,11 +143,13 @@ router.get(
 router.post(
   "/api/evidence",
   authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkCourtroomAuth,
   CourtroomController.evidence
 );
 
 router.post(
   "/api/ask_query",
+  authMiddleware.checkCourtroomAuth,
   authMiddleware.checkCourtroomAuth,
   CourtroomController.askQuery
 );
@@ -150,11 +157,13 @@ router.post(
 router.post(
   "/resetUserid",
   authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkCourtroomAuth,
   CourtroomController.resetUserId
 );
 
 router.post(
   "/api/relevant_case_law",
+  authMiddleware.checkCourtroomAuth,
   authMiddleware.checkCourtroomAuth,
   CourtroomController.relevantCaseLaw
 );
@@ -162,11 +171,13 @@ router.post(
 router.post(
   "/api/testimony_questions",
   authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkCourtroomAuth,
   CourtroomController.testimonyQuestions
 );
 
 router.post(
   "/api/application",
+  authMiddleware.checkCourtroomAuth,
   authMiddleware.checkCourtroomAuth,
   CourtroomController.application
 );
@@ -174,11 +185,13 @@ router.post(
 router.post(
   "/api/case_search",
   authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkCourtroomAuth,
   CourtroomController.caseSearch
 );
 
 router.post(
   "/api/view_document",
+  authMiddleware.checkCourtroomAuth,
   authMiddleware.checkCourtroomAuth,
   CourtroomController.viewDocument
 );
@@ -186,11 +199,13 @@ router.post(
 router.post(
   "/api/edit_application",
   authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkCourtroomAuth,
   CourtroomController.editApplication
 );
 
 // AddContactUsQuery Route
 
 router.post("/add/ContactUsQuery", CourtroomController.AddContactUsQuery);
+router.post("/get_pdf", CourtroomController.getpdf);
 
 module.exports = router;

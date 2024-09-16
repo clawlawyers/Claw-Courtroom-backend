@@ -9,6 +9,7 @@ const CourtroomUser = require("../models/CourtroomUser");
 const FormData = require("form-data");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
+const axios = require("axios");
 
 async function bookCourtRoom(req, res) {
   try {
@@ -996,6 +997,13 @@ async function FetchCaseHistory(body) {
 
 async function downloadCaseHistory(req, res) {
   const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const response = await axios.get(
+    "https://res.cloudinary.com/dumjofgxz/image/upload/v1725968109/gptclaw_l8krlt.png",
+    {
+      responseType: "arraybuffer",
+    }
+  );
+  const imageBuffer = Buffer.from(response.data, "binary");
   try {
     const caseHistory = await FetchCaseHistory({ user_id });
 
@@ -1052,19 +1060,48 @@ async function downloadCaseHistory(req, res) {
 
     // Add verdict at the end
     addBoldHeading("Verdict:");
-    doc.text(caseHistory.verdict);
+    doc.text(caseHistory.verdict); // Add watermark on the first page
+    // Define the watermark function
 
     // Collect the PDF in chunks
     const chunks = [];
     doc.on("data", (chunk) => chunks.push(chunk));
-    doc.on("end", () => {
+    doc.on("end", async () => {
       const pdfBuffer = Buffer.concat(chunks);
+
+      // Load the generated PDF to add watermark on every page
+      const { PDFDocument: LibPDFDocument, rgb } = require("pdf-lib");
+      const pdfDoc = await LibPDFDocument.load(pdfBuffer);
+      const pages = pdfDoc.getPages();
+      const watermarkImage = await pdfDoc.embedPng(imageBuffer);
+
+      const watermarkText = "CONFIDENTIAL";
+
+      pages.forEach((page) => {
+        const { width, height } = page.getSize();
+        const imageWidth = 400; // Adjust size as needed
+        const imageHeight =
+          (imageWidth / watermarkImage.width) * watermarkImage.height; // Maintain aspect ratio
+        const xPosition = (width - imageWidth) / 2;
+        const yPosition = (height - imageHeight) / 2;
+
+        page.drawImage(watermarkImage, {
+          x: xPosition,
+          y: yPosition,
+          width: imageWidth,
+          height: imageHeight,
+          opacity: 0.3, // Adjust opacity as needed
+        });
+      });
+
+      // Save the final PDF with watermark
+      const watermarkedPdfBytes = await pdfDoc.save();
       res.setHeader(
         "Content-disposition",
         `attachment; filename="case_history_${user_id}.pdf"`
       );
       res.setHeader("Content-type", "application/pdf");
-      res.send(pdfBuffer);
+      res.send(Buffer.from(watermarkedPdfBytes));
     });
 
     // End the PDF document
@@ -1798,6 +1835,121 @@ async function getSessionCaseHistory(req, res) {
       .json(errorResponse);
   }
 }
+async function getpdf(req, res) {
+  const { document } = req.body;
+  try {
+    // Define file path to save PDF
+    const filePath = path.join(__dirname, "Rent_Agreement.pdf");
+    const response = await axios.get(
+      "https://res.cloudinary.com/dumjofgxz/image/upload/v1725968109/gptclaw_l8krlt.png",
+      {
+        responseType: "arraybuffer",
+      }
+    );
+    const imageBuffer = Buffer.from(response.data, "binary");
+    const doc = new PDFDocument();
+    const regularFontPath = path.join(
+      __dirname,
+      "..",
+      "fonts",
+      "NotoSans-Regular.ttf"
+    );
+    const boldFontPath = path.join(
+      __dirname,
+      "..",
+      "fonts",
+      "NotoSans-Bold.ttf"
+    );
+
+    // Register both regular and bold fonts
+    doc.registerFont("NotoSans", regularFontPath);
+    doc.registerFont("NotoSans-Bold", boldFontPath);
+
+    doc.font("NotoSans");
+
+    // // Pipe the document to a file or to response
+    // doc.pipe(fs.createWriteStream(filePath));
+
+    // // Pipe the document to the response (for direct download)
+    // doc.pipe(res);
+    // doc.opacity(0.5);
+    // doc.image(imageBuffer, {
+    //   fit: [600, 600],
+    //   opacity: 0.1,
+    //   align: "center",
+    //   valign: "center",
+    // });
+    // doc.opacity(1);
+
+    // Add content to the PDF
+    // doc.fontSize(20).text("RENT AGREEMENT", { align: "center" });
+
+    // doc.moveDown();
+    const textLines = document.split("\\n");
+    const pageWidth = doc.page.width;
+    const pageHeight = doc.page.height;
+    const img = doc.openImage(imageBuffer);
+    const imgWidth = img.width;
+    const imgHeight = img.height;
+    doc
+      .font("NotoSans-Bold")
+      .fontSize(14)
+      .text("Case History", { align: "center" });
+
+    // Calculate position for the image to be centered
+    const x = (pageWidth - imgWidth) / 2;
+    const y = (pageHeight - imgHeight) / 2;
+    textLines.forEach((line, i) => {
+      doc.text(line, {
+        width: 450,
+        align: "left",
+      });
+      doc.moveDown(0.5); // Adds space between lines
+    });
+    doc.on("end", async () => {
+      const pdfBuffer = Buffer.concat(chunks);
+
+      // Load the generated PDF to add watermark on every page
+      const { PDFDocument: LibPDFDocument, rgb } = require("pdf-lib");
+      const pdfDoc = await LibPDFDocument.load(pdfBuffer);
+      const pages = pdfDoc.getPages();
+      const watermarkImage = await pdfDoc.embedPng(imageBuffer);
+
+  
+
+      pages.forEach((page) => {
+        const { width, height } = page.getSize();
+        const imageWidth = 400; // Adjust size as needed
+        const imageHeight =
+          (imageWidth / watermarkImage.width) * watermarkImage.height; // Maintain aspect ratio
+        const xPosition = (width - imageWidth) / 2;
+        const yPosition = (height - imageHeight) / 2;
+
+        page.drawImage(watermarkImage, {
+          x: xPosition,
+          y: yPosition,
+          width: imageWidth,
+          height: imageHeight,
+          opacity: 0.3, // Adjust opacity as needed
+        });
+      });
+
+      // Save the final PDF with watermark
+      const watermarkedPdfBytes = await pdfDoc.save();
+      res.setHeader(
+        "Content-disposition",
+        `attachment; filename="new.pdf"`
+      );
+      res.setHeader("Content-type", "application/pdf");
+      res.send(Buffer.from(watermarkedPdfBytes));
+    });
+
+    doc.end();
+
+    // Set the response headers for download
+  
+  } catch (e) {}
+}
 
 module.exports = {
   bookCourtRoom,
@@ -1836,4 +1988,5 @@ module.exports = {
   caseSearch,
   viewDocument,
   editApplication,
+  getpdf,
 };
