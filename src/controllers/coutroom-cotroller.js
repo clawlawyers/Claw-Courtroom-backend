@@ -1947,11 +1947,7 @@ async function getpdf(req, res) {
     doc.end();
 
     // Set the response headers for download
-    res.setHeader(
-      "Content-disposition",
-      "attachment; filename=Rent_Agreement.pdf"
-    );
-    res.setHeader("Content-type", "application/pdf");
+  
   } catch (e) {}
 }
 

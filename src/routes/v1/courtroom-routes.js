@@ -106,7 +106,7 @@ router.post(
   "/api/downloadCaseHistory",
   authMiddleware.checkCourtroomAuth,
   CourtroomController.downloadCaseHistory
-  CourtroomController.downloadCaseHistory
+ 
 );
 router.post(
   "/api/downloadSessionCaseHistory",
