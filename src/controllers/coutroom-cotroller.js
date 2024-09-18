@@ -773,7 +773,7 @@ async function FetchRelevantCasesJudgeLawyer(body) {
 async function getDraft(req, res) {
   const user_id = req.body?.courtroomClient?.userBooking?.userId;
   try {
-    const draft = await FetchGetDraft({ user_id });
+    const draft = await FetchGetDraft({ user_id, favor: "" });
     return res.status(StatusCodes.OK).json(SuccessResponse({ draft }));
   } catch (error) {
     const errorResponse = ErrorResponse({}, error);
@@ -1915,8 +1915,6 @@ async function getpdf(req, res) {
       const pages = pdfDoc.getPages();
       const watermarkImage = await pdfDoc.embedPng(imageBuffer);
 
-  
-
       pages.forEach((page) => {
         const { width, height } = page.getSize();
         const imageWidth = 400; // Adjust size as needed
@@ -1936,10 +1934,7 @@ async function getpdf(req, res) {
 
       // Save the final PDF with watermark
       const watermarkedPdfBytes = await pdfDoc.save();
-      res.setHeader(
-        "Content-disposition",
-        `attachment; filename="new.pdf"`
-      );
+      res.setHeader("Content-disposition", `attachment; filename="new.pdf"`);
       res.setHeader("Content-type", "application/pdf");
       res.send(Buffer.from(watermarkedPdfBytes));
     });
@@ -1947,7 +1942,6 @@ async function getpdf(req, res) {
     doc.end();
 
     // Set the response headers for download
-  
   } catch (e) {}
 }
 
