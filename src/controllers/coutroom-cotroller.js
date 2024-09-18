@@ -1837,17 +1837,21 @@ async function getSessionCaseHistory(req, res) {
 }
 async function getpdf(req, res) {
   const { document } = req.body;
+  console.log(document);
   try {
     // Define file path to save PDF
-    const filePath = path.join(__dirname, "Rent_Agreement.pdf");
-    const response = await axios.get(
-      "https://res.cloudinary.com/dumjofgxz/image/upload/v1725968109/gptclaw_l8krlt.png",
-      {
-        responseType: "arraybuffer",
-      }
-    );
-    const imageBuffer = Buffer.from(response.data, "binary");
-    const doc = new PDFDocument();
+    // const filePath = path.join(__dirname, "Rent_Agreement.pdf");
+    // const response = await axios.get(
+    //   "https://res.cloudinary.com/dumjofgxz/image/upload/v1725968109/gptclaw_l8krlt.png",
+    //   {
+    //     responseType: "arraybuffer",
+    //   }
+    // );
+    // console.log(response.data);
+
+    // const imageBuffer = Buffer.from(response.data, "binary");
+
+    console.log("imagepath");
     const regularFontPath = path.join(
       __dirname,
       "..",
@@ -1860,12 +1864,13 @@ async function getpdf(req, res) {
       "fonts",
       "NotoSans-Bold.ttf"
     );
-
-    // Register both regular and bold fonts
+    console.log("hjkvh");
+    const doc = new PDFDocument();
     doc.registerFont("NotoSans", regularFontPath);
     doc.registerFont("NotoSans-Bold", boldFontPath);
 
     doc.font("NotoSans");
+    console.log("hg");
 
     // // Pipe the document to a file or to response
     // doc.pipe(fs.createWriteStream(filePath));
@@ -1886,33 +1891,34 @@ async function getpdf(req, res) {
 
     // doc.moveDown();
     const textLines = document.split("\\n");
-    const pageWidth = doc.page.width;
-    const pageHeight = doc.page.height;
-    const img = doc.openImage(imageBuffer);
-    const imgWidth = img.width;
-    const imgHeight = img.height;
-    doc
-      .font("NotoSans-Bold")
-      .fontSize(14)
-      .text("Case History", { align: "center" });
+    // const textLines = ["asdadasda"];
+    console.log(textLines);
+    // cosnole.log("hi");
+    for (var i = 0; i < textLines.length; i++) {
+      doc.text(textLines[i]);
+      doc.moveDown();
+    }
 
-    // Calculate position for the image to be centered
-    const x = (pageWidth - imgWidth) / 2;
-    const y = (pageHeight - imgHeight) / 2;
-    textLines.forEach((line, i) => {
-      doc.text(line, {
-        width: 450,
-        align: "left",
-      });
-      doc.moveDown(0.5); // Adds space between lines
-    });
+    // textLines.map((line, i) => {
+    //   cosnole.log(line);
+
+    //   doc.text(line);
+    //   doc.moveDown(); // Adds space between lines
+    // });
+    const chunks = [];
+    doc.on("data", (chunk) => chunks.push(chunk));
     doc.on("end", async () => {
+      console.log("hi");
+
       const pdfBuffer = Buffer.concat(chunks);
 
       // Load the generated PDF to add watermark on every page
       const { PDFDocument: LibPDFDocument, rgb } = require("pdf-lib");
       const pdfDoc = await LibPDFDocument.load(pdfBuffer);
       const pages = pdfDoc.getPages();
+      const imagePath = path.join(__dirname, "..", "fonts", "gptclaw.png"); // Update with the correct image path
+      console.log("imagepath");
+      const imageBuffer = fs.readFileSync(imagePath);
       const watermarkImage = await pdfDoc.embedPng(imageBuffer);
 
       pages.forEach((page) => {
@@ -1931,6 +1937,7 @@ async function getpdf(req, res) {
           opacity: 0.3, // Adjust opacity as needed
         });
       });
+      console.log("hi");
 
       // Save the final PDF with watermark
       const watermarkedPdfBytes = await pdfDoc.save();
