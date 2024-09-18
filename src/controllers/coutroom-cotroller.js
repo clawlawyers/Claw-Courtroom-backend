@@ -828,7 +828,7 @@ async function FetchRelevantCasesJudgeLawyer(body) {
 async function getDraft(req, res) {
   const user_id = req.body?.courtroomClient?.userBooking?.userId;
   try {
-    const draft = await FetchGetDraft({ user_id });
+    const draft = await FetchGetDraft({ user_id, favor: "" });
     return res.status(StatusCodes.OK).json(SuccessResponse({ draft }));
   } catch (error) {
     const errorResponse = ErrorResponse({}, error);
