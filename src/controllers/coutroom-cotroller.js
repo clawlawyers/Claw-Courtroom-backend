@@ -318,8 +318,8 @@ async function newcase(req, res) {
     console.log(formData);
 
     const case_overview = isMultilang
-      ? await getOverview(formData)
-      : await getOverviewMultilang(formData);
+      ? await getOverviewMultilang(formData)
+      : await getOverview(formData);
 
     console.log(case_overview);
 
