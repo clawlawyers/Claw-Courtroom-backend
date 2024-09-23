@@ -347,7 +347,7 @@ async function newcase(req, res) {
     return res.status(StatusCodes.OK).json(SuccessResponse({ case_overview }));
   } catch (error) {
     console.log(error);
-    const errorResponse = ErrorResponse({}, error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
