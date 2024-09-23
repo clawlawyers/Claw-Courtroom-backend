@@ -367,9 +367,7 @@ async function getOverview(formData) {
 
     if (!response.ok) {
       const errorText = await response.text(); // Get the error message from the response
-      throw new Error(
-        `HTTP error! status: ${response.status}, message: ${errorText}`
-      );
+      throw new Error(`${errorText}`);
     }
 
     const responseData = await response.json();
@@ -397,9 +395,7 @@ async function getOverviewMultilang(formData) {
 
     if (!response.ok) {
       const errorText = await response.text(); // Get the error message from the response
-      throw new Error(
-        `HTTP error! status: ${response.status}, message: ${errorText}`
-      );
+      throw new Error(`${errorText}`);
     }
 
     const responseData = await response.json();
