@@ -369,8 +369,8 @@ async function newcase(req, res) {
     console.log(formData);
 
     const case_overview = isMultilang
-      ? await getOverview(formData)
-      : await getOverviewMultilang(formData);
+      ? await getOverviewMultilang(formData)
+      : await getOverview(formData);
 
     console.log(case_overview);
 
@@ -398,7 +398,7 @@ async function newcase(req, res) {
     return res.status(StatusCodes.OK).json(SuccessResponse({ case_overview }));
   } catch (error) {
     console.log(error);
-    const errorResponse = ErrorResponse({}, error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
@@ -418,9 +418,7 @@ async function getOverview(formData) {
 
     if (!response.ok) {
       const errorText = await response.text(); // Get the error message from the response
-      throw new Error(
-        `HTTP error! status: ${response.status}, message: ${errorText}`
-      );
+      throw new Error(`${errorText}`);
     }
 
     const responseData = await response.json();
@@ -448,9 +446,7 @@ async function getOverviewMultilang(formData) {
 
     if (!response.ok) {
       const errorText = await response.text(); // Get the error message from the response
-      throw new Error(
-        `HTTP error! status: ${response.status}, message: ${errorText}`
-      );
+      throw new Error(`${errorText}`);
     }
 
     const responseData = await response.json();
