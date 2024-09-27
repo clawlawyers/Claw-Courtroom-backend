@@ -766,10 +766,31 @@ async function FetchRelevantCasesJudgeLawyer(body) {
   }
 }
 
+async function setFavor(req, res) {
+  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const favor = req.body.favor;
+  try {
+    const updateUserFavor = await CourtroomUser.findOneAndUpdate(
+      { userId: user_id },
+      { drafteFavor: favor }
+    );
+    return res
+      .status(StatusCodes.OK)
+      .json(SuccessResponse({ message: "Favor updated", updateUserFavor }));
+  } catch (error) {
+    const errorResponse = ErrorResponse({}, error.message);
+    console.log(error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
 async function getDraft(req, res) {
   const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const favor = req.body?.courtroomClient?.userBooking?.drafteFavor;
   try {
-    const draft = await FetchGetDraft({ user_id, favor: "" });
+    const draft = await FetchGetDraft({ user_id, favor });
     return res.status(StatusCodes.OK).json(SuccessResponse({ draft }));
   } catch (error) {
     const errorResponse = ErrorResponse({}, error);
@@ -1985,4 +2006,5 @@ module.exports = {
   viewDocument,
   editApplication,
   getpdf,
+  setFavor,
 };

@@ -73,6 +73,12 @@ router.post(
 );
 
 router.post(
+  "/api/setFavor",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.setFavor
+);
+
+router.post(
   "/api/draft",
   authMiddleware.checkCourtroomAuth,
   CourtroomController.getDraft

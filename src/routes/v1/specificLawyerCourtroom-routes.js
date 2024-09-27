@@ -92,6 +92,13 @@ router.post(
 );
 
 router.post(
+  "/api/setFavor",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.setFavor
+);
+
+router.post(
   "/api/draft",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
