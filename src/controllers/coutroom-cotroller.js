@@ -793,7 +793,7 @@ async function getDraft(req, res) {
     const draft = await FetchGetDraft({ user_id, favor });
     return res.status(StatusCodes.OK).json(SuccessResponse({ draft }));
   } catch (error) {
-    const errorResponse = ErrorResponse({}, error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
