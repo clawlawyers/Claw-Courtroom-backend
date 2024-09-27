@@ -1789,6 +1789,49 @@ async function fetchEditApplication({ user_id, query }) {
   }
 }
 
+async function sidebarCasesearch(req, res) {
+  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const { context } = req.body;
+  try {
+    const FetchedSidebarCasesearch = await FetchSidebarCasesearch({
+      user_id,
+      context,
+    });
+    return res
+      .status(StatusCodes.OK)
+      .json(SuccessResponse({ FetchedSidebarCasesearch }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function FetchSidebarCasesearch({ user_id, context }) {
+  try {
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/casesearch`, {
+      method: "POST",
+      body: JSON.stringify({ user_id, context }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch sidebar case search");
+  }
+}
+
 async function AddContactUsQuery(req, res) {
   const {
     firstName,
@@ -2007,4 +2050,5 @@ module.exports = {
   editApplication,
   getpdf,
   setFavor,
+  sidebarCasesearch,
 };
