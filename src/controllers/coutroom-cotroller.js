@@ -809,7 +809,13 @@ async function FetchGetDraft(body) {
     },
     body: JSON.stringify(body),
   });
-  const resp = response.json();
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.log(text);
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  const resp = await response.json();
 
   console.log(resp);
 
