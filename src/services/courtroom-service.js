@@ -8,7 +8,7 @@ const ContactUs = require("../models/contact");
 const {
   sendAdminContactUsNotification,
 } = require("../utils/coutroom/sendEmail");
-const { trusted } = require("mongoose");
+const { trusted, default: mongoose } = require("mongoose");
 const TrailCourtRoomBooking = require("../models/trailCourtRoomBooking");
 const TrailCourtroomUser = require("../models/trailCourtRoomUser");
 const { COURTROOM_API_ENDPOINT } = process.env;
@@ -543,6 +543,73 @@ async function getClientByPhoneNumber(phoneNumber) {
   }
 }
 
+async function getClientByUseridForEndCase(userid) {
+  try {
+    // Get the current date and hour
+    let currentDate, currentHour;
+
+    if (process.env.NODE_ENV === "production") {
+      // Get current date and time in UTC
+      const now = new Date();
+
+      // Convert to milliseconds
+      const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
+
+      // IST offset is +5:30
+      const istOffset = 5.5 * 60 * 60000;
+
+      // Create new date object for IST
+      const istTime = new Date(utcTime + istOffset);
+
+      currentDate = new Date(
+        Date.UTC(istTime.getFullYear(), istTime.getMonth(), istTime.getDate())
+      );
+      currentHour = istTime.getHours();
+    } else {
+      // Get the current date and hour in local time (for development)
+      const now = new Date();
+      currentDate = new Date(
+        Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+      );
+      currentHour = now.getHours();
+    }
+
+    console.log(currentDate, currentHour);
+
+    // Manual Override for Testing
+    // const formattedDate = new Date("2024-07-23T00:00:00.000Z");
+    // const currentHour = 20;
+
+    // Find existing booking for the current date and hour
+    const courtroomUser = await CourtroomUser.findOne({
+      userId: userid,
+    });
+
+    if (!courtroomUser) {
+      throw Error("No user found!!.");
+      // return "No bookings found for the current time slot.";
+    }
+
+    const booking = await CourtRoomBooking.findOne({
+      courtroomBookings: {
+        $elemMatch: {
+          $eq: new mongoose.Types.ObjectId(courtroomUser._id), // Fixed here
+        },
+      },
+    });
+
+    if (!booking) {
+      throw Error("No booking found for the current user.");
+      // return "No bookings found for the current time slot.";
+    }
+
+    return { User_id: courtroomUser._id, Booking_id: booking._id };
+  } catch (error) {
+    console.error(error);
+    throw new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+}
+
 async function getClientByUserid(userid) {
   try {
     // Get the current date and hour
@@ -663,4 +730,5 @@ module.exports = {
   getSessionCaseHistory,
   addContactUsQuery,
   adminCourtRoomBook,
+  getClientByUseridForEndCase,
 };
