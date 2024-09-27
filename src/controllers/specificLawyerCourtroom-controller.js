@@ -785,7 +785,8 @@ async function setFavor(req, res) {
 
 async function getDraft(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
-  const favor = req.body?.courtroomClient?.userId;
+  let favor = req.body?.courtroomClient?.userId;
+  if (favor === undefined) favor = "";
 
   try {
     const draft = await FetchGetDraft({ user_id, favor });
