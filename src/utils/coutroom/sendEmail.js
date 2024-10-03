@@ -54,7 +54,7 @@ const htmlTemplate = `
   </head>
   <body>
     <div class="top-container">
-      <img src="https://claw-gpt-dev.netlify.app/header.png" alt="header.png" />
+      <img src="https://courtroom.clawlaw.in/header.png" alt="header.png" />
     </div>
     <div class="text-container">
       <p>Dear {{name}},</p>
@@ -77,7 +77,7 @@ const htmlTemplate = `
       <h3><strong>Total cost :</strong> {{amount}}</h3>
     </div>
     <div class="bottom-container">
-      <img src="https://claw-gpt-dev.netlify.app/footer.png" alt="footer.png" />
+      <img src="https://courtroom.clawlaw.in/footer.png" alt="footer.png" />
     </div>
   </body>
 </html>
