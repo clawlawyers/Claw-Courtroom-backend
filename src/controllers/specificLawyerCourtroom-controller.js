@@ -1811,8 +1811,8 @@ async function FetchSidebarCasesearch({ user_id, context }) {
 
 async function draftNextAppeal(req, res) {
   try {
-    const user_id = req.body?.courtroomClient?.userBooking?.userId;
-    let favor = req.body?.courtroomClient?.userBooking?.drafteFavor;
+    const user_id = req.body?.courtroomClient?.userId;
+    let favor = req.body?.courtroomClient?.drafteFavor;
     const fetchedDraftNextAppeal = await fetchDraftNextAppeal({
       user_id,
       favor,
