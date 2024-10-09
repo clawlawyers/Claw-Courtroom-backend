@@ -1,6 +1,8 @@
 const { StatusCodes } = require("http-status-codes");
 const AppError = require("../utils/errors/app-error");
-
+const multer = require("multer");
+const { Storage } = require("@google-cloud/storage");
+const path = require("path");
 const ContactUs = require("../models/contact");
 const {
   sendAdminContactUsNotification,
@@ -13,6 +15,31 @@ const {
   generateTokenSpecial,
 } = require("../utils/SpecificCourtroom/auth");
 const { COURTROOM_API_ENDPOINT } = process.env;
+
+let storage;
+if (process.env.NODE_ENV !== "production") {
+  // Google Cloud Storage configuration
+  storage = new Storage({
+    keyFilename: path.join(
+      __dirname + "/voltaic-charter-435107-j5-d041d0de66bf.json"
+    ), // Replace with your service account key file path
+  });
+} else {
+  // Google Cloud Storage configuration
+  storage = new Storage({
+    keyFilename: path.join(
+      "/etc/secrets/voltaic-charter-435107-j5-d041d0de66bf.json"
+    ), // Replace with your service account key file path
+  });
+}
+
+console.log(
+  path.join(__dirname + "/voltaic-charter-435107-j5-d041d0de66bf.json")
+);
+console.log("/etc/secrets/voltaic-charter-435107-j5-d041d0de66bf.json");
+
+const bucketName = "ai_courtroom"; // Replace with your bucket name
+const bucket = storage.bucket(bucketName);
 
 async function addContactUsQuery(
   firstName,
@@ -305,6 +332,47 @@ async function updateClientByDomainWithSession(Domain, updateData, session) {
   }
 }
 
+async function uploadfileToBucker(file, userId) {
+  try {
+    const expirationInDays = 30; // Set the expiration time for 30 days (example)
+
+    if (!file) {
+      throw new Error("No file uploaded.");
+    }
+
+    const filePath = `${userId}/${file.originalname}`;
+
+    const blob = bucket.file(filePath);
+    const blobStream = blob.createWriteStream({
+      resumable: false,
+      contentType: file.mimetype,
+    });
+
+    blobStream.on("error", (err) => {
+      throw new Error(` ${err.message}`);
+    });
+
+    blobStream.on("finish", async () => {
+      // After file upload, set the expiration time
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + expirationInDays);
+
+      await blob.setMetadata({
+        metadata: {
+          customTime: expirationDate.toISOString(), // Custom expiration time in ISO format
+        },
+      });
+
+      return;
+    });
+
+    blobStream.end(file.buffer);
+  } catch (error) {
+    console.error(`Error updating user by phone number ${phoneNumber}:`, error);
+    throw error;
+  }
+}
+
 module.exports = {
   courtRoomBook,
   loginToCourtRoom,
@@ -315,4 +383,5 @@ module.exports = {
   addContactUsQuery,
   getClientByDomainWithSession,
   updateClientByDomainWithSession,
+  uploadfileToBucker,
 };

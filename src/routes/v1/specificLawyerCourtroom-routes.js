@@ -43,7 +43,20 @@ router.post(
   ]),
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
-  SpecificLawyerCourtroomController.newcase
+  SpecificLawyerCourtroomController.newcase1
+);
+
+router.post(
+  "/newcase1",
+  upload.fields([
+    { name: "file" },
+    { name: "file1" },
+    { name: "file2" },
+    { name: "file3" },
+  ]),
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.newcase1
 );
 
 router.post(

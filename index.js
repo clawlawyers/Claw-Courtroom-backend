@@ -64,21 +64,6 @@ app.use("", (req, res) => {
   });
 });
 
-// Schedule task to run every minute (for testing purposes)
-cron.schedule("0 0 * * *", async () => {
-  console.log("Running scheduled task to handle expired plans");
-  await DbAutomationService.handleExpiredPlans();
-});
-
-// Call the function immediately to test it
-(async () => {
-  try {
-    await DbAutomationService.handleExpiredPlans();
-  } catch (error) {
-    console.error("Error removing expired user plans:", error);
-  }
-})();
-
 app.listen(ServerConfig.PORT, async () => {
   //mongoDB connection
   await ConnectDB();

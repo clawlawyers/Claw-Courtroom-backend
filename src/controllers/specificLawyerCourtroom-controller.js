@@ -14,6 +14,10 @@ const {
   generateTokenSpecial,
 } = require("../utils/SpecificCourtroom/auth");
 const { checkUserIdValidity } = require("../utils/common/auth");
+const { v4: uuidv4 } = require("uuid");
+const {
+  uploadfileToBucker,
+} = require("../services/specificLawyerCourtroom-service");
 
 async function bookCourtRoom(req, res) {
   try {
@@ -446,94 +450,142 @@ async function fetchOverview({ user_id, case_overview }) {
   }
 }
 
-// async function newcase(req, res) {
-//   const file = req.file;
-//   if (!file) {
-//     return res.status(400).json({ error: "No file uploaded" });
-//   }
+async function newcase1(req, res) {
+  const files = req.files; // This will be an array of file objects
+  if (!files || files.length === 0) {
+    return res.status(400).json({ error: "No files uploaded" });
+  }
 
-//   const { userId } = req.body?.courtroomClient?.userBooking;
+  // console.log(files);
 
-//   console.log(userId);
+  const { userId } = req.body?.courtroomClient;
+  const { _id } = req.body?.courtroomClient;
+  // const userId = "f497c76b-2894-4636-8d2b-6391bc6bccdc";
+  console.log(userId);
+  const { isMultilang } = req.body;
 
-//   console.log(file);
+  try {
+    // Rename only the first file and prepare the data object for getOverview
+    const formData = new FormData();
 
-//   const extension = path.extname(file.originalname); // Extract the file extension
-//   const newFilename = `${userId}${extension}`; // Preserve the extension in the new filename
+    console.log(formData);
 
-//   // Create a renamed file object with buffer data
-//   const renamedFile = {
-//     ...file,
-//     originalname: newFilename,
-//   };
+    // const fileBody = {};
+    fileNameArray = [];
+    const folderName = _id.toString();
+    console.log(folderName);
 
-//   console.log(renamedFile);
+    // Rename the first file to `file`
+    const fileKeys = Object.keys(files);
+    fileKeys.forEach(async (key, index) => {
+      const file = files[key][0]; // Get the first file from each key
 
-//   try {
-//     const case_overview = await getOverview({ file: renamedFile });
+      // Generate a UUID
+      const uniqueId = uuidv4();
 
-//     console.log(case_overview);
+      console.log(file.originalname);
+      const extension = path.extname(file.originalname);
+      const newFilename = `${uniqueId}${extension}`; // Rename the first file
 
-//     // Find the SpecificLawyerCourtroomUser document by userId
-//     const SpecificLawyerCourtroomUser = await SpecificLawyerCourtroomUser.findOne({ userId });
+      fileNameArray[index] = newFilename;
+      // Create a renamed file object with buffer data
+      const renamedFile = {
+        ...file,
+        originalname: newFilename,
+      };
 
-//     if (!SpecificLawyerCourtroomUser) {
-//       return res
-//         .status(StatusCodes.NOT_FOUND)
-//         .json({ error: "User not found" });
-//     }
+      await uploadfileToBucker(renamedFile, folderName);
+    });
 
-//     console.log(SpecificLawyerCourtroomUser);
+    let case_overview;
 
-//     // Append the case overview to the user's caseOverview array
-//     SpecificLawyerCourtroomUser.caseOverview = case_overview.case_overview;
+    if (isMultilang) {
+      case_overview = await getOverviewMultilang1({
+        user_id: userId,
+        file: fileNameArray,
+        bucket_name: "ai_courtroom",
+        folder_name: folderName + "/",
+      });
+    } else {
+      case_overview = await getOverview1({
+        user_id: userId,
+        file: fileNameArray,
+        bucket_name: "ai_courtroom",
+        folder_name: folderName + "/",
+      });
+    }
 
-//     console.log(SpecificLawyerCourtroomUser);
+    console.log(case_overview);
 
-//     // Save the updated SpecificLawyerCourtroomUser document
-//     await SpecificLawyerCourtroomUser.save();
+    return res.status(StatusCodes.OK).json(SuccessResponse({ case_overview }));
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
 
-//     console.log(SpecificLawyerCourtroomUser);
+async function getOverview1(body) {
+  console.log(body);
+  try {
+    // Dynamically import node-fetch
+    const fetch = (await import("node-fetch")).default;
 
-//     return res.status(StatusCodes.OK).json(SuccessResponse({ case_overview }));
-//   } catch (error) {
-//     const errorResponse = ErrorResponse({}, error);
-//     return res
-//       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
-//       .json(errorResponse);
-//   }
-// }
-// async function getOverview({ file }) {
-//   try {
-//     // Dynamically import node-fetch
-//     const fetch = (await import("node-fetch")).default;
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/new_case1`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
 
-//     const formData = new FormData();
-//     formData.append("file", file.buffer, {
-//       filename: file.originalname,
-//       contentType: file.mimetype,
-//     });
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
 
-//     const response = await fetch(`${COURTROOM_API_ENDPOINT}/new_case`, {
-//       method: "POST",
-//       body: formData,
-//       headers: formData.getHeaders(), // Ensure correct headers are set
-//     });
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error("Error in getOverview:", error);
+    // console.error("Error in getOverview:");
+    throw error;
+  }
+}
 
-//     if (!response.ok) {
-//       const errorText = await response.text(); // Get the error message from the response
-//       throw new Error(
-//         `HTTP error! status: ${response.status}, message: ${errorText}`
-//       );
-//     }
+async function getOverviewMultilang1(body) {
+  try {
+    // Dynamically import node-fetch
+    const fetch = (await import("node-fetch")).default;
 
-//     const responseData = await response.json();
-//     return responseData;
-//   } catch (error) {
-//     console.error("Error in getOverview:", error);
-//     throw error;
-//   }
-// }
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/new_case_multilang1`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(`${errorText}`);
+    }
+
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error("Error in getOverview:", error);
+    // console.error("Error in getOverview:");
+    throw error;
+  }
+}
 
 async function edit_case(req, res) {
   const { case_overview } = req.body;
@@ -1996,4 +2048,5 @@ module.exports = {
   editApplication,
   setFavor,
   sidebarCasesearch,
+  newcase1,
 };
