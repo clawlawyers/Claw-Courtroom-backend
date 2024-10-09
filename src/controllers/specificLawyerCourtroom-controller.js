@@ -819,7 +819,7 @@ async function setFavor(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
   const favor = req.body.favor;
   try {
-    const updateUserFavor = await CourtroomUser.findOneAndUpdate(
+    const updateUserFavor = await SpecificLawyerCourtroomUser.findOneAndUpdate(
       { userId: user_id },
       { drafteFavor: favor }
     );
