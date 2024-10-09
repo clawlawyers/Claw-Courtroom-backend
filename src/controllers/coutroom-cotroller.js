@@ -844,6 +844,7 @@ async function FetchRelevantCasesJudgeLawyer(body) {
 async function getDraft(req, res) {
   const user_id = req.body?.courtroomClient?.userBooking?.userId;
   let favor = req.body?.courtroomClient?.userBooking?.drafteFavor;
+  if (favor === undefined) favor = "";
 
   try {
     const draft = await FetchGetDraft({ user_id, favor: favor });
