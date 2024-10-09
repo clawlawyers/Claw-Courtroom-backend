@@ -173,6 +173,12 @@ router.post(
 );
 
 router.post(
+  "/api/sidebar-casesearch",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.sidebarCasesearch
+);
+
+router.post(
   "/api/edit_application",
   authMiddleware.checkCourtroomAuth,
   CourtroomController.editApplication
