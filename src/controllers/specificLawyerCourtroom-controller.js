@@ -563,7 +563,7 @@ async function getOverviewMultilang1(body) {
     const fetch = (await import("node-fetch")).default;
 
     const response = await fetch(
-      `${COURTROOM_API_ENDPOINT}/new_case_multilang1`,
+      `${COURTROOM_API_ENDPOINT}/api/new_case_multilang1`,
       {
         method: "POST",
         headers: {
