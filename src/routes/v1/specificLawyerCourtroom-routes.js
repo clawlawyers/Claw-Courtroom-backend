@@ -259,6 +259,13 @@ router.post(
   SpecificLawyerCourtroomController.sidebarCasesearch
 );
 
+router.post(
+  "/api/draft_next_appeal",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.draftNextAppeal
+);
+
 // AddContactUsQuery Route
 
 router.post(

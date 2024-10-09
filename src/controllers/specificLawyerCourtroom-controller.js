@@ -1809,6 +1809,52 @@ async function FetchSidebarCasesearch({ user_id, context }) {
   }
 }
 
+async function draftNextAppeal(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userBooking?.userId;
+    let favor = req.body?.courtroomClient?.userBooking?.drafteFavor;
+    const fetchedDraftNextAppeal = await fetchDraftNextAppeal({
+      user_id,
+      favor,
+    });
+    return res
+      .status(StatusCodes.OK)
+      .json(SuccessResponse({ fetchedDraftNextAppeal }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function fetchDraftNextAppeal({ user_id, favor }) {
+  try {
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/draft_next_appeal`,
+      {
+        method: "POST",
+        body: JSON.stringify({ user_id, favor }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch draft next appeal");
+  }
+}
+
 async function editApplication(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
@@ -2049,4 +2095,5 @@ module.exports = {
   setFavor,
   sidebarCasesearch,
   newcase1,
+  draftNextAppeal,
 };

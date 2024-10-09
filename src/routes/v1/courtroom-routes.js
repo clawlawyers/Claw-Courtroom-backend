@@ -208,6 +208,12 @@ router.post(
   CourtroomController.sidebarCasesearch
 );
 
+router.post(
+  "/api/draft_next_appeal",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.draftNextAppeal
+);
+
 // AddContactUsQuery Route
 
 router.post("/add/ContactUsQuery", CourtroomController.AddContactUsQuery);
