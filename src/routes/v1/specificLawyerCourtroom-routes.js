@@ -117,6 +117,8 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.getDraft
 );
+
+// not encrypted
 router.post(
   "/api/change_states",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
@@ -124,6 +126,7 @@ router.post(
 
   SpecificLawyerCourtroomController.changeState
 );
+
 router.post(
   "/api/rest",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
@@ -131,6 +134,8 @@ router.post(
 
   SpecificLawyerCourtroomController.restCase
 );
+
+// not encrypted
 router.post(
   "/api/end",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
@@ -144,6 +149,8 @@ router.post(
 
   SpecificLawyerCourtroomController.hallucination_questions
 );
+
+// not encrypted
 router.post(
   "/api/history",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
@@ -151,18 +158,26 @@ router.post(
 
   SpecificLawyerCourtroomController.CaseHistory
 );
+
+// not encrypted
+
 router.post(
   "/api/downloadCaseHistory",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.downloadCaseHistory
 );
+
+// not encrypted
+
 router.post(
   "/api/downloadSessionCaseHistory",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.downloadSessionCaseHistory
 );
+
+// not encrypted
 
 router.post(
   "/api/getSessionCaseHistory",
@@ -171,18 +186,26 @@ router.post(
   SpecificLawyerCourtroomController.getSessionCaseHistory
 );
 
+// not encrypted
+
 router.post(
   "/api/downloadFirtDraft",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.downloadFirtDraft
 );
+
+// not encrypted
+
 router.post(
   "/api/download",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.download
 );
+
+// not encrypted
+
 router.get(
   "/getHistory",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
@@ -210,6 +233,7 @@ router.post(
   SpecificLawyerCourtroomController.resetUserId
 );
 
+// not encrypted
 router.post(
   "/api/relevant_case_law",
   authMiddleware.checkSpecificLawyerCourtroomAuth,

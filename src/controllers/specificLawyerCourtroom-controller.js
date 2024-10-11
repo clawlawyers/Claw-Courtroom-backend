@@ -18,6 +18,11 @@ const { v4: uuidv4 } = require("uuid");
 const {
   uploadfileToBucker,
 } = require("../services/specificLawyerCourtroom-service");
+const {
+  generateEncryptedKey,
+  encryption,
+  decryption,
+} = require("../utils/common/encryptionServices");
 
 async function bookCourtRoom(req, res) {
   try {
@@ -180,6 +185,20 @@ async function getUserDetails(req, res) {
         { new: true }
       );
       userId = updateUser.userId;
+      courtroomClient.userId = userId;
+    }
+
+    let getEncKey = courtroomClient.key;
+
+    if (!getEncKey) {
+      const getKey = await generateEncryptedKey();
+      const updateUser = await SpecificLawyerCourtroomUser.findByIdAndUpdate(
+        courtroomClient._id,
+        { key: getKey },
+        { new: true }
+      );
+
+      getEncKey = updateUser.key;
     }
 
     const resp = await checkUserIdValidity(courtroomClient.userId);
@@ -202,6 +221,7 @@ async function getUserDetails(req, res) {
         phoneNumber: courtroomClient.phoneNumber,
         totalHours: courtroomClient.totalHours,
         totalUsedHours: courtroomClient.totalUsedHours,
+        key: getEncKey,
       })
     );
   } catch (error) {
@@ -405,12 +425,35 @@ async function getOverviewMultilang(formData) {
 async function newCaseText(req, res) {
   try {
     const { userId } = req.body?.courtroomClient;
-    const { case_overview } = req.body;
-    const fetchedOverview = await fetchOverview({
+    let { case_overview } = req.body;
+
+    // Find the SpecificLawyerCourtroomUser document by userId
+    const fetchedUser = await SpecificLawyerCourtroomUser.findOne({
+      userId: userId,
+    });
+
+    if (!fetchedUser) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ error: "User not found" });
+    }
+
+    // decrypt the caseoverview
+    case_overview = await decryption(case_overview, fetchedUser.key);
+
+    // set case overview to ML
+    let fetchedOverview = await fetchOverview({
       user_id: userId,
       case_overview,
     });
-    console.log(fetchedOverview);
+
+    // encrypt the caseoverview
+    fetchedOverview = await encryption(
+      fetchedOverview.case_overview,
+      fetchedUser.key
+    );
+
+    // send enctyped caseoverview
     return res
       .status(StatusCodes.OK)
       .json(SuccessResponse({ fetchedOverview }));
@@ -460,6 +503,7 @@ async function newcase1(req, res) {
 
   const { userId } = req.body?.courtroomClient;
   const { _id } = req.body?.courtroomClient;
+  const { key } = req.body?.courtroomClient;
   // const userId = "f497c76b-2894-4636-8d2b-6391bc6bccdc";
   console.log(userId);
   const { isMultilang } = req.body;
@@ -517,6 +561,17 @@ async function newcase1(req, res) {
 
     console.log(case_overview);
 
+    case_overview.case_overview = await encryption(
+      case_overview.case_overview,
+      key
+    );
+
+    const decryptData = await decryption(case_overview.case_overview, key);
+
+    console.log("decryptData: => ");
+
+    console.log(decryptData);
+
     return res.status(StatusCodes.OK).json(SuccessResponse({ case_overview }));
   } catch (error) {
     console.log(error);
@@ -558,6 +613,8 @@ async function getOverview1(body) {
 }
 
 async function getOverviewMultilang1(body) {
+  console.log(body);
+
   try {
     // Dynamically import node-fetch
     const fetch = (await import("node-fetch")).default;
@@ -588,14 +645,11 @@ async function getOverviewMultilang1(body) {
 }
 
 async function edit_case(req, res) {
-  const { case_overview } = req.body;
+  let { case_overview } = req.body;
 
   const user_id = req.body?.courtroomClient?.userId;
 
-  // console.log(req.body, " this is body");
   try {
-    const editedArgument = await FetchEdit_Case({ user_id, case_overview });
-
     // Find the SpecificLawyerCourtroomUser document by userId
     const fetchedUser = await SpecificLawyerCourtroomUser.findOne({
       userId: user_id,
@@ -607,16 +661,25 @@ async function edit_case(req, res) {
         .json({ error: "User not found" });
     }
 
-    // Append the case overview to the user's caseOverview array
-    fetchedUser.caseOverview = editedArgument.case_overview;
+    // Decrypt the case_overview
+    case_overview = await decryption(case_overview, fetchedUser.key);
 
-    // console.log(SpecificLawyerCourtroomUser);
+    // set case overview to ML
+    const editedArgument = await FetchEdit_Case({ user_id, case_overview });
+
+    // encrypt the case_overview
+    editedArgument.case_overview = await encryption(
+      editedArgument.case_overview,
+      fetchedUser.key
+    );
+
+    // Append the case overview to the user's database caseOverview
+    fetchedUser.caseOverview = editedArgument.case_overview;
 
     // Save the updated SpecificLawyerCourtroomUser document
     await fetchedUser.save();
 
-    // console.log(SpecificLawyerCourtroomUser);
-
+    // send encrypted case overview
     return res.status(StatusCodes.OK).json(SuccessResponse({ editedArgument }));
   } catch (error) {
     console.log(error);
@@ -658,12 +721,10 @@ async function getCaseOverview(req, res) {
         .json({ error: "User not found" });
     }
 
-    // console.log(SpecificLawyerCourtroomUser);
+    // fetched encryped case overview from user db
+    let case_overview = FetchedUser.caseOverview;
 
-    // Append the case overview to the user's caseOverview array
-    const case_overview = FetchedUser.caseOverview;
-
-    // console.log(case_overview);
+    // send encryped case overview
     return res.status(StatusCodes.OK).json(SuccessResponse({ case_overview }));
   } catch (error) {
     const errorResponse = ErrorResponse({}, error);
@@ -675,10 +736,13 @@ async function getCaseOverview(req, res) {
 }
 
 async function user_arguemnt(req, res) {
-  const { argument, argument_index } = req.body;
+  let { argument, argument_index } = req.body;
   const user_id = req.body?.courtroomClient?.userId;
+  const key = req.body?.courtroomClient?.key;
 
   try {
+    argument = await decryption(argument, key);
+
     const argumentIndex = await Fetch_argument_index({
       user_id,
       argument,
@@ -707,15 +771,21 @@ async function Fetch_argument_index(body) {
 }
 
 async function lawyer_arguemnt(req, res) {
-  const { argument_index, action } = req.body;
+  let { argument_index, action } = req.body;
   const user_id = req.body?.courtroomClient?.userId;
+  const key = req.body?.courtroomClient?.key;
 
   try {
-    const lawyerArguemnt = await FetchLawyer_arguemnt({
+    let lawyerArguemnt = await FetchLawyer_arguemnt({
       user_id,
       argument_index,
       action,
     });
+
+    // encrypt the lawyer arguemnt
+    lawyerArguemnt = await encryption(lawyerArguemnt, key);
+
+    // send the encrypted lawyer arguemnt
     return res.status(StatusCodes.OK).json(SuccessResponse({ lawyerArguemnt }));
   } catch (error) {
     const errorResponse = ErrorResponse({}, error);
@@ -741,13 +811,17 @@ async function FetchLawyer_arguemnt(body) {
 async function judge_arguemnt(req, res) {
   const { argument_index, action } = req.body;
   const user_id = req.body?.courtroomClient?.userId;
+  const key = req.body?.courtroomClient?.key;
 
   try {
-    const judgeArguemnt = await FetchJudge_arguemnt({
+    let judgeArguemnt = await FetchJudge_arguemnt({
       user_id,
       argument_index,
       action,
     });
+
+    judgeArguemnt = await encryption(judgeArguemnt, key);
+
     return res.status(StatusCodes.OK).json(SuccessResponse({ judgeArguemnt }));
   } catch (error) {
     const errorResponse = ErrorResponse({}, error);
@@ -773,11 +847,23 @@ async function FetchJudge_arguemnt(body) {
 async function relevantCasesJudgeLawyer(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
-    const { text_input } = req.body;
-    const relevantCases = await FetchRelevantCasesJudgeLawyer({
+    const key = req.body?.courtroomClient?.key;
+    let { text_input } = req.body;
+
+    // Decrypt the text_input
+    text_input = await decryption(text_input, key);
+
+    let relevantCases = await FetchRelevantCasesJudgeLawyer({
       user_id,
       text_input,
     });
+
+    // Encrypt the relevantCases
+    relevantCases.relevant_case_law = await encryption(
+      relevantCases.relevant_case_law,
+      key
+    );
+
     return res.status(StatusCodes.OK).json(SuccessResponse({ relevantCases }));
   } catch (error) {
     const errorResponse = ErrorResponse({}, error);
@@ -837,11 +923,14 @@ async function setFavor(req, res) {
 
 async function getDraft(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
+  const key = req.body?.courtroomClient?.key;
   let favor = req.body?.courtroomClient?.userId;
   if (favor === undefined) favor = "";
 
   try {
-    const draft = await FetchGetDraft({ user_id, favor });
+    let draft = await FetchGetDraft({ user_id, favor });
+    // encrypt the draft
+    draft.detailed_draft = await encryption(draft.detailed_draft, key);
     return res.status(StatusCodes.OK).json(SuccessResponse({ draft }));
   } catch (error) {
     const errorResponse = ErrorResponse({}, error.message);
@@ -916,8 +1005,13 @@ async function FetchChangeState(body) {
 
 async function restCase(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
+  const key = req.body?.courtroomClient?.key;
   try {
-    const restDetail = await FetchRestCase({ user_id });
+    let restDetail = await FetchRestCase({ user_id });
+
+    // encrypt the restDetail
+    restDetail.verdict = await encryption(restDetail.verdict, key);
+
     return res.status(StatusCodes.OK).json(SuccessResponse({ restDetail }));
   } catch (error) {
     const errorResponse = ErrorResponse({}, error);
@@ -978,10 +1072,18 @@ async function FetchEndCase(body) {
 
 async function hallucination_questions(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
+  const key = req.body?.courtroomClient?.key;
   try {
-    const hallucinationQuestions = await FetchHallucinationQuestions({
+    let hallucinationQuestions = await FetchHallucinationQuestions({
       user_id,
     });
+
+    // encrypt the hallucinationQuestions
+    hallucinationQuestions.assistant_questions = await encryption(
+      hallucinationQuestions.assistant_questions,
+      key
+    );
+
     return res
       .status(StatusCodes.OK)
       .json(SuccessResponse({ hallucinationQuestions }));
@@ -1446,13 +1548,24 @@ async function getHistory(req, res) {
 
 async function evidence(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
-  const { action, evidence_text } = req.body;
+  const key = req.body?.courtroomClient?.key;
+  let { action, evidence_text } = req.body;
   try {
-    const fetchedEvidence = await getEvidence({
+    // decrypt the evidence
+    evidence_text = await decryption(evidence_text, key);
+
+    let fetchedEvidence = await getEvidence({
       user_id,
       action,
       evidence_text,
     });
+
+    // encrypt the evidence
+    fetchedEvidence.Evidence_Relevance = await encryption(
+      fetchedEvidence.Evidence_Relevance,
+      key
+    );
+
     res.status(StatusCodes.OK).json(SuccessResponse({ fetchedEvidence }));
   } catch (error) {
     console.error(error);
@@ -1489,13 +1602,21 @@ async function getEvidence(body) {
 
 async function askQuery(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
-  const { action, query } = req.body;
+  const key = req.body?.courtroomClient?.key;
+  let { action, query } = req.body;
   try {
+    // decrypt the query
+    query = await decryption(query, key);
+
     const fetchedAskQuery = await fetchAskQuery({
       user_id,
       action,
       query,
     });
+
+    // encrypt the fetchedAskQuery
+    fetchedAskQuery.answer = await encryption(fetchedAskQuery.answer, key);
+
     res.status(StatusCodes.OK).json(SuccessResponse({ fetchedAskQuery }));
   } catch (error) {
     console.error(error);
@@ -1607,11 +1728,21 @@ async function FetchRelevantCases({ user_id }) {
 async function testimonyQuestions(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
-    const { testimony_statement } = req.body;
-    const testimonyQuestions = await FetchTestimonyQuestions({
+    const key = req.body?.courtroomClient?.key;
+    let { testimony_statement } = req.body;
+
+    // decrypt the statement
+    testimony_statement = await decryption(testimony_statement, key);
+
+    let testimonyQuestions = await FetchTestimonyQuestions({
       user_id,
       testimony_statement,
     });
+
+    // encrypt the fetched testimonyQuestions
+
+    testimonyQuestions = await encryption(testimonyQuestions, key);
+
     res.status(StatusCodes.OK).json(SuccessResponse({ testimonyQuestions }));
   } catch (error) {
     console.error(error);
@@ -1651,8 +1782,14 @@ async function FetchTestimonyQuestions({ user_id, testimony_statement }) {
 async function application(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
+    const key = req.body?.courtroomClient?.key;
     const { action } = req.body;
+
     const application = await fetchApplication({ user_id, action });
+
+    // encrypt the application
+    application.application = await encryption(application.application, key);
+
     res.status(StatusCodes.OK).json(SuccessResponse({ application }));
   } catch (error) {
     console.error(error);
@@ -1727,8 +1864,13 @@ async function FetchCaseSearch({ user_id, query }) {
 async function viewDocument(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
+    const key = req.body?.courtroomClient?.key;
     const { folder_id, case_id } = req.body;
-    const viewDocument = await FetchViewDocument({ folder_id, case_id });
+    let viewDocument = await FetchViewDocument({ folder_id, case_id });
+    // encrypt the fetched viewDocument
+
+    viewDocument.content = encryption(viewDocument.content, key);
+
     res.status(StatusCodes.OK).json(SuccessResponse({ viewDocument }));
   } catch (error) {
     console.error(error);

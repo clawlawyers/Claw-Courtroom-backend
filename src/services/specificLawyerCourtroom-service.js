@@ -14,6 +14,7 @@ const {
   comparePasswordSpecial,
   generateTokenSpecial,
 } = require("../utils/SpecificCourtroom/auth");
+
 const { COURTROOM_API_ENDPOINT } = process.env;
 
 let storage;
@@ -362,7 +363,7 @@ async function uploadfileToBucker(file, userId) {
           customTime: expirationDate.toISOString(), // Custom expiration time in ISO format
         },
       });
-
+      console.log("file uploaded successfully");
       return;
     });
 

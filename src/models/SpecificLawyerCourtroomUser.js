@@ -71,6 +71,7 @@ const SpecificLawyerCourtroomUserSchema = new Schema({
   },
   totalHours: { type: Number, required: true },
   totalUsedHours: { type: Number, required: true, default: 0 },
+  key: { type: String },
   features: courtroomFeaturesSchema,
 });
 
