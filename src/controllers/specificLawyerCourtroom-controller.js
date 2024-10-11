@@ -783,7 +783,14 @@ async function lawyer_arguemnt(req, res) {
     });
 
     // encrypt the lawyer arguemnt
-    lawyerArguemnt = await encryption(lawyerArguemnt, key);
+    lawyerArguemnt.counter_argument = await encryption(
+      lawyerArguemnt.counter_argument,
+      key
+    );
+    lawyerArguemnt.potential_objection = await encryption(
+      lawyerArguemnt.potential_objection,
+      key
+    );
 
     // send the encrypted lawyer arguemnt
     return res.status(StatusCodes.OK).json(SuccessResponse({ lawyerArguemnt }));
@@ -820,7 +827,7 @@ async function judge_arguemnt(req, res) {
       action,
     });
 
-    judgeArguemnt = await encryption(judgeArguemnt, key);
+    judgeArguemnt.judgement = await encryption(judgeArguemnt.judgement, key);
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ judgeArguemnt }));
   } catch (error) {
@@ -1869,7 +1876,7 @@ async function viewDocument(req, res) {
     let viewDocument = await FetchViewDocument({ folder_id, case_id });
     // encrypt the fetched viewDocument
 
-    viewDocument.content = encryption(viewDocument.content, key);
+    viewDocument.content = await encryption(viewDocument.content, key);
 
     res.status(StatusCodes.OK).json(SuccessResponse({ viewDocument }));
   } catch (error) {
@@ -1882,6 +1889,7 @@ async function viewDocument(req, res) {
 }
 
 async function FetchViewDocument({ folder_id, case_id }) {
+  console.log(folder_id, case_id);
   try {
     const response = await fetch(
       `${COURTROOM_API_ENDPOINT}/api/view_document`,
@@ -1901,6 +1909,7 @@ async function FetchViewDocument({ folder_id, case_id }) {
     }
 
     const responseData = await response.json();
+    console.log(responseData);
     return responseData;
   } catch (error) {
     console.error(error);

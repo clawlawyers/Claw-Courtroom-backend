@@ -54,6 +54,7 @@ async function encryption(data, encryptedKey) {
 async function decryption(data, encryptedKey) {
   try {
     const getDecryptedKey = await decryptKey(encryptedKey);
+    console.log(getDecryptedKey);
     const decryptedData = await decryptData(data, getDecryptedKey);
     return decryptedData;
   } catch (error) {
