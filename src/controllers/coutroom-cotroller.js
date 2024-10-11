@@ -12,6 +12,8 @@ const fs = require("fs");
 const TrailCourtroomUser2 = require("../models/trialCourtroomUser2");
 const TrailBooking = require("../models/trailBookingAllow");
 const TrialCourtroomCoupon = require("../models/trialCourtroomCoupon");
+const { v4: uuidv4 } = require("uuid");
+const { uploadfileToBucker } = require("../services/courtroom-service");
 
 async function adminBookCourtRoom(req, res) {
   try {
@@ -614,6 +616,157 @@ async function fetchOverview({ user_id, case_overview }) {
 //     throw error;
 //   }
 // }
+
+async function newcase1(req, res) {
+  const files = req.files; // This will be an array of file objects
+  if (!files || files.length === 0) {
+    return res.status(400).json({ error: "No files uploaded" });
+  }
+
+  // console.log(files);
+
+  const { userId } = req.body?.courtroomClient?.userBooking;
+  const { _id } = req.body?.courtroomClient?.userBooking;
+  // const { key } = req.body?.courtroomClient?.userBooking;
+  // const userId = "f497c76b-2894-4636-8d2b-6391bc6bccdc";
+  console.log(userId);
+  const { isMultilang } = req.body;
+
+  try {
+    // Rename only the first file and prepare the data object for getOverview
+    const formData = new FormData();
+
+    console.log(formData);
+
+    // const fileBody = {};
+    fileNameArray = [];
+    const folderName = _id.toString();
+    console.log(folderName);
+
+    // Rename the first file to `file`
+    const fileKeys = Object.keys(files);
+    fileKeys.forEach(async (key, index) => {
+      const file = files[key][0]; // Get the first file from each key
+
+      // Generate a UUID
+      const uniqueId = uuidv4();
+
+      console.log(file.originalname);
+      const extension = path.extname(file.originalname);
+      const newFilename = `${uniqueId}${extension}`; // Rename the first file
+
+      fileNameArray[index] = newFilename;
+      // Create a renamed file object with buffer data
+      const renamedFile = {
+        ...file,
+        originalname: newFilename,
+      };
+
+      await uploadfileToBucker(renamedFile, folderName);
+    });
+
+    let case_overview;
+
+    if (isMultilang) {
+      case_overview = await getOverviewMultilang1({
+        user_id: userId,
+        file: fileNameArray,
+        bucket_name: "ai_courtroom",
+        folder_name: folderName + "/",
+      });
+    } else {
+      case_overview = await getOverview1({
+        user_id: userId,
+        file: fileNameArray,
+        bucket_name: "ai_courtroom",
+        folder_name: folderName + "/",
+      });
+    }
+
+    console.log(case_overview);
+
+    // case_overview.case_overview = await encryption(
+    //   case_overview.case_overview,
+    //   key
+    // );
+
+    // const decryptData = await decryption(case_overview.case_overview, key);
+
+    // console.log("decryptData: => ");
+
+    // console.log(decryptData);
+
+    return res.status(StatusCodes.OK).json(SuccessResponse({ case_overview }));
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function getOverview1(body) {
+  console.log(body);
+  try {
+    // Dynamically import node-fetch
+    const fetch = (await import("node-fetch")).default;
+
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/new_case1`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error("Error in getOverview:", error);
+    // console.error("Error in getOverview:");
+    throw error;
+  }
+}
+
+async function getOverviewMultilang1(body) {
+  console.log(body);
+
+  try {
+    // Dynamically import node-fetch
+    const fetch = (await import("node-fetch")).default;
+
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/new_case_multilang1`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(`${errorText}`);
+    }
+
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error("Error in getOverview:", error);
+    // console.error("Error in getOverview:");
+    throw error;
+  }
+}
 
 async function edit_case(req, res) {
   const { case_overview } = req.body;
@@ -1940,4 +2093,5 @@ module.exports = {
   draftNextAppeal,
   setFavor,
   sidebarCasesearch,
+  newcase1,
 };
