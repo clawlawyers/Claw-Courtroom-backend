@@ -31,7 +31,7 @@ router.post(
     { name: "file3" },
   ]),
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.newcase
+  CourtroomController.newcase1
 );
 
 router.post(
