@@ -645,25 +645,28 @@ async function newcase1(req, res) {
 
     // Rename the first file to `file`
     const fileKeys = Object.keys(files);
-    fileKeys.forEach(async (key, index) => {
-      const file = files[key][0]; // Get the first file from each key
+    // Using Promise.all to handle asynchronous file uploads
+    await Promise.all(
+      fileKeys.forEach(async (key, index) => {
+        const file = files[key][0]; // Get the first file from each key
 
-      // Generate a UUID
-      const uniqueId = uuidv4();
+        // Generate a UUID
+        const uniqueId = uuidv4();
 
-      console.log(file.originalname);
-      const extension = path.extname(file.originalname);
-      const newFilename = `${uniqueId}${extension}`; // Rename the first file
+        console.log(file.originalname);
+        const extension = path.extname(file.originalname);
+        const newFilename = `${uniqueId}${extension}`; // Rename the first file
 
-      fileNameArray[index] = newFilename;
-      // Create a renamed file object with buffer data
-      const renamedFile = {
-        ...file,
-        originalname: newFilename,
-      };
+        fileNameArray[index] = newFilename;
+        // Create a renamed file object with buffer data
+        const renamedFile = {
+          ...file,
+          originalname: newFilename,
+        };
 
-      await uploadfileToBucker(renamedFile, folderName);
-    });
+        await uploadfileToBucker(renamedFile, folderName);
+      })
+    );
 
     let case_overview;
 
