@@ -11,6 +11,7 @@ const {
 const { trusted, default: mongoose } = require("mongoose");
 const TrailCourtRoomBooking = require("../models/trailCourtRoomBooking");
 const TrailCourtroomUser = require("../models/trailCourtRoomUser");
+const CourtroomFeedback = require("../models/courtroomFeedback");
 const { COURTROOM_API_ENDPOINT } = process.env;
 
 async function adminCourtRoomBook(
@@ -188,7 +189,6 @@ async function courtRoomBook(
   name,
   phoneNumber,
   email,
-  hashedPassword,
   bookingDate,
   hour,
   recording,
@@ -212,11 +212,11 @@ async function courtRoomBook(
     }
 
     // Check if the total bookings exceed the limit
-    if (booking.courtroomBookings.length >= 4) {
+    if (booking.courtroomBookings.length >= 6) {
       console.log(
-        `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
       );
-      return `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      return `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
     }
 
     // Check if the user with the same mobile number or email already booked a slot at the same hour
@@ -240,7 +240,6 @@ async function courtRoomBook(
       name,
       phoneNumber,
       email,
-      password: hashedPassword,
       recording: recording, // Assuming recording is required and set to true
       caseOverview: "NA",
     });
@@ -268,7 +267,6 @@ async function courtRoomBookValidation(
   name,
   phoneNumber,
   email,
-  hashedPassword,
   bookingDate,
   hour,
   recording,
@@ -292,14 +290,14 @@ async function courtRoomBookValidation(
     }
 
     // Check if the total bookings exceed the limit
-    if (booking.courtroomBookings.length >= 4) {
+    if (booking.courtroomBookings.length >= 6) {
       console.log(
-        `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
       );
       // throw new Error(
       //   `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
       // );
-      return `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      return `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
     }
 
     // Check if the user with the same mobile number or email already booked a slot at the same hour
@@ -369,7 +367,7 @@ async function getBookedData(startDate, endDate) {
   }
 }
 
-async function loginToCourtRoom(phoneNumber, password) {
+async function loginToCourtRoom(phoneNumber) {
   try {
     let currentDate, currentHour;
 
@@ -427,18 +425,18 @@ async function loginToCourtRoom(phoneNumber, password) {
     console.log(userBooking);
 
     if (!userBooking) {
-      return "Invalid phone number or password.";
+      return "Invalid phone number";
     }
 
-    // Check if the password is correct
-    const isPasswordValid = await comparePassword(
-      password,
-      userBooking.password
-    );
+    // // Check if the password is correct
+    // const isPasswordValid = await comparePassword(
+    //   password,
+    //   userBooking.password
+    // );
 
-    if (!isPasswordValid) {
-      return "Invalid phone number or password.";
-    }
+    // if (!isPasswordValid) {
+    //   return "Invalid phone number or password.";
+    // }
 
     // Generate a JWT token
     const token = generateToken({
@@ -722,6 +720,20 @@ async function getSessionCaseHistory(userId) {
   }
 }
 
+async function setFeedback(_id, rating, feedback) {
+  try {
+    const setFeedbackData = await CourtroomFeedback.create({
+      userId: _id,
+      rating: parseInt(rating),
+      feedback: feedback,
+    });
+    return setFeedbackData;
+  } catch (error) {
+    console.error("Error setting feedback:", error);
+    throw new Error("Internal server error.");
+  }
+}
+
 module.exports = {
   courtRoomBook,
   getBookedData,
@@ -734,4 +746,5 @@ module.exports = {
   addContactUsQuery,
   adminCourtRoomBook,
   getClientByUseridForEndCase,
+  setFeedback,
 };

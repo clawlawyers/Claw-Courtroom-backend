@@ -215,7 +215,11 @@ router.post(
 );
 
 // AddContactUsQuery Route
-
+router.post(
+  "/api/feedback",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.Courtroomfeedback
+);
 router.post("/add/ContactUsQuery", CourtroomController.AddContactUsQuery);
 router.post("/get_pdf", CourtroomController.getpdf);
 

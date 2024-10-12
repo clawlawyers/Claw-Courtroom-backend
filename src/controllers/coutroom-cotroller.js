@@ -17,14 +17,13 @@ const {
 
 async function bookCourtRoom(req, res) {
   try {
-    const { name, phoneNumber, email, password, slots, recording } = req.body;
+    const { name, phoneNumber, email, slots, recording } = req.body;
 
     // Check if required fields are provided
     if (
       !name ||
       !phoneNumber ||
       !email ||
-      !password ||
       !slots ||
       !Array.isArray(slots) ||
       slots.length === 0
@@ -32,7 +31,7 @@ async function bookCourtRoom(req, res) {
       return res.status(400).send("Missing required fields.");
     }
 
-    const hashedPassword = await hashPassword(password);
+    // const hashedPassword = await hashPassword(password);
     const caseOverview = "";
 
     for (const slot of slots) {
@@ -47,7 +46,6 @@ async function bookCourtRoom(req, res) {
         name,
         phoneNumber,
         email,
-        hashedPassword,
         bookingDate,
         hour,
         recording,
@@ -139,14 +137,13 @@ async function adminBookCourtRoom(req, res) {
 
 async function bookCourtRoomValidation(req, res) {
   try {
-    const { name, phoneNumber, email, password, slots, recording } = req.body;
+    const { name, phoneNumber, email, slots, recording } = req.body;
 
     // Check if required fields are provided
     if (
       !name ||
       !phoneNumber ||
       !email ||
-      !password ||
       !slots ||
       !Array.isArray(slots) ||
       slots.length === 0
@@ -154,7 +151,6 @@ async function bookCourtRoomValidation(req, res) {
       return res.status(400).send("Missing required fields.");
     }
 
-    const hashedPassword = await hashPassword(password);
     const caseOverview = "";
 
     for (const slot of slots) {
@@ -169,7 +165,6 @@ async function bookCourtRoomValidation(req, res) {
         name,
         phoneNumber,
         email,
-        hashedPassword,
         bookingDate,
         hour,
         recording,
@@ -214,15 +209,12 @@ async function getBookedData(req, res) {
 }
 
 async function loginToCourtRoom(req, res) {
-  const { phoneNumber, password } = req.body;
+  const { phoneNumber } = req.body;
   try {
-    if (!phoneNumber || !password) {
+    if (!phoneNumber) {
       return res.status(400).send("Missing required fields.");
     }
-    const response = await CourtroomService.loginToCourtRoom(
-      phoneNumber,
-      password
-    );
+    const response = await CourtroomService.loginToCourtRoom(phoneNumber);
     res.status(200).json(response);
   } catch (error) {
     const errorResponse = ErrorResponse({}, error);
@@ -576,25 +568,29 @@ async function newcase1(req, res) {
 
     // Rename the first file to `file`
     const fileKeys = Object.keys(files);
-    fileKeys.forEach(async (key, index) => {
-      const file = files[key][0]; // Get the first file from each key
 
-      // Generate a UUID
-      const uniqueId = uuidv4();
+    // Using Promise.all to handle asynchronous file uploads
+    await Promise.all(
+      fileKeys.forEach(async (key, index) => {
+        const file = files[key][0]; // Get the first file from each key
 
-      console.log(file.originalname);
-      const extension = path.extname(file.originalname);
-      const newFilename = `${uniqueId}${extension}`; // Rename the first file
+        // Generate a UUID
+        const uniqueId = uuidv4();
 
-      fileNameArray[index] = newFilename;
-      // Create a renamed file object with buffer data
-      const renamedFile = {
-        ...file,
-        originalname: newFilename,
-      };
+        console.log(file.originalname);
+        const extension = path.extname(file.originalname);
+        const newFilename = `${uniqueId}${extension}`; // Rename the first file
 
-      await uploadfileToBucker(renamedFile, folderName);
-    });
+        fileNameArray[index] = newFilename;
+        // Create a renamed file object with buffer data
+        const renamedFile = {
+          ...file,
+          originalname: newFilename,
+        };
+
+        await uploadfileToBucker(renamedFile, folderName);
+      })
+    );
 
     let case_overview;
 
@@ -2040,6 +2036,26 @@ async function fetchDraftNextAppeal({ user_id, favor }) {
   }
 }
 
+async function Courtroomfeedback(req, res) {
+  try {
+    const _id = req.body?.courtroomClient?.userBooking?._id;
+    const { rating, feedback } = req.body;
+    const SetFeedback = await CourtroomService.setFeedback(
+      _id,
+      rating,
+      feedback
+    );
+
+    return res.status(StatusCodes.OK).json(SuccessResponse({ SetFeedback }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
 async function AddContactUsQuery(req, res) {
   const {
     firstName,
@@ -2263,4 +2279,5 @@ module.exports = {
   sidebarCasesearch,
   draftNextAppeal,
   newcase1,
+  Courtroomfeedback,
 };
