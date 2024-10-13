@@ -65,7 +65,6 @@ const htmlTemplate = `
       <p>Your booking details are as follows:</p>
       <h3><strong>Name:</strong> {{name}}</h3>
       <h3><strong>Phone Number:</strong> {{phoneNumber}}</h3>
-      <h3><strong>Password:</strong> {{password}}</h3>
       <h3><strong>Slots Booked:</strong></h3>
       <ul class="slot-list">
         {{#each slots}}
@@ -91,7 +90,6 @@ const sendConfirmationEmail = async (
   email,
   name,
   phoneNumber,
-  password,
   slots,
   amount
 ) => {
@@ -114,7 +112,6 @@ const sendConfirmationEmail = async (
   const filledTemplate = template({
     name,
     phoneNumber,
-    password,
     slots,
     amount: amount, // Replace with your invoice link
   });

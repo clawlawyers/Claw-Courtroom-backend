@@ -78,23 +78,19 @@ async function verifyPayment(req, res) {
       //   placedOrder.plan
       // );
 
-      const { name, phoneNumber, email, password, slots, recording } =
-        bookingData;
+      const { name, phoneNumber, email, slots, recording } = bookingData;
 
       // Check if required fields are provided
       if (
         !name ||
         !phoneNumber ||
         !email ||
-        !password ||
         !slots ||
         !Array.isArray(slots) ||
         slots.length === 0
       ) {
         return res.status(400).send("Missing required fields.");
       }
-
-      const hashedPassword = await hashPassword(password);
 
       for (const slot of slots) {
         const { date, hour } = slot;
@@ -108,7 +104,6 @@ async function verifyPayment(req, res) {
           name,
           phoneNumber,
           email,
-          hashedPassword,
           bookingDate,
           hour,
           recording
@@ -119,29 +114,12 @@ async function verifyPayment(req, res) {
         }
       }
 
-      // // Generate invoice
-      // const invoiceOptions = {
-      //   type: "link",
-      //   description: "Courtroom Booking Invoice",
-      //   customer: {
-      //     email: email,
-      //     contact: phoneNumber,
-      //   },
-      //   amount: amount, // amount in paise
-      //   currency: "INR",
-      //   order_id: razorpay_order_id,
-      // };
-
-      // const invoiceResponse = await razorpay.invoices.create(invoiceOptions);
-      // console.log(invoiceResponse);
-
       let amout1 = amount;
 
       await sendConfirmationEmail(
         email,
         name,
         phoneNumber,
-        password,
         slots,
         (amout1 = amout1 / 100)
       );
