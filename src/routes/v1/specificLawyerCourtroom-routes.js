@@ -98,6 +98,13 @@ router.post(
 );
 
 router.post(
+  "/api/summary",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.summary
+);
+
+router.post(
   "/api/relevant_cases_judge_lawyer",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
@@ -288,6 +295,15 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.draftNextAppeal
+);
+
+// chatbot
+
+router.post(
+  "/api/consultant",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.consultant
 );
 
 // AddContactUsQuery Route

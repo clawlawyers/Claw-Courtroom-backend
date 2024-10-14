@@ -67,6 +67,12 @@ router.post(
 );
 
 router.post(
+  "/api/summary",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.summary
+);
+
+router.post(
   "/api/relevant_cases_judge_lawyer",
   authMiddleware.checkCourtroomAuth,
   CourtroomController.relevantCasesJudgeLawyer
@@ -212,6 +218,14 @@ router.post(
   "/api/draft_next_appeal",
   authMiddleware.checkCourtroomAuth,
   CourtroomController.draftNextAppeal
+);
+
+// chatbot api
+
+router.post(
+  "/api/consultant",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.consultant
 );
 
 // AddContactUsQuery Route
