@@ -1788,7 +1788,10 @@ async function testimonyQuestions(req, res) {
 
     // encrypt the fetched testimonyQuestions
 
-    testimonyQuestions = await encryption(testimonyQuestions, key);
+    testimonyQuestions.testimony_questions = await encryption(
+      testimonyQuestions.testimony_questions,
+      key
+    );
 
     res.status(StatusCodes.OK).json(SuccessResponse({ testimonyQuestions }));
   } catch (error) {
