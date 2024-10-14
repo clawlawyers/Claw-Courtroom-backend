@@ -22,6 +22,7 @@ const {
   generateEncryptedKey,
   encryption,
   decryption,
+  encryptObject,
 } = require("../utils/common/encryptionServices");
 
 async function bookCourtRoom(req, res) {
@@ -1163,6 +1164,11 @@ async function CaseHistory(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
   try {
     const caseHistory = await FetchCaseHistory({ user_id });
+
+    // encrypt the caseHistory
+
+    caseHistory = await encryptObject(caseHistory, encryption, key);
+
     console.log(caseHistory);
     // save into database or update database with new data if case history is already present in the database
     const { User_id } = await SpecificLawyerCourtroomService.getClientByUserid(
@@ -1581,8 +1587,14 @@ async function download(req, res) {
 
 async function getHistory(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
+  const key = req.body?.courtroomClient?.key;
+
   try {
-    const caseHistory = await FetchCaseHistory({ user_id });
+    let caseHistory = await FetchCaseHistory({ user_id });
+
+    caseHistory = await encryptObject(caseHistory, encryption, key);
+
+    console.log(caseHistory);
 
     res.status(StatusCodes.OK).json(SuccessResponse({ caseHistory }));
   } catch (error) {
@@ -1734,8 +1746,11 @@ async function resetUserId(req, res) {
 
 async function relevantCaseLaw(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
+  const key = req.body?.courtroomClient?.key;
+
   try {
     const relevantCases = await FetchRelevantCases({ user_id });
+    relevantCases = await encryption(relevantCases, key);
     res.status(StatusCodes.OK).json(SuccessResponse({ relevantCases }));
   } catch (error) {
     console.error(error);
@@ -2092,8 +2107,13 @@ async function fetchConsultant({ user_id, query }) {
 async function editApplication(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
+    const key = req.body?.courtroomClient?.key;
+
     const { query } = req.body;
     const editApplication = await fetchEditApplication({ user_id, query });
+
+    editApplication = await encryption(editApplication, key);
+
     res.status(StatusCodes.OK).json(SuccessResponse({ editApplication }));
   } catch (error) {
     console.error(error);

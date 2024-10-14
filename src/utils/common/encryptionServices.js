@@ -63,8 +63,92 @@ async function decryption(data, encryptedKey) {
   }
 }
 
+async function encryptObject(data, encryption, encryptedKey) {
+  const encryptedData = {};
+
+  // Use for...of to handle async/await properly
+  for (const key of Object.keys(data)) {
+    if (typeof data[key] === "string") {
+      // Encrypt string values
+      encryptedData[key] = await encryption(data[key], encryptedKey);
+    } else if (Array.isArray(data[key])) {
+      // Encrypt each string inside arrays using Promise.all
+      encryptedData[key] = await Promise.all(
+        data[key].map(async (item) =>
+          typeof item === "string" ? await encryption(item, encryptedKey) : item
+        )
+      );
+    } else if (typeof data[key] === "object" && data[key] !== null) {
+      // Recursively encrypt nested objects
+      encryptedData[key] = await encryptObject(
+        data[key],
+        encryption,
+        encryptedKey
+      );
+    } else {
+      // For non-string values, just copy them
+      encryptedData[key] = data[key];
+    }
+  }
+
+  return encryptedData;
+}
+
+async function decryptObject(data, decryption, encryptedKey) {
+  const decryptedData = {};
+
+  // Use for...of to handle async/await properly
+  for (const key of Object.keys(data)) {
+    if (typeof data[key] === "string") {
+      // Decrypt string values
+      decryptedData[key] = await decryption(data[key], encryptedKey);
+    } else if (Array.isArray(data[key])) {
+      // Decrypt each string inside arrays using Promise.all
+      decryptedData[key] = await Promise.all(
+        data[key].map(async (item) =>
+          typeof item === "string" ? await decryption(item, encryptedKey) : item
+        )
+      );
+    } else if (typeof data[key] === "object" && data[key] !== null) {
+      // Recursively decrypt nested objects
+      decryptedData[key] = await decryptObject(
+        data[key],
+        decryption,
+        encryptedKey
+      );
+    } else {
+      // For non-string values, just copy them
+      decryptedData[key] = data[key];
+    }
+  }
+
+  return decryptedData;
+}
+
+async function decryptArrayOfObjects(dataArray, decryption, encryptedKey) {
+  // Iterate over the array and decrypt each object
+  return await Promise.all(
+    dataArray.map(async (item) => {
+      return await decryptObject(item, decryption, encryptedKey);
+    })
+  );
+}
+
+async function encryptArrayOfObjects(dataArray, encryption, encryptedKey) {
+  // Iterate over the array and encrypt each object
+  return await Promise.all(
+    dataArray.map(async (item) => {
+      return await encryptObject(item, encryption, encryptedKey);
+    })
+  );
+}
+
 module.exports = {
   generateEncryptedKey,
   decryption,
   encryption,
+  encryptObject,
+  decryptObject,
+  decryptArrayOfObjects,
+  encryptArrayOfObjects,
 };

@@ -157,7 +157,7 @@ router.post(
   SpecificLawyerCourtroomController.hallucination_questions
 );
 
-// not encrypted
+//encrypted
 router.post(
   "/api/history",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
