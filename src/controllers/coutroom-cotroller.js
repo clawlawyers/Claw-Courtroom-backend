@@ -952,6 +952,43 @@ async function FetchJudge_arguemnt(body) {
   return response.json();
 }
 
+async function summary(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userBooking?.userId;
+    const summary = await FetchSummary({ user_id });
+    return res.status(StatusCodes.OK).json(SuccessResponse({ summary }));
+  } catch (error) {
+    const errorResponse = ErrorResponse({}, error);
+    console.log(error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function FetchSummary(body) {
+  try {
+    console.log(body);
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/summary`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const res = await response.json();
+    return res;
+    // console.log(res);
+    // return res;
+  } catch (error) {
+    console.error("Network response was not ok:", error);
+    throw error;
+  }
+}
+
 async function relevantCasesJudgeLawyer(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userBooking?.userId;
@@ -1983,6 +2020,46 @@ async function fetchDraftNextAppeal({ user_id, favor }) {
   }
 }
 
+async function consultant(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userBooking?.userId;
+    const { query } = req.body;
+    const fetchedConsultant = await fetchConsultant({ user_id, query });
+    return res
+      .status(StatusCodes.OK)
+      .json(SuccessResponse({ fetchedConsultant }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function fetchConsultant({ user_id, query }) {
+  try {
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/consultant`, {
+      method: "POST",
+      body: JSON.stringify({ user_id, query }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch consultant");
+  }
+}
+
 async function sidebarCasesearch(req, res) {
   const user_id = req.body?.courtroomClient?.userBooking?.userId;
   const { context } = req.body;
@@ -2097,4 +2174,6 @@ module.exports = {
   setFavor,
   sidebarCasesearch,
   newcase1,
+  consultant,
+  summary,
 };
