@@ -523,7 +523,7 @@ async function newcase1(req, res) {
     const fileKeys = Object.keys(files);
     // Using Promise.all to handle asynchronous file uploads
     await Promise.all(
-      fileKeys.forEach(async (key, index) => {
+      fileKeys.map(async (key, index) => {
         const file = files[key][0]; // Get the first file from each key
 
         // Generate a UUID
