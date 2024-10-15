@@ -1752,7 +1752,10 @@ async function relevantCaseLaw(req, res) {
 
   try {
     const relevantCases = await FetchRelevantCases({ user_id });
-    relevantCases = await encryption(relevantCases, key);
+    relevantCases.relevant_case_law = await encryption(
+      relevantCases.relevant_case_law,
+      key
+    );
     res.status(StatusCodes.OK).json(SuccessResponse({ relevantCases }));
   } catch (error) {
     console.error(error);
@@ -2114,7 +2117,10 @@ async function editApplication(req, res) {
     const { query } = req.body;
     const editApplication = await fetchEditApplication({ user_id, query });
 
-    editApplication = await encryption(editApplication, key);
+    editApplication.application = await encryption(
+      editApplication.application,
+      key
+    );
 
     res.status(StatusCodes.OK).json(SuccessResponse({ editApplication }));
   } catch (error) {
