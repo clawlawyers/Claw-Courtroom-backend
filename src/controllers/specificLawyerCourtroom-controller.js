@@ -1162,8 +1162,10 @@ async function FetchHallucinationQuestions(body) {
 
 async function CaseHistory(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
+  const key = req.body?.courtroomClient?.key;
+
   try {
-    const caseHistory = await FetchCaseHistory({ user_id });
+    let caseHistory = await FetchCaseHistory({ user_id });
 
     // encrypt the caseHistory
 
@@ -1181,7 +1183,7 @@ async function CaseHistory(req, res) {
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ caseHistory }));
   } catch (error) {
-    const errorResponse = ErrorResponse({}, error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
