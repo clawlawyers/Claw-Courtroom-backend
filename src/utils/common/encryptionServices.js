@@ -95,34 +95,51 @@ async function encryptObject(data, encryption, encryptedKey) {
 }
 
 async function decryptObject(data, decryption, encryptedKey) {
-  const decryptedData = {};
+  const stack = [{ data, decryptedData: {}, parent: null, key: null }];
+  const result = {};
 
-  // Use for...of to handle async/await properly
-  for (const key of Object.keys(data)) {
-    if (typeof data[key] === "string") {
-      // Decrypt string values
-      decryptedData[key] = await decryption(data[key], encryptedKey);
-    } else if (Array.isArray(data[key])) {
-      // Decrypt each string inside arrays using Promise.all
-      decryptedData[key] = await Promise.all(
-        data[key].map(async (item) =>
-          typeof item === "string" ? await decryption(item, encryptedKey) : item
-        )
-      );
-    } else if (typeof data[key] === "object" && data[key] !== null) {
-      // Recursively decrypt nested objects
-      decryptedData[key] = await decryptObject(
-        data[key],
-        decryption,
-        encryptedKey
-      );
-    } else {
-      // For non-string values, just copy them
-      decryptedData[key] = data[key];
+  while (stack.length > 0) {
+    const { data: currentData, decryptedData, parent, key } = stack.pop();
+
+    for (const currentKey of Object.keys(currentData)) {
+      const value = currentData[currentKey];
+
+      if (typeof value === "string") {
+        // Decrypt string values
+        decryptedData[currentKey] = await decryption(value, encryptedKey);
+      } else if (Array.isArray(value)) {
+        // Process arrays
+        decryptedData[currentKey] = await Promise.all(
+          value.map(async (item) =>
+            typeof item === "string"
+              ? await decryption(item, encryptedKey)
+              : item
+          )
+        );
+      } else if (typeof value === "object" && value !== null) {
+        // Push nested objects onto the stack
+        const newDecryptedData = {};
+        decryptedData[currentKey] = newDecryptedData;
+        stack.push({
+          data: value,
+          decryptedData: newDecryptedData,
+          parent: decryptedData,
+          key: currentKey,
+        });
+      } else {
+        // Copy non-string values
+        decryptedData[currentKey] = value;
+      }
+    }
+
+    // If there's a parent, link the decrypted data to the correct parent key
+    if (parent && key) {
+      parent[key] = decryptedData;
     }
   }
 
-  return decryptedData;
+  // The result will hold the fully decrypted object
+  return data;
 }
 
 async function decryptArrayOfObjects(dataArray, decryption, encryptedKey) {
