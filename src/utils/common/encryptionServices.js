@@ -143,12 +143,18 @@ async function decryptObject(data, decryption, encryptedKey) {
 }
 
 async function decryptArrayOfObjects(dataArray, decryption, encryptedKey) {
-  // Iterate over the array and decrypt each object
-  return await Promise.all(
-    dataArray.map(async (item) => {
-      return await decryptObject(item, decryption, encryptedKey);
-    })
-  );
+  const decryptedArray = [];
+
+  for (let i = 0; i < dataArray.length; i++) {
+    const decryptedObject = await decryptObject(
+      dataArray[i],
+      decryption,
+      encryptedKey
+    );
+    decryptedArray.push(decryptedObject);
+  }
+
+  return decryptedArray;
 }
 
 async function encryptArrayOfObjects(dataArray, encryption, encryptedKey) {
