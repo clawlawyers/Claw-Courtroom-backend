@@ -590,40 +590,31 @@ async function newcase1(req, res) {
 
         await uploadfileToBucker(renamedFile, folderName);
       })
-    );
+    ).then(async () => {
+      let case_overview;
 
-    let case_overview;
+      if (isMultilang) {
+        case_overview = await getOverviewMultilang1({
+          user_id: userId,
+          file: fileNameArray,
+          bucket_name: "ai_courtroom",
+          folder_name: folderName + "/",
+        });
+      } else {
+        case_overview = await getOverview1({
+          user_id: userId,
+          file: fileNameArray,
+          bucket_name: "ai_courtroom",
+          folder_name: folderName + "/",
+        });
+      }
 
-    if (isMultilang) {
-      case_overview = await getOverviewMultilang1({
-        user_id: userId,
-        file: fileNameArray,
-        bucket_name: "ai_courtroom",
-        folder_name: folderName + "/",
-      });
-    } else {
-      case_overview = await getOverview1({
-        user_id: userId,
-        file: fileNameArray,
-        bucket_name: "ai_courtroom",
-        folder_name: folderName + "/",
-      });
-    }
+      console.log(case_overview);
 
-    console.log(case_overview);
-
-    // case_overview.case_overview = await encryption(
-    //   case_overview.case_overview,
-    //   key
-    // );
-
-    // const decryptData = await decryption(case_overview.case_overview, key);
-
-    // console.log("decryptData: => ");
-
-    // console.log(decryptData);
-
-    return res.status(StatusCodes.OK).json(SuccessResponse({ case_overview }));
+      return res
+        .status(StatusCodes.OK)
+        .json(SuccessResponse({ case_overview }));
+    });
   } catch (error) {
     console.log(error);
     const errorResponse = ErrorResponse({}, error);
