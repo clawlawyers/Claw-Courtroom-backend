@@ -1320,7 +1320,7 @@ async function downloadSessionCaseHistory(req, res) {
 
     const FetchedCaseHistorys =
       await SpecificLawyerCourtroomService.getSessionCaseHistory(User_id);
-    console.log(FetchedCaseHistorys);
+    // console.log(FetchedCaseHistorys);
 
     const caseHistorys = FetchedCaseHistorys.history;
 
