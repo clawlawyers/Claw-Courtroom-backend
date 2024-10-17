@@ -60,6 +60,13 @@ router.post(
 );
 
 router.post(
+  "/api/case_summary",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.caseSummary
+);
+
+router.post(
   "/api/new_case/text",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
