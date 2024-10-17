@@ -648,6 +648,48 @@ async function getOverviewMultilang1(body) {
   }
 }
 
+async function caseSummary(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userId;
+
+    const fetchedCaseSummary = await fetchCaseSummary({ user_id });
+    return res
+      .status(StatusCodes.OK)
+      .json(SuccessResponse({ fetchedCaseSummary }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function fetchCaseSummary(body) {
+  try {
+    // Dynamically import node-fetch
+    const fetch = (await import("node-fetch")).default;
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/case_summary`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(`${errorText}`);
+    }
+
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error("Error in fetchCaseSummary:", error);
+    throw error;
+  }
+}
+
 async function edit_case(req, res) {
   let { case_overview } = req.body;
 
@@ -2360,4 +2402,5 @@ module.exports = {
   draftNextAppeal,
   summary,
   consultant,
+  caseSummary,
 };
