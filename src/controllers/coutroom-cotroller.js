@@ -74,6 +74,66 @@ async function bookCourtRoom(req, res) {
   }
 }
 
+async function adminLoginBookCourtRoom(req, res) {
+  try {
+    const { name, phoneNumber, email, slots, recording, password } = req.body;
+
+    // Check if required fields are provided
+    if (
+      !name ||
+      !phoneNumber ||
+      !email ||
+      !slots ||
+      !Array.isArray(slots) ||
+      slots.length === 0
+    ) {
+      return res.status(400).send("Missing required fields.");
+    }
+
+    const hashedPassword = await hashPassword(password);
+    const caseOverview = "";
+
+    for (const slot of slots) {
+      const { date, hour } = slot;
+      if (!date || hour === undefined) {
+        return res.status(400).send("Missing required fields in slot.");
+      }
+
+      const bookingDate = new Date(date);
+
+      const respo = await CourtroomService.AdminLoginCourtRoomBook(
+        name,
+        phoneNumber,
+        email,
+        bookingDate,
+        hour,
+        recording,
+        caseOverview,
+        hashedPassword
+      );
+
+      if (respo) {
+        return res.status(400).send(respo);
+      }
+    }
+    await sendConfirmationEmail(
+      email,
+      name,
+      phoneNumber,
+      password,
+      slots,
+      (amount = slots.length * 100)
+    );
+
+    res.status(201).send("Courtroom slots booked successfully.");
+  } catch (error) {
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
 async function adminBookCourtRoom(req, res) {
   try {
     const { name, phoneNumber, email, password, slots, recording } = req.body;
@@ -215,6 +275,25 @@ async function loginToCourtRoom(req, res) {
       return res.status(400).send("Missing required fields.");
     }
     const response = await CourtroomService.loginToCourtRoom(phoneNumber);
+    res.status(200).json(response);
+  } catch (error) {
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function AdminLoginToCourtRoom(req, res) {
+  const { phoneNumber, password } = req.body;
+  try {
+    if (!phoneNumber) {
+      return res.status(400).send("Missing required fields.");
+    }
+    const response = await CourtroomService.AdminLoginToCourtRoom(
+      phoneNumber,
+      password
+    );
     res.status(200).json(response);
   } catch (error) {
     const errorResponse = ErrorResponse({}, error);
@@ -2148,10 +2227,14 @@ async function fetchConsultant({ user_id, query }) {
 
 async function Courtroomfeedback(req, res) {
   try {
-    const _id = req.body?.courtroomClient?.userBooking?._id;
-    const { rating, feedback } = req.body;
+    // const _id = req.body?.courtroomClient?.userBooking?._id;
+    const { rating, feedback, userId } = req.body;
+
+    const { User_id, Booking_id } =
+      await CourtroomService.getClientByUseridForEndCase(userId);
+
     const SetFeedback = await CourtroomService.setFeedback(
-      _id,
+      User_id,
       rating,
       feedback
     );
@@ -2393,4 +2476,6 @@ module.exports = {
   summary,
   consultant,
   caseSummary,
+  adminLoginBookCourtRoom,
+  AdminLoginToCourtRoom,
 };

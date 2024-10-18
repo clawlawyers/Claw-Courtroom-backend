@@ -11,11 +11,16 @@ const upload = multer({ storage: storage });
 
 router.post("/book-courtroom", CourtroomController.bookCourtRoom);
 router.post(
+  "/adminLogin/book-courtroom",
+  CourtroomController.adminLoginBookCourtRoom
+);
+router.post(
   "/book-courtroom-validation",
   CourtroomController.bookCourtRoomValidation
 );
 router.get("/book-courtroom", CourtroomController.getBookedData);
 router.post("/login", CourtroomController.loginToCourtRoom);
+router.post("/adminLogin/login", CourtroomController.AdminLoginToCourtRoom);
 router.post(
   "/getCourtroomUser",
   authMiddleware.checkCourtroomAuth,
@@ -237,7 +242,7 @@ router.post(
 // AddContactUsQuery Route
 router.post(
   "/api/feedback",
-  authMiddleware.checkCourtroomAuth,
+  // authMiddleware.checkCourtroomAuth,
   CourtroomController.Courtroomfeedback
 );
 router.post("/add/ContactUsQuery", CourtroomController.AddContactUsQuery);

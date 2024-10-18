@@ -263,6 +263,86 @@ async function courtRoomBook(
   }
 }
 
+async function AdminLoginCourtRoomBook(
+  name,
+  phoneNumber,
+  email,
+  bookingDate,
+  hour,
+  recording,
+  caseOverview,
+  hashedPassword
+) {
+  console.log("Here is caseOverview", caseOverview);
+  try {
+    // Find existing booking for the same date and hour
+    let booking = await CourtRoomBooking.findOne({
+      date: bookingDate,
+      hour: hour,
+    }).populate("courtroomBookings");
+
+    if (!booking) {
+      // Create a new booking if it doesn't exist
+      booking = new CourtRoomBooking({
+        date: bookingDate,
+        hour: hour,
+        courtroomBookings: [],
+      });
+    }
+
+    // Check if the total bookings exceed the limit
+    if (booking.courtroomBookings.length >= 6) {
+      console.log(
+        `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
+      );
+      return `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
+    }
+
+    // Check if the user with the same mobile number or email already booked a slot at the same hour
+    const existingBooking = booking.courtroomBookings.find(
+      (courtroomBooking) =>
+        courtroomBooking.phoneNumber == phoneNumber ||
+        courtroomBooking.email == email
+    );
+
+    console.log(existingBooking);
+
+    if (existingBooking) {
+      console.log(
+        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
+      );
+      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`;
+    }
+
+    // Create a new courtroom user
+    const newCourtroomUser = new CourtroomUser({
+      name,
+      phoneNumber,
+      email,
+      recording: recording, // Assuming recording is required and set to true
+      caseOverview: "NA",
+      password: hashedPassword,
+    });
+
+    console.log(newCourtroomUser);
+
+    // Save the new courtroom user
+    const savedCourtroomUser = await newCourtroomUser.save();
+
+    console.log(savedCourtroomUser);
+
+    // Add the new booking
+    booking.courtroomBookings.push(savedCourtroomUser._id);
+
+    // Save the booking
+    await booking.save();
+    console.log("Booking saved.");
+  } catch (error) {
+    console.error(error);
+    throw new Error("Internal server error.");
+  }
+}
+
 async function courtRoomBookValidation(
   name,
   phoneNumber,
@@ -437,6 +517,107 @@ async function loginToCourtRoom(phoneNumber) {
     // if (!isPasswordValid) {
     //   return "Invalid phone number or password.";
     // }
+
+    // Generate a JWT token
+    const token = generateToken({
+      userId: userBooking._id,
+      phoneNumber: userBooking.phoneNumber,
+    });
+
+    let userId;
+
+    if (!userBooking.userId) {
+      const userId1 = await registerNewCourtRoomUser();
+      userBooking.userId = userId1.user_id;
+      userId = userId1.user_id;
+      await userBooking.save();
+    } else {
+      userId = userBooking.userId;
+    }
+
+    // Respond with the token
+    return {
+      slotTime: booking.hour,
+      ...token,
+      userId: userId,
+      phoneNumber: userBooking.phoneNumber,
+    };
+  } catch (error) {
+    console.error(error);
+    throw new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+}
+
+async function AdminLoginToCourtRoom(phoneNumber, password) {
+  try {
+    let currentDate, currentHour;
+
+    if (process.env.NODE_ENV === "production") {
+      // Get current date and time in UTC
+      const now = new Date();
+
+      // Convert to milliseconds
+      const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
+
+      // IST offset is +5:30
+      const istOffset = 5.5 * 60 * 60000;
+
+      // Create new date object for IST
+      const istTime = new Date(utcTime + istOffset);
+
+      currentDate = new Date(
+        Date.UTC(istTime.getFullYear(), istTime.getMonth(), istTime.getDate())
+      );
+      currentHour = istTime.getHours();
+    } else {
+      // Get the current date and hour in local time (for development)
+      const now = new Date();
+      currentDate = new Date(
+        Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+      );
+      currentHour = now.getHours();
+    }
+
+    console.log(currentDate, currentHour);
+
+    // const currentDate = "2024-07-30";
+    // const currentHour = 14;
+
+    // Find existing booking for the current date and hour
+    const booking = await CourtRoomBooking.findOne({
+      date: currentDate,
+      hour: currentHour,
+    }).populate("courtroomBookings");
+
+    if (!booking) {
+      return "No bookings found for the current time slot.";
+    }
+
+    console.log(booking);
+
+    console.log(booking.courtroomBookings.length);
+
+    // Check if the user with the given phone number is in the booking
+    const userBooking = booking.courtroomBookings.find((courtroomBooking) => {
+      console.log(courtroomBooking.phoneNumber, phoneNumber);
+      return courtroomBooking.phoneNumber == phoneNumber;
+    });
+
+    console.log(userBooking);
+
+    if (!userBooking) {
+      return "Invalid phone number";
+    }
+
+    // Check if the password is correct
+    const isPasswordValid = await comparePassword(
+      password,
+      userBooking.password
+    );
+
+    if (!isPasswordValid) {
+      return "Invalid phone number or password.";
+    }
 
     // Generate a JWT token
     const token = generateToken({
@@ -747,4 +928,6 @@ module.exports = {
   adminCourtRoomBook,
   getClientByUseridForEndCase,
   setFeedback,
+  AdminLoginCourtRoomBook,
+  AdminLoginToCourtRoom,
 };
