@@ -78,12 +78,14 @@ async function verifyPayment(req, res) {
       //   placedOrder.plan
       // );
 
-      const { name, phoneNumber, email, slots, recording } = bookingData;
+      const { name, phoneNumber, email, slots, recording, password } =
+        bookingData;
 
       // Check if required fields are provided
       if (
         !name ||
         !phoneNumber ||
+        !password ||
         !email ||
         !slots ||
         !Array.isArray(slots) ||
@@ -91,6 +93,8 @@ async function verifyPayment(req, res) {
       ) {
         return res.status(400).send("Missing required fields.");
       }
+
+      const hashedPassword = await hashPassword(password);
 
       for (const slot of slots) {
         const { date, hour } = slot;
@@ -106,7 +110,9 @@ async function verifyPayment(req, res) {
           email,
           bookingDate,
           hour,
-          recording
+          recording,
+          (caseOverview = "NA"),
+          hashedPassword
         );
 
         if (respo) {
@@ -120,6 +126,7 @@ async function verifyPayment(req, res) {
         email,
         name,
         phoneNumber,
+        password,
         slots,
         (amout1 = amout1 / 100)
       );

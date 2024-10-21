@@ -17,7 +17,7 @@ const {
 
 async function bookCourtRoom(req, res) {
   try {
-    const { name, phoneNumber, email, slots, recording } = req.body;
+    const { name, phoneNumber, email, slots, recording, password } = req.body;
 
     // Check if required fields are provided
     if (
@@ -25,13 +25,14 @@ async function bookCourtRoom(req, res) {
       !phoneNumber ||
       !email ||
       !slots ||
+      !password ||
       !Array.isArray(slots) ||
       slots.length === 0
     ) {
       return res.status(400).send("Missing required fields.");
     }
 
-    // const hashedPassword = await hashPassword(password);
+    const hashedPassword = await hashPassword(password);
     const caseOverview = "";
 
     for (const slot of slots) {
@@ -49,7 +50,8 @@ async function bookCourtRoom(req, res) {
         bookingDate,
         hour,
         recording,
-        caseOverview
+        caseOverview,
+        hashedPassword
       );
 
       if (respo) {
@@ -197,13 +199,14 @@ async function adminBookCourtRoom(req, res) {
 
 async function bookCourtRoomValidation(req, res) {
   try {
-    const { name, phoneNumber, email, slots, recording } = req.body;
+    const { name, phoneNumber, email, slots, recording, password } = req.body;
 
     // Check if required fields are provided
     if (
       !name ||
       !phoneNumber ||
       !email ||
+      !password ||
       !slots ||
       !Array.isArray(slots) ||
       slots.length === 0
@@ -269,12 +272,15 @@ async function getBookedData(req, res) {
 }
 
 async function loginToCourtRoom(req, res) {
-  const { phoneNumber } = req.body;
+  const { phoneNumber, password } = req.body;
   try {
-    if (!phoneNumber) {
+    if (!phoneNumber || !password) {
       return res.status(400).send("Missing required fields.");
     }
-    const response = await CourtroomService.loginToCourtRoom(phoneNumber);
+    const response = await CourtroomService.loginToCourtRoom(
+      phoneNumber,
+      password
+    );
     res.status(200).json(response);
   } catch (error) {
     const errorResponse = ErrorResponse({}, error);

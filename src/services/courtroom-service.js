@@ -192,7 +192,8 @@ async function courtRoomBook(
   bookingDate,
   hour,
   recording,
-  caseOverview
+  caseOverview,
+  hashedPassword
 ) {
   console.log("Here is caseOverview", caseOverview);
   try {
@@ -242,6 +243,7 @@ async function courtRoomBook(
       email,
       recording: recording, // Assuming recording is required and set to true
       caseOverview: "NA",
+      password: hashedPassword,
     });
 
     console.log(newCourtroomUser);
@@ -447,7 +449,7 @@ async function getBookedData(startDate, endDate) {
   }
 }
 
-async function loginToCourtRoom(phoneNumber) {
+async function loginToCourtRoom(phoneNumber, password) {
   try {
     let currentDate, currentHour;
 
@@ -508,15 +510,15 @@ async function loginToCourtRoom(phoneNumber) {
       return "Invalid phone number";
     }
 
-    // // Check if the password is correct
-    // const isPasswordValid = await comparePassword(
-    //   password,
-    //   userBooking.password
-    // );
+    // Check if the password is correct
+    const isPasswordValid = await comparePassword(
+      password,
+      userBooking.password
+    );
 
-    // if (!isPasswordValid) {
-    //   return "Invalid phone number or password.";
-    // }
+    if (!isPasswordValid) {
+      return "Invalid phone number or password.";
+    }
 
     // Generate a JWT token
     const token = generateToken({
