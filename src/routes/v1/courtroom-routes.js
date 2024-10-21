@@ -20,6 +20,10 @@ router.post(
 );
 router.get("/book-courtroom", CourtroomController.getBookedData);
 router.post("/login", CourtroomController.loginToCourtRoom);
+router.post(
+  "/admin-login-validation",
+  CourtroomController.adminLoginValidation
+);
 router.post("/adminLogin/login", CourtroomController.AdminLoginToCourtRoom);
 router.post(
   "/getCourtroomUser",
