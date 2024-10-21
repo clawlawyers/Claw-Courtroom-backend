@@ -290,6 +290,39 @@ async function loginToCourtRoom(req, res) {
   }
 }
 
+async function adminLoginValidation(req, res) {
+  const { phoneNumber, email, bookingDate, hour } = req.body;
+  try {
+    if (!phoneNumber || !email || !bookingDate || !hour) {
+      return res.status(400).send("Missing required fields.");
+    }
+    // const response = await CourtroomService.adminLoginValidation(phoneNumber);
+    let caseOverview;
+
+    const resp = await CourtroomService.courtRoomBookValidation(
+      (Wname = "DUMMY"),
+      phoneNumber,
+      email,
+      bookingDate,
+      hour,
+      (recording = true),
+      (caseOverview = "NA")
+    );
+
+    console.log(resp);
+
+    if (resp) {
+      return res.status(StatusCodes.OK).json(SuccessResponse({ data: resp }));
+    }
+    res.status(200).json({ message: "SLOT BOOK KRO" });
+  } catch (error) {
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
 async function AdminLoginToCourtRoom(req, res) {
   const { phoneNumber, password } = req.body;
   try {
@@ -2493,4 +2526,5 @@ module.exports = {
   caseSummary,
   adminLoginBookCourtRoom,
   AdminLoginToCourtRoom,
+  adminLoginValidation,
 };
