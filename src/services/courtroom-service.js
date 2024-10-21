@@ -374,7 +374,7 @@ async function courtRoomBookValidation(
     // Check if the total bookings exceed the limit
     if (booking.courtroomBookings.length >= 6) {
       console.log(
-        `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate?.toDateString()}.`
       );
       // throw new Error(
       //   `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
@@ -393,12 +393,12 @@ async function courtRoomBookValidation(
 
     if (existingBooking) {
       console.log(
-        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate?.toDateString()}.`
       );
       // throw new Error(
       //   `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
       // );
-      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate?.toDateString()}.`;
     }
   } catch (error) {
     console.error(error);
