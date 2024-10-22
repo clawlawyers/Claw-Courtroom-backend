@@ -38,6 +38,7 @@ const {
   deleteAllowedLogin,
   UpdateUserDetailsAllowedLogin,
   UpdateUserTimingAllowedLogin,
+  CreateCourtroomCouponCode,
 } = require("../../controllers/admin-controller");
 const { setLocation } = require("../../controllers/client-controller");
 const { CourtroomController } = require("../../controllers");
@@ -153,5 +154,8 @@ router.put(
   "/allowedLogin/:bookingId/users/:userId/slot",
   UpdateUserTimingAllowedLogin
 );
+
+// discount coupon code
+router.post("/courtroom/discount-create", CreateCourtroomCouponCode);
 
 module.exports = router;

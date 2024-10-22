@@ -262,6 +262,8 @@ async function getClientByUserid(userid) {
 
 async function storeCaseHistory(userId, caseHistoryDetails) {
   try {
+    const user = await SpecificLawyerCourtroomUser.findById(userId);
+
     // Find the courtroom history by userId and slotId
     let courtroomHistory = await SpecificLawyerCourtroomHistory.findOne({
       userId: userId,
@@ -276,8 +278,48 @@ async function storeCaseHistory(userId, caseHistoryDetails) {
       });
     }
 
+    caseHistoryDetails.caseId = user.caseId;
+
     // Append the new case history details to the history array
     courtroomHistory.history.push(caseHistoryDetails);
+    // Set the latest case history
+    courtroomHistory.latestCaseHistory = caseHistoryDetails;
+
+    // Save the updated courtroom history
+    await courtroomHistory.save();
+    console.log("Case history saved.");
+    return courtroomHistory;
+  } catch (error) {
+    console.error("Error saving case history:", error);
+    throw new Error("Internal server error.");
+  }
+}
+
+async function OverridestoreCaseHistory(userId, caseHistoryDetails) {
+  try {
+    const user = await SpecificLawyerCourtroomUser.findById(userId);
+
+    // Find the courtroom history by userId and slotId
+    let courtroomHistory = await SpecificLawyerCourtroomHistory.findOne({
+      userId: userId,
+    });
+
+    // if (!courtroomHistory) {
+    //   // Create a new courtroom history if it doesn't exist
+    //   courtroomHistory = new CourtroomHistory({
+    //     userId: userId,
+    //     slot: slotId,
+    //     history: [],
+    //     latestCaseHistory: {},
+    //   });
+    // }
+
+    const lengthOfHistory = courtroomHistory.history.length;
+
+    caseHistoryDetails.caseId = user.caseId;
+
+    // Append the new case history details to the history array
+    courtroomHistory.history[lengthOfHistory - 1] = caseHistoryDetails;
     // Set the latest case history
     courtroomHistory.latestCaseHistory = caseHistoryDetails;
 
@@ -374,6 +416,32 @@ async function uploadfileToBucker(file, userId) {
   }
 }
 
+async function isNewCaseHistory(userId) {
+  try {
+    const user = await SpecificLawyerCourtroomUser.findById(userId);
+    const currentCaseId = user.caseId;
+    const courtroomHistory = await SpecificLawyerCourtroomHistory.findOne({
+      userId: userId,
+    });
+    if (!courtroomHistory) {
+      return false; // inster new case history entry
+    }
+    const historyCaseId = courtroomHistory?.latestCaseHistory.caseId;
+    if (
+      currentCaseId === historyCaseId &&
+      courtroomHistory &&
+      courtroomHistory.history.length > 0
+    ) {
+      return true; // override case history
+    } else {
+      return false; // inster new case history entry
+    }
+  } catch (error) {
+    console.error("Error checking new case history:", error);
+    throw new Error("Internal server error.");
+  }
+}
+
 module.exports = {
   courtRoomBook,
   loginToCourtRoom,
@@ -385,4 +453,6 @@ module.exports = {
   getClientByDomainWithSession,
   updateClientByDomainWithSession,
   uploadfileToBucker,
+  isNewCaseHistory,
+  OverridestoreCaseHistory,
 };

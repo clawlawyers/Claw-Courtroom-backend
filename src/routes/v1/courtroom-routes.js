@@ -243,6 +243,8 @@ router.post(
   CourtroomController.consultant
 );
 
+router.post("/verify-coupon", CourtroomController.verifyCoupon);
+
 // AddContactUsQuery Route
 router.post(
   "/api/feedback",

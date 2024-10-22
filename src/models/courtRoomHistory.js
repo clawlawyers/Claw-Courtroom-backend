@@ -3,6 +3,10 @@ const Schema = mongoose.Schema;
 
 // Define the individual case history subdocument schema
 const CaseHistorySchema = new Schema({
+  caseId: {
+    type: String,
+    required: true,
+  },
   argument: [{ type: String, required: true }],
   counter_argument: [{ type: String, required: true }],
   judgement: [{ type: String, required: true }],

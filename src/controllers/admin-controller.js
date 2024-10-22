@@ -9,6 +9,26 @@ const CourtroomUser = require("../models/CourtroomUser");
 const TrailBooking = require("../models/trailBookingAllow");
 const TrailCourtRoomBooking = require("../models/trailCourtRoomBooking");
 const TrailCourtroomUser = require("../models/trailCourtRoomUser");
+const courtroomDiscountCoupon = require("../models/courtroomDiscountCoupon");
+
+async function CreateCourtroomCouponCode(req, res) {
+  try {
+    const { couponCode, discountPercentage } = req.body;
+    console.log(couponCode);
+    const newCouponCode = await courtroomDiscountCoupon.create({
+      couponCode: couponCode,
+      discountPercentage: discountPercentage,
+    });
+    return res
+      .status(StatusCodes.OK)
+      .json(SuccessResponse({ message: "Coupon Code added successfully" }));
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(ErrorResponse({}, error));
+  }
+}
 
 async function updateUserTiming(req, res) {
   try {
@@ -1311,4 +1331,5 @@ module.exports = {
   deleteAllowedLogin,
   UpdateUserDetailsAllowedLogin,
   UpdateUserTimingAllowedLogin,
+  CreateCourtroomCouponCode,
 };

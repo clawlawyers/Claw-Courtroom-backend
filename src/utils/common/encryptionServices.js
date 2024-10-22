@@ -42,7 +42,6 @@ async function decryptKey(key) {
 async function encryption(data, encryptedKey) {
   try {
     const getDecryptedKey = await decryptKey(encryptedKey);
-    console.log(getDecryptedKey);
     const decryptedData = await encryptData(data, getDecryptedKey);
     return decryptedData;
   } catch (error) {
@@ -54,8 +53,10 @@ async function encryption(data, encryptedKey) {
 async function decryption(data, encryptedKey) {
   try {
     const getDecryptedKey = await decryptKey(encryptedKey);
-    console.log(getDecryptedKey);
+    // console.log(getDecryptedKey);
+    // console.log(data);
     const decryptedData = await decryptData(data, getDecryptedKey);
+    // console.log(decryptedData);
     return decryptedData;
   } catch (error) {
     console.error(`Error decrypting data:`, error);
@@ -68,6 +69,12 @@ async function encryptObject(data, encryption, encryptedKey) {
 
   // Use for...of to handle async/await properly
   for (const key of Object.keys(data)) {
+    // Skip encryption for caseId
+    if (key === "caseId" || key === "_id") {
+      encryptedData[key] = data[key]; // Just copy the caseId as is
+      continue;
+    }
+
     if (typeof data[key] === "string") {
       // Encrypt string values
       encryptedData[key] = await encryption(data[key], encryptedKey);
@@ -96,10 +103,20 @@ async function encryptObject(data, encryption, encryptedKey) {
 
 async function decryptObject(data, decryption, encryptedKey) {
   const decryptedData = {};
+  console.log("THIS IS DATA=>>");
+
+  console.log(data);
 
   // Use for...of to handle async/await properly
   for (const key of Object.keys(data)) {
+    // Skip decryption for caseId
+    if (key === "caseId" || key === "_id") {
+      decryptedData[key] = data[key]; // Just copy the caseId as is
+      continue;
+    }
+
     if (typeof data[key] === "string") {
+      // console.log(key);
       // Decrypt string values
       decryptedData[key] = await decryption(data[key], encryptedKey);
     } else if (Array.isArray(data[key])) {
@@ -121,20 +138,31 @@ async function decryptObject(data, decryption, encryptedKey) {
       decryptedData[key] = data[key];
     }
   }
-
+  // console.log(decryptedData);
   return decryptedData;
 }
 
-async function decryptArrayOfObjects(dataArray, decryption, encryptedKey) {
+async function decryptArrayOfObjects(
+  dataArray,
+  decryption,
+  decryptObject,
+  encryptedKey
+) {
   // Iterate over the array and decrypt each object
   return await Promise.all(
     dataArray.map(async (item) => {
+      // console.log(item);
       return await decryptObject(item, decryption, encryptedKey);
     })
   );
 }
 
-async function encryptArrayOfObjects(dataArray, encryption, encryptedKey) {
+async function encryptArrayOfObjects(
+  dataArray,
+  encryption,
+  encryptObject,
+  encryptedKey
+) {
   // Iterate over the array and encrypt each object
   return await Promise.all(
     dataArray.map(async (item) => {

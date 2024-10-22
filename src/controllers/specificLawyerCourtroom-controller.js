@@ -23,6 +23,8 @@ const {
   encryption,
   decryption,
   encryptObject,
+  decryptArrayOfObjects,
+  decryptObject,
 } = require("../utils/common/encryptionServices");
 
 async function bookCourtRoom(req, res) {
@@ -719,8 +721,11 @@ async function edit_case(req, res) {
       fetchedUser.key
     );
 
+    const uniqueId = uuidv4();
+
     // Append the case overview to the user's database caseOverview
     fetchedUser.caseOverview = editedArgument.case_overview;
+    fetchedUser.caseId = uniqueId;
 
     // Save the updated SpecificLawyerCourtroomUser document
     await fetchedUser.save();
@@ -1136,7 +1141,23 @@ async function endCase(req, res) {
       userId
     );
 
-    await SpecificLawyerCourtroomService.storeCaseHistory(User_id, endCase);
+    const User = await SpecificLawyerCourtroomUser.findById(User_id);
+
+    const key = User.key;
+
+    // endCase = await encryptObject(endCase, encryption, key);
+
+    const isNewCaseHistoryInDB =
+      await SpecificLawyerCourtroomService.isNewCaseHistory(User_id);
+
+    if (isNewCaseHistoryInDB) {
+      await SpecificLawyerCourtroomService.OverridestoreCaseHistory(
+        User_id,
+        endCase
+      );
+    } else {
+      await CourtroomService.SpecificLawyerCourtroomService(User_id, endCase);
+    }
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ endCase }));
   } catch (error) {
@@ -1211,7 +1232,7 @@ async function CaseHistory(req, res) {
 
     // encrypt the caseHistory
 
-    caseHistory = await encryptObject(caseHistory, encryption, key);
+    // caseHistory = await encryptObject(caseHistory, encryption, key);
 
     console.log(caseHistory);
     // save into database or update database with new data if case history is already present in the database
@@ -1221,7 +1242,22 @@ async function CaseHistory(req, res) {
 
     console.log(User_id);
 
-    await SpecificLawyerCourtroomService.storeCaseHistory(User_id, caseHistory);
+    // await SpecificLawyerCourtroomService.storeCaseHistory(User_id, caseHistory);
+
+    const isNewCaseHistoryInDB =
+      await SpecificLawyerCourtroomService.isNewCaseHistory(User_id);
+
+    if (isNewCaseHistoryInDB) {
+      await SpecificLawyerCourtroomService.OverridestoreCaseHistory(
+        User_id,
+        caseHistory
+      );
+    } else {
+      await SpecificLawyerCourtroomService.storeCaseHistory(
+        User_id,
+        caseHistory
+      );
+    }
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ caseHistory }));
   } catch (error) {
@@ -1349,8 +1385,8 @@ async function downloadCaseHistory(req, res) {
 
 async function downloadSessionCaseHistory(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
+  const key = req.body?.courtroomClient?.key;
 
-  console.log(user_id);
   try {
     const { User_id } = await SpecificLawyerCourtroomService.getClientByUserid(
       user_id
@@ -1362,9 +1398,17 @@ async function downloadSessionCaseHistory(req, res) {
 
     const FetchedCaseHistorys =
       await SpecificLawyerCourtroomService.getSessionCaseHistory(User_id);
-    console.log(FetchedCaseHistorys);
 
-    const caseHistorys = FetchedCaseHistorys.history;
+    let caseHistorys = FetchedCaseHistorys.history;
+
+    // console.log(caseHistorys);
+
+    // caseHistorys = await decryptArrayOfObjects(
+    //   caseHistorys,
+    //   decryption,
+    //   decryptObject,
+    //   key
+    // );
 
     // console.log(caseHistorys);
 
@@ -1554,7 +1598,7 @@ async function downloadFirtDraft(req, res) {
     doc.end();
   } catch (error) {
     console.error(error);
-    const errorResponse = ErrorResponse({}, error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
