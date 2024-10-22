@@ -37,9 +37,9 @@ async function adminCourtRoomBook(
 
     // if (!trailBooking) {
     //   console.log(
-    //     `User with phone number ${phoneNumber} or email ${email} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`
+    //     `User with phone number ${phoneNumber} or email ${email} cannot book a slot at same time}.`
     //   );
-    //   return `User with phone number ${phoneNumber} or email ${email} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`;
+    //   return `User with phone number ${phoneNumber} or email ${email} cannot book a slot at same time}.`;
     // }
 
     // Find existing booking for the same date and hour
@@ -59,10 +59,8 @@ async function adminCourtRoomBook(
 
     // Check if the total bookings exceed the limit
     if (booking.courtroomBookings.length >= 4) {
-      console.log(
-        `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
-      );
-      return `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      console.log(`Maximum of 4 courtrooms can be booked at same time}.`);
+      return `Maximum of 4 courtrooms can be booked at same time}.`;
     }
 
     // Check if the user with the same mobile number or email already booked a slot at the same hour
@@ -76,9 +74,9 @@ async function adminCourtRoomBook(
 
     if (existingBooking) {
       console.log(
-        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`
       );
-      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`;
     }
 
     // Create a new courtroom user
@@ -214,10 +212,8 @@ async function courtRoomBook(
 
     // Check if the total bookings exceed the limit
     if (booking.courtroomBookings.length >= 6) {
-      console.log(
-        `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
-      );
-      return `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      console.log(`Maximum of 6 courtrooms can be booked at same time}.`);
+      return `Maximum of 6 courtrooms can be booked at same time}.`;
     }
 
     // Check if the user with the same mobile number or email already booked a slot at the same hour
@@ -231,9 +227,9 @@ async function courtRoomBook(
 
     if (existingBooking) {
       console.log(
-        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`
       );
-      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`;
     }
 
     // Create a new courtroom user
@@ -373,7 +369,7 @@ async function courtRoomBookValidation(
     if (booking.courtroomBookings.length >= 6) {
       console.log(`Maximum of 6 courtrooms can be booked at same time}.`);
       // throw new Error(
-      //   `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
+      //   `Maximum of 4 courtrooms can be booked at same time}.`
       // );
       return `Maximum of 6 courtrooms can be booked at same time}.`;
     }
@@ -392,7 +388,7 @@ async function courtRoomBookValidation(
         `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`
       );
       // throw new Error(
-      //   `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
+      //   `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`
       // );
       return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time`;
     }
