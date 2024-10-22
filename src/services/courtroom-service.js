@@ -294,10 +294,8 @@ async function AdminLoginCourtRoomBook(
 
     // Check if the total bookings exceed the limit
     if (booking.courtroomBookings.length >= 6) {
-      console.log(
-        `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
-      );
-      return `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      console.log(`Maximum of 6 courtrooms can be booked at same time}.`);
+      return `Maximum of 6 courtrooms can be booked at same time}.`;
     }
 
     // Check if the user with the same mobile number or email already booked a slot at the same hour
@@ -311,9 +309,9 @@ async function AdminLoginCourtRoomBook(
 
     if (existingBooking) {
       console.log(
-        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`
       );
-      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`;
     }
 
     // Create a new courtroom user
