@@ -103,9 +103,25 @@ async function encryptObject(data, encryption, encryptedKey) {
 
 async function decryptObject(data, decryption, encryptedKey) {
   const decryptedData = {};
-  console.log("THIS IS DATA=>>");
+  // console.log("THIS IS DATA=>>");
+  // console.log("Function chal gya");
+  // console.log(data);
 
-  console.log(data);
+  // const allowedValues = [
+  //   "argument",
+  //   "counter_argument",
+  //   "judgement",
+  //   "potential_objection",
+  //   "verdict",
+  // ];
+
+  // const filteredKeys = Object.keys(data).filter((key) =>
+  //   allowedValues.includes(data[key])
+  // );
+
+  // console.log(filteredKeys);
+
+  // console.log(Object.keys(data));
 
   // Use for...of to handle async/await properly
   for (const key of Object.keys(data)) {
@@ -127,6 +143,7 @@ async function decryptObject(data, decryption, encryptedKey) {
         )
       );
     } else if (typeof data[key] === "object" && data[key] !== null) {
+      // console.log(key);
       // Recursively decrypt nested objects
       decryptedData[key] = await decryptObject(
         data[key],
@@ -148,6 +165,7 @@ async function decryptArrayOfObjects(
   decryptObject,
   encryptedKey
 ) {
+  console.log(dataArray.length);
   // Iterate over the array and decrypt each object
   return await Promise.all(
     dataArray.map(async (item) => {

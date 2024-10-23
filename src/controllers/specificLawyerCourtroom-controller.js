@@ -1133,7 +1133,7 @@ async function endCase(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
   const { userId } = req.body;
   try {
-    const endCase = await FetchEndCase({ userId });
+    let endCase = await FetchEndCase({ userId });
 
     // save into database
 
@@ -1145,7 +1145,7 @@ async function endCase(req, res) {
 
     const key = User.key;
 
-    // endCase = await encryptObject(endCase, encryption, key);
+    endCase = await encryptObject(endCase, encryption, key);
 
     const isNewCaseHistoryInDB =
       await SpecificLawyerCourtroomService.isNewCaseHistory(User_id);
@@ -1232,7 +1232,7 @@ async function CaseHistory(req, res) {
 
     // encrypt the caseHistory
 
-    // caseHistory = await encryptObject(caseHistory, encryption, key);
+    caseHistory = await encryptObject(caseHistory, encryption, key);
 
     console.log(caseHistory);
     // save into database or update database with new data if case history is already present in the database
@@ -1403,12 +1403,34 @@ async function downloadSessionCaseHistory(req, res) {
 
     // console.log(caseHistorys);
 
-    // caseHistorys = await decryptArrayOfObjects(
-    //   caseHistorys,
-    //   decryption,
-    //   decryptObject,
-    //   key
-    // );
+    const allowedValues = [
+      "argument",
+      "counter_argument",
+      "judgement",
+      "potential_objection",
+      "verdict",
+    ];
+
+    // const keysToRemove = ["key2", "key4", "key6"]; // Array of keys to remove
+
+    const updatedArray = caseHistorys.map((obj) =>
+      allowedValues.reduce((acc, key) => {
+        if (key in obj) {
+          acc[key] = obj[key]; // Retain only the specified keys
+        }
+        return acc;
+      }, {})
+    );
+
+    // console.log(updatedArray);
+    // console.log("filtered history print ho gya hai");
+
+    caseHistorys = await decryptArrayOfObjects(
+      updatedArray,
+      decryption,
+      decryptObject,
+      key
+    );
 
     // console.log(caseHistorys);
 
@@ -1457,7 +1479,7 @@ async function downloadSessionCaseHistory(req, res) {
       caseCount = caseCount + 1;
 
       // Iterate through each argument, counter-argument, judgement, and potential objection
-      for (let i = 0; i < caseHistory.argument.length; i++) {
+      for (let i = 0; i < caseHistory?.argument?.length; i++) {
         addBoldHeading("Argument:");
         doc.text(caseHistory.argument[i]);
         doc.moveDown();
@@ -2282,6 +2304,8 @@ async function getSessionCaseHistory(req, res) {
   try {
     const caseHistory = await FetchCaseHistory({ user_id });
 
+    caseHistory = await encryptObject(caseHistory, encryption, key);
+
     // save into database or update database with new data if case history is already present in the database
     const { User_id } = await SpecificLawyerCourtroomService.getClientByUserid(
       user_id
@@ -2289,7 +2313,22 @@ async function getSessionCaseHistory(req, res) {
 
     console.log(User_id);
 
-    await SpecificLawyerCourtroomService.storeCaseHistory(User_id, caseHistory);
+    // await SpecificLawyerCourtroomService.storeCaseHistory(User_id, caseHistory);
+
+    const isNewCaseHistoryInDB =
+      await SpecificLawyerCourtroomService.isNewCaseHistory(User_id);
+
+    if (isNewCaseHistoryInDB) {
+      await SpecificLawyerCourtroomService.OverridestoreCaseHistory(
+        User_id,
+        caseHistory
+      );
+    } else {
+      await SpecificLawyerCourtroomService.storeCaseHistory(
+        User_id,
+        caseHistory
+      );
+    }
 
     const FetchedCaseHistorys =
       await SpecificLawyerCourtroomService.getSessionCaseHistory(User_id);
