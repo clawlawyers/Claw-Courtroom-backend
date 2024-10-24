@@ -37,9 +37,9 @@ async function adminCourtRoomBook(
 
     // if (!trailBooking) {
     //   console.log(
-    //     `User with phone number ${phoneNumber} or email ${email} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`
+    //     `User with phone number ${phoneNumber} or email ${email} cannot book a slot at same time}.`
     //   );
-    //   return `User with phone number ${phoneNumber} or email ${email} cannot book a slot at ${hour}:00 on ${bookingDate.toDateString()}.`;
+    //   return `User with phone number ${phoneNumber} or email ${email} cannot book a slot at same time}.`;
     // }
 
     // Find existing booking for the same date and hour
@@ -59,10 +59,8 @@ async function adminCourtRoomBook(
 
     // Check if the total bookings exceed the limit
     if (booking.courtroomBookings.length >= 4) {
-      console.log(
-        `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
-      );
-      return `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      console.log(`Maximum of 4 courtrooms can be booked at same time}.`);
+      return `Maximum of 4 courtrooms can be booked at same time}.`;
     }
 
     // Check if the user with the same mobile number or email already booked a slot at the same hour
@@ -76,9 +74,9 @@ async function adminCourtRoomBook(
 
     if (existingBooking) {
       console.log(
-        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`
       );
-      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`;
     }
 
     // Create a new courtroom user
@@ -214,10 +212,8 @@ async function courtRoomBook(
 
     // Check if the total bookings exceed the limit
     if (booking.courtroomBookings.length >= 6) {
-      console.log(
-        `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
-      );
-      return `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      console.log(`Maximum of 6 courtrooms can be booked at same time}.`);
+      return `Maximum of 6 courtrooms can be booked at same time}.`;
     }
 
     // Check if the user with the same mobile number or email already booked a slot at the same hour
@@ -231,9 +227,9 @@ async function courtRoomBook(
 
     if (existingBooking) {
       console.log(
-        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`
       );
-      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`;
     }
 
     // Create a new courtroom user
@@ -294,10 +290,8 @@ async function AdminLoginCourtRoomBook(
 
     // Check if the total bookings exceed the limit
     if (booking.courtroomBookings.length >= 6) {
-      console.log(
-        `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
-      );
-      return `Maximum of 6 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      console.log(`Maximum of 6 courtrooms can be booked at same time}.`);
+      return `Maximum of 6 courtrooms can be booked at same time}.`;
     }
 
     // Check if the user with the same mobile number or email already booked a slot at the same hour
@@ -311,9 +305,9 @@ async function AdminLoginCourtRoomBook(
 
     if (existingBooking) {
       console.log(
-        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
+        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`
       );
-      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`;
+      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`;
     }
 
     // Create a new courtroom user
@@ -375,7 +369,7 @@ async function courtRoomBookValidation(
     if (booking.courtroomBookings.length >= 6) {
       console.log(`Maximum of 6 courtrooms can be booked at same time}.`);
       // throw new Error(
-      //   `Maximum of 4 courtrooms can be booked at ${hour}:00 on ${bookingDate.toDateString()}.`
+      //   `Maximum of 4 courtrooms can be booked at same time}.`
       // );
       return `Maximum of 6 courtrooms can be booked at same time}.`;
     }
@@ -394,7 +388,7 @@ async function courtRoomBookValidation(
         `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`
       );
       // throw new Error(
-      //   `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at ${hour}:00 on ${bookingDate.toDateString()}.`
+      //   `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`
       // );
       return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time`;
     }
@@ -959,6 +953,8 @@ async function getClientByUserid(userid) {
 
 async function storeCaseHistory(userId, slotId, caseHistoryDetails) {
   try {
+    const user = await CourtroomUser.findById(userId);
+
     // Find the courtroom history by userId and slotId
     let courtroomHistory = await CourtroomHistory.findOne({
       userId: userId,
@@ -975,8 +971,51 @@ async function storeCaseHistory(userId, slotId, caseHistoryDetails) {
       });
     }
 
+    caseHistoryDetails.caseId = user.caseId;
+
+    console.log(caseHistoryDetails.caseId);
+
     // Append the new case history details to the history array
     courtroomHistory.history.push(caseHistoryDetails);
+    // Set the latest case history
+    courtroomHistory.latestCaseHistory = caseHistoryDetails;
+
+    // Save the updated courtroom history
+    await courtroomHistory.save();
+    console.log("Case history saved.");
+    return courtroomHistory;
+  } catch (error) {
+    console.error("Error saving case history:", error);
+    throw new Error("Internal server error.");
+  }
+}
+
+async function OverridestoreCaseHistory(userId, slotId, caseHistoryDetails) {
+  try {
+    const user = await CourtroomUser.findById(userId);
+
+    // Find the courtroom history by userId and slotId
+    let courtroomHistory = await CourtroomHistory.findOne({
+      userId: userId,
+      slot: slotId,
+    });
+
+    // if (!courtroomHistory) {
+    //   // Create a new courtroom history if it doesn't exist
+    //   courtroomHistory = new CourtroomHistory({
+    //     userId: userId,
+    //     slot: slotId,
+    //     history: [],
+    //     latestCaseHistory: {},
+    //   });
+    // }
+
+    const lengthOfHistory = courtroomHistory.history.length;
+
+    caseHistoryDetails.caseId = user.caseId;
+
+    // Append the new case history details to the history array
+    courtroomHistory.history[lengthOfHistory - 1] = caseHistoryDetails;
     // Set the latest case history
     courtroomHistory.latestCaseHistory = caseHistoryDetails;
 
@@ -1016,6 +1055,44 @@ async function setFeedback(_id, rating, feedback) {
   }
 }
 
+async function checkFirtVisit(phoneNumber) {
+  try {
+    const user = await CourtroomUser.findOne({ phoneNumber: phoneNumber });
+    if (user) {
+      return false;
+    } else {
+      return true;
+    }
+  } catch (error) {
+    console.error("Error checking first visit:", error);
+    throw new Error("Internal server error.");
+  }
+}
+
+async function isNewCaseHistory(userId) {
+  try {
+    const user = await CourtroomUser.findById(userId);
+    const currentCaseId = user.caseId;
+    const courtroomHistory = await CourtroomHistory.findOne({ userId: userId });
+    if (!courtroomHistory) {
+      return false; // inster new case history entry
+    }
+    const historyCaseId = courtroomHistory?.latestCaseHistory.caseId;
+    if (
+      currentCaseId === historyCaseId &&
+      courtroomHistory &&
+      courtroomHistory.history.length > 0
+    ) {
+      return true; // override case history
+    } else {
+      return false; // inster new case history entry
+    }
+  } catch (error) {
+    console.error("Error checking new case history:", error);
+    throw new Error("Internal server error.");
+  }
+}
+
 module.exports = {
   courtRoomBook,
   getBookedData,
@@ -1032,4 +1109,7 @@ module.exports = {
   AdminLoginCourtRoomBook,
   AdminLoginToCourtRoom,
   adminLoginValidation,
+  checkFirtVisit,
+  isNewCaseHistory,
+  OverridestoreCaseHistory,
 };

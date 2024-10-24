@@ -42,7 +42,6 @@ async function decryptKey(key) {
 async function encryption(data, encryptedKey) {
   try {
     const getDecryptedKey = await decryptKey(encryptedKey);
-    console.log(getDecryptedKey);
     const decryptedData = await encryptData(data, getDecryptedKey);
     return decryptedData;
   } catch (error) {
@@ -54,8 +53,10 @@ async function encryption(data, encryptedKey) {
 async function decryption(data, encryptedKey) {
   try {
     const getDecryptedKey = await decryptKey(encryptedKey);
-    console.log(getDecryptedKey);
+    // console.log(getDecryptedKey);
+    // console.log(data);
     const decryptedData = await decryptData(data, getDecryptedKey);
+    // console.log(decryptedData);
     return decryptedData;
   } catch (error) {
     console.error(`Error decrypting data:`, error);
@@ -68,6 +69,12 @@ async function encryptObject(data, encryption, encryptedKey) {
 
   // Use for...of to handle async/await properly
   for (const key of Object.keys(data)) {
+    // Skip encryption for caseId
+    if (key === "caseId" || key === "_id") {
+      encryptedData[key] = data[key]; // Just copy the caseId as is
+      continue;
+    }
+
     if (typeof data[key] === "string") {
       // Encrypt string values
       encryptedData[key] = await encryption(data[key], encryptedKey);
@@ -95,69 +102,85 @@ async function encryptObject(data, encryption, encryptedKey) {
 }
 
 async function decryptObject(data, decryption, encryptedKey) {
-  const stack = [{ data, decryptedData: {}, parent: null, key: null }];
-  const result = {};
+  const decryptedData = {};
+  // console.log("THIS IS DATA=>>");
+  // console.log("Function chal gya");
+  // console.log(data);
 
-  while (stack.length > 0) {
-    const { data: currentData, decryptedData, parent, key } = stack.pop();
+  // const allowedValues = [
+  //   "argument",
+  //   "counter_argument",
+  //   "judgement",
+  //   "potential_objection",
+  //   "verdict",
+  // ];
 
-    for (const currentKey of Object.keys(currentData)) {
-      const value = currentData[currentKey];
+  // const filteredKeys = Object.keys(data).filter((key) =>
+  //   allowedValues.includes(data[key])
+  // );
 
-      if (typeof value === "string") {
-        // Decrypt string values
-        decryptedData[currentKey] = await decryption(value, encryptedKey);
-      } else if (Array.isArray(value)) {
-        // Process arrays
-        decryptedData[currentKey] = await Promise.all(
-          value.map(async (item) =>
-            typeof item === "string"
-              ? await decryption(item, encryptedKey)
-              : item
-          )
-        );
-      } else if (typeof value === "object" && value !== null) {
-        // Push nested objects onto the stack
-        const newDecryptedData = {};
-        decryptedData[currentKey] = newDecryptedData;
-        stack.push({
-          data: value,
-          decryptedData: newDecryptedData,
-          parent: decryptedData,
-          key: currentKey,
-        });
-      } else {
-        // Copy non-string values
-        decryptedData[currentKey] = value;
-      }
+  // console.log(filteredKeys);
+
+  // console.log(Object.keys(data));
+
+  // Use for...of to handle async/await properly
+  for (const key of Object.keys(data)) {
+    // Skip decryption for caseId
+    if (key === "caseId" || key === "_id") {
+      decryptedData[key] = data[key]; // Just copy the caseId as is
+      continue;
     }
 
-    // If there's a parent, link the decrypted data to the correct parent key
-    if (parent && key) {
-      parent[key] = decryptedData;
+    if (typeof data[key] === "string") {
+      // console.log(key);
+      // Decrypt string values
+      decryptedData[key] = await decryption(data[key], encryptedKey);
+    } else if (Array.isArray(data[key])) {
+      // Decrypt each string inside arrays using Promise.all
+      decryptedData[key] = await Promise.all(
+        data[key].map(async (item) =>
+          typeof item === "string" ? await decryption(item, encryptedKey) : item
+        )
+      );
+    } else if (typeof data[key] === "object" && data[key] !== null) {
+      // console.log(key);
+      // Recursively decrypt nested objects
+      decryptedData[key] = await decryptObject(
+        data[key],
+        decryption,
+        encryptedKey
+      );
+    } else {
+      // For non-string values, just copy them
+      decryptedData[key] = data[key];
     }
   }
-
-  // The result will hold the fully decrypted object
-  return data;
+  // console.log(decryptedData);
+  return decryptedData;
 }
 
-async function decryptArrayOfObjects(dataArray, decryption, encryptedKey) {
-  const decryptedArray = [];
-
-  for (let i = 0; i < dataArray.length; i++) {
-    const decryptedObject = await decryptObject(
-      dataArray[i],
-      decryption,
-      encryptedKey
-    );
-    decryptedArray.push(decryptedObject);
-  }
-
-  return decryptedArray;
+async function decryptArrayOfObjects(
+  dataArray,
+  decryption,
+  decryptObject,
+  encryptedKey
+) {
+  console.log(dataArray.length);
+  // Iterate over the array and decrypt each object
+  return await Promise.all(
+    dataArray.map(async (item) => {
+      // console.log(item);
+      return await decryptObject(item, decryption, encryptedKey);
+    })
+  );
 }
 
-async function encryptArrayOfObjects(dataArray, encryption, encryptedKey) {
+async function encryptArrayOfObjects(
+  dataArray,
+  encryption,
+  encryptObject,
+  encryptedKey
+) {
   // Iterate over the array and encrypt each object
   return await Promise.all(
     dataArray.map(async (item) => {

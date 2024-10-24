@@ -46,6 +46,9 @@ const courtroomFeaturesSchema = new mongoose.Schema({
 
 // Define the individual courtroom booking subdocument schema
 const SpecificLawyerCourtroomUserSchema = new Schema({
+  caseId: {
+    type: String,
+  },
   userId: { type: String },
   name: { type: String, required: true },
   phoneNumber: { type: String, required: true },

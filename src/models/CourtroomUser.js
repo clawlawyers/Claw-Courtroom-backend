@@ -15,6 +15,10 @@ const CourtroomUserSchema = new Schema({
     required: true,
     default: "",
   },
+  caseId: {
+    type: String,
+    unique: true,
+  },
 });
 
 const CourtroomUser = mongoose.model("CourtroomUser", CourtroomUserSchema);

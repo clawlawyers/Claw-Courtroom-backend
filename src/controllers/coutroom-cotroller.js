@@ -14,6 +14,7 @@ const { v4: uuidv4 } = require("uuid");
 const {
   uploadfileToBucker,
 } = require("../services/specificLawyerCourtroom-service");
+const courtroomDiscountCoupon = require("../models/courtroomDiscountCoupon");
 
 async function bookCourtRoom(req, res) {
   try {
@@ -864,9 +865,11 @@ async function edit_case(req, res) {
         .json({ error: "User not found" });
     }
 
+    const uniqueId = uuidv4();
+
     // Append the case overview to the user's caseOverview array
     courtroomUser.caseOverview = editedArgument.case_overview;
-
+    courtroomUser.caseId = uniqueId;
     // console.log(courtroomUser);
 
     // Save the updated CourtroomUser document
@@ -1243,7 +1246,19 @@ async function endCase(req, res) {
     const { User_id, Booking_id } =
       await CourtroomService.getClientByUseridForEndCase(userId);
 
-    await CourtroomService.storeCaseHistory(User_id, Booking_id, endCase);
+    const isNewCaseHistoryInDB = await CourtroomService.isNewCaseHistory(
+      User_id
+    );
+
+    if (isNewCaseHistoryInDB) {
+      await CourtroomService.OverridestoreCaseHistory(
+        User_id,
+        Booking_id,
+        endCase
+      );
+    } else {
+      await CourtroomService.storeCaseHistory(User_id, Booking_id, endCase);
+    }
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ endCase }));
   } catch (error) {
@@ -1313,12 +1328,23 @@ async function CaseHistory(req, res) {
     );
 
     console.log(User_id, Booking_id);
+    const isNewCaseHistoryInDB = await CourtroomService.isNewCaseHistory(
+      User_id
+    );
 
-    await CourtroomService.storeCaseHistory(User_id, Booking_id, caseHistory);
+    if (isNewCaseHistoryInDB) {
+      await CourtroomService.OverridestoreCaseHistory(
+        User_id,
+        Booking_id,
+        caseHistory
+      );
+    } else {
+      await CourtroomService.storeCaseHistory(User_id, Booking_id, caseHistory);
+    }
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ caseHistory }));
   } catch (error) {
-    const errorResponse = ErrorResponse({}, error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
@@ -2264,6 +2290,50 @@ async function fetchConsultant({ user_id, query }) {
   }
 }
 
+async function verifyCoupon(req, res) {
+  try {
+    const { couponCode, phoneNumber } = req.body;
+    const fetchedCoupon = await courtroomDiscountCoupon.findOne({ couponCode });
+    if (!fetchedCoupon) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json(ErrorResponse({}, "Coupon not found"));
+    }
+
+    if (fetchedCoupon && couponCode === "FIRSTVISIT") {
+      const isFirstVisit = await CourtroomService.checkFirtVisit(phoneNumber);
+
+      if (isFirstVisit) {
+        return res.status(StatusCodes.OK).json(
+          SuccessResponse({
+            phoneNumber: phoneNumber,
+            couponCode: fetchedCoupon.couponCode,
+            discout: fetchedCoupon.discountPercentage,
+          })
+        );
+      } else {
+        return res
+          .status(StatusCodes.BAD_REQUEST)
+          .json(ErrorResponse({}, "This is only for new user"));
+      }
+    } else {
+      return res.status(StatusCodes.OK).json(
+        SuccessResponse({
+          phoneNumber: phoneNumber,
+          couponCode: fetchedCoupon.couponCode,
+          discout: fetchedCoupon.discountPercentage,
+        })
+      );
+    }
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
 async function Courtroomfeedback(req, res) {
   try {
     // const _id = req.body?.courtroomClient?.userBooking?._id;
@@ -2518,4 +2588,5 @@ module.exports = {
   adminLoginBookCourtRoom,
   AdminLoginToCourtRoom,
   adminLoginValidation,
+  verifyCoupon,
 };

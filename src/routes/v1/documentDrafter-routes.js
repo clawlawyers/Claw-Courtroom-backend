@@ -180,6 +180,79 @@ router.post(
   }
 );
 
+// Route to handle resumable file uploads with progress
+router.post(
+  "/uploadResumableFile",
+  authenticateUser,
+  upload.single("file"),
+  async (req, res) => {
+    const userId = req.user.id; // Assuming you have user authentication
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).send("No file uploaded.");
+    }
+
+    // Define the file path in the user's folder
+    const filePath = `${userId}/${file.originalname}`;
+
+    try {
+      // Create a resumable upload session
+      const blob = bucket.file(filePath);
+      const options = {
+        resumable: true,
+        contentType: file.mimetype,
+      };
+
+      const [uploadResponse] = await blob.createResumableUpload(options);
+
+      // Send back the upload session URL to the frontend
+      res.status(200).send({
+        uploadUrl: uploadResponse, // The resumable upload URL that can be used to upload chunks
+        filePath: filePath,
+      });
+    } catch (err) {
+      res.status(500).send({ message: err.message });
+    }
+  }
+);
+
+// Assuming 'authenticateUser' middleware and 'bucket' from Google Cloud Storage are set up
+
+router.post("/uploadResumableFiles", authenticateUser, async (req, res) => {
+  const userId = req.user.id;
+  const files = req.files; // Assuming you're using a middleware like multer
+
+  if (!files || files.length === 0) {
+    return res.status(400).send("No files uploaded.");
+  }
+
+  const uploadUrls = [];
+
+  try {
+    for (const file of files) {
+      const filePath = `${userId}/${file.originalname}`;
+      const blob = bucket.file(filePath);
+
+      const options = {
+        resumable: true,
+        contentType: file.mimetype,
+      };
+
+      const [uploadResponse] = await blob.createResumableUpload(options);
+
+      uploadUrls.push({
+        uploadUrl: uploadResponse,
+        filePath: filePath,
+      });
+    }
+
+    res.status(200).send(uploadUrls);
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+});
+
 // Route to list all files in the user's folder
 router.get("/listFiles", authenticateUser, async (req, res) => {
   const userId = req.user._id.toString();
