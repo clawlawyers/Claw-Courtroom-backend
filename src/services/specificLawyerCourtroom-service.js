@@ -416,6 +416,51 @@ async function uploadfileToBucker(file, userId) {
   }
 }
 
+async function uploadfileToBuckerWithProgress(file, userId) {
+  try {
+    if (!file) {
+      throw new Error("No file uploaded.");
+    }
+
+    const filePath = `${userId}/${file.originalname}`;
+
+    // Create a resumable upload session
+    const blob = bucket.file(filePath);
+    const options = {
+      resumable: true,
+      contentType: file.mimetype,
+    };
+
+    const [uploadResponse] = await blob.createResumableUpload(options);
+
+    // Confirm upload completion before setting expiration
+    await blob.save(req.file.buffer);
+
+    // Set expiration after successful upload
+    const expirationInDays = 30; // Expiration set for 30 days
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + expirationInDays);
+
+    // Set file expiration metadata
+    await blob.setMetadata({
+      metadata: {
+        "google-cloud-storage-expiration": expirationDate.toISOString(),
+      },
+    });
+
+    // Send back the upload session URL to the frontend
+    return {
+      message: "File uploaded and expiration set successfully.",
+      filePath: filePath,
+      uploadUrl: uploadResponse, // The resumable upload URL (if needed)
+      fileName: file.originalname,
+    };
+  } catch (error) {
+    console.error("Error uploading file to bucket:", error);
+    throw new Error("Internal server error.");
+  }
+}
+
 async function isNewCaseHistory(userId) {
   try {
     const user = await SpecificLawyerCourtroomUser.findById(userId);
@@ -455,4 +500,5 @@ module.exports = {
   uploadfileToBucker,
   isNewCaseHistory,
   OverridestoreCaseHistory,
+  uploadfileToBuckerWithProgress,
 };
