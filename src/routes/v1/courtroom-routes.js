@@ -44,6 +44,19 @@ router.post(
 );
 
 router.post(
+  "/fileUpload",
+  upload.single("file"),
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.newcase2
+);
+
+router.post(
+  "/getoverview-formfilename",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.getoverviewFormfilename
+);
+
+router.post(
   "/api/case_summary",
   authMiddleware.checkCourtroomAuth,
   CourtroomController.caseSummary

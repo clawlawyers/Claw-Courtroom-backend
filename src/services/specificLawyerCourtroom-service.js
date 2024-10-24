@@ -434,7 +434,7 @@ async function uploadfileToBuckerWithProgress(file, userId) {
     const [uploadResponse] = await blob.createResumableUpload(options);
 
     // Confirm upload completion before setting expiration
-    await blob.save(req.file.buffer);
+    await blob.save(file.buffer);
 
     // Set expiration after successful upload
     const expirationInDays = 30; // Expiration set for 30 days
