@@ -769,7 +769,7 @@ async function newcase2(req, res) {
   const file = req.file;
   const { _id } = req.body?.courtroomClient?.userBooking;
 
-  const folderName = _id.toSLtring();
+  const folderName = _id.toString();
 
   if (!file) {
     return res.status(400).json({ error: "No files uploaded" });
@@ -826,8 +826,12 @@ async function newcase2(req, res) {
 
 async function getoverviewFormfilename(req, res) {
   try {
-    const { fileNameArray } = req.body;
+    const { fileNameArray, isMultilang } = req.body;
     const { userId } = req.body?.courtroomClient?.userBooking;
+
+    const { _id } = req.body?.courtroomClient?.userBooking;
+
+    const folderName = _id.toString();
 
     let case_overview;
 
