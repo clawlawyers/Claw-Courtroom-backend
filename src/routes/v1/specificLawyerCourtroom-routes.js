@@ -60,6 +60,21 @@ router.post(
 );
 
 router.post(
+  "/fileUpload",
+  upload.single("file"),
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.newcase2
+);
+
+router.post(
+  "/getoverview-formfilename",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.getoverviewFormfilename
+);
+
+router.post(
   "/api/case_summary",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,

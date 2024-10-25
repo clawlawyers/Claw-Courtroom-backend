@@ -27,6 +27,28 @@ const {
   decryptObject,
 } = require("../utils/common/encryptionServices");
 
+const { Storage } = require("@google-cloud/storage");
+
+let storage;
+if (process.env.NODE_ENV !== "production") {
+  // Google Cloud Storage configuration
+  storage = new Storage({
+    keyFilename: path.join(
+      __dirname + "/voltaic-charter-435107-j5-d041d0de66bf.json"
+    ), // Replace with your service account key file path
+  });
+} else {
+  // Google Cloud Storage configuration
+  storage = new Storage({
+    keyFilename: path.join(
+      "/etc/secrets/voltaic-charter-435107-j5-d041d0de66bf.json"
+    ), // Replace with your service account key file path
+  });
+}
+
+const bucketName = "ai_courtroom"; // Replace with your bucket name
+const bucket = storage.bucket(bucketName);
+
 async function bookCourtRoom(req, res) {
   try {
     const {
@@ -579,6 +601,103 @@ async function newcase1(req, res) {
     console.log(decryptData);
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ case_overview }));
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function newcase2(req, res) {
+  const file = req.file;
+
+  const { _id } = req.body?.courtroomClient;
+
+  const folderName = _id.toString();
+
+  if (!file) {
+    return res.status(400).json({ error: "No files uploaded" });
+  }
+
+  try {
+    // const userId = "progressBar"; // Assuming you have user authentication
+    const uniqueId = uuidv4();
+    // Define the file path in the user's folder
+    const filePath = `${folderName}/${uniqueId}`;
+
+    // Create a resumable upload session
+    const blob = bucket.file(filePath);
+    const options = {
+      resumable: true,
+      contentType: file.mimetype,
+    };
+
+    const [uploadResponse] = await blob.createResumableUpload(options);
+    return res.status(StatusCodes.OK).json(
+      SuccessResponse({
+        uploadUrl: uploadResponse, // The resumable upload URL that can be used to upload chunks
+        filePath: filePath,
+      })
+    );
+
+    // let case_overview;
+
+    // if (isMultilang) {
+    //   case_overview = await getOverviewMultilang1({
+    //     user_id: userId,
+    //     file: fileNameArray,
+    //     bucket_name: "ai_courtroom",
+    //     folder_name: folderName + "/",
+    //   });
+    // } else {
+    //   case_overview = await getOverview1({
+    //     user_id: userId,
+    //     file: fileNameArray,
+    //     bucket_name: "ai_courtroom",
+    //     folder_name: folderName + "/",
+    //   });
+    // }
+
+    // console.log(case_overview);
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function getoverviewFormfilename(req, res) {
+  try {
+    const { fileNameArray, isMultilang } = req.body;
+    const { userId } = req.body?.courtroomClient;
+
+    const { _id } = req.body?.courtroomClient;
+
+    const folderName = _id.toString();
+
+    let case_overview;
+
+    if (isMultilang) {
+      case_overview = await getOverviewMultilang1({
+        user_id: userId,
+        file: fileNameArray,
+        bucket_name: "ai_courtroom",
+        folder_name: folderName + "/",
+      });
+    } else {
+      case_overview = await getOverview1({
+        user_id: userId,
+        file: fileNameArray,
+        bucket_name: "ai_courtroom",
+        folder_name: folderName + "/",
+      });
+    }
+
+    return res.status(StatusCodes.OK).json(SuccessResponse(case_overview));
   } catch (error) {
     console.log(error);
     const errorResponse = ErrorResponse({}, error);
@@ -2486,4 +2605,6 @@ module.exports = {
   summary,
   consultant,
   caseSummary,
+  getoverviewFormfilename,
+  newcase2,
 };
