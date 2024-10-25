@@ -2298,7 +2298,7 @@ async function fetchDraftNextAppeal({ user_id, favor }) {
 
 async function proApplication(req, res) {
   const user_id = req.body?.courtroomClient?.userId;
-  let favor = req.body?.courtroomClient?.userBooking?.drafteFavor;
+  let favor = req.body?.courtroomClient?.drafteFavor;
   if (favor === undefined) favor = "";
 
   const { action } = req.body;
