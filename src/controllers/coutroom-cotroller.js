@@ -704,7 +704,7 @@ async function newcase1(req, res) {
 
     // const fileBody = {};
     fileNameArray = [];
-    const folderName = _id.toSLtring();
+    const folderName = _id.toString();
     console.log(folderName);
 
     // Rename the first file to `file`
@@ -758,7 +758,7 @@ async function newcase1(req, res) {
     });
   } catch (error) {
     console.log(error);
-    const errorResponse = ErrorResponse({}, error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
@@ -1618,6 +1618,13 @@ async function downloadCaseHistory(req, res) {
 
 async function downloadSessionCaseHistory(req, res) {
   const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const response = await axios.get(
+    "https://res.cloudinary.com/dumjofgxz/image/upload/v1725968109/gptclaw_l8krlt.png",
+    {
+      responseType: "arraybuffer",
+    }
+  );
+  const imageBuffer = Buffer.from(response.data, "binary");
 
   console.log(user_id);
   try {
@@ -1707,14 +1714,50 @@ async function downloadSessionCaseHistory(req, res) {
     // Collect the PDF in chunks
     const chunks = [];
     doc.on("data", (chunk) => chunks.push(chunk));
-    doc.on("end", () => {
+    doc.on("end", async () => {
       const pdfBuffer = Buffer.concat(chunks);
+
+      // Load the generated PDF to add watermark on every page
+      const { PDFDocument: LibPDFDocument, rgb } = require("pdf-lib");
+      const pdfDoc = await LibPDFDocument.load(pdfBuffer);
+      const pages = pdfDoc.getPages();
+      const watermarkImage = await pdfDoc.embedPng(imageBuffer);
+
+      const watermarkText = "CONFIDENTIAL";
+
+      pages.forEach((page) => {
+        const { width, height } = page.getSize();
+        const imageWidth = 400; // Adjust size as needed
+        const imageHeight =
+          (imageWidth / watermarkImage.width) * watermarkImage.height; // Maintain aspect ratio
+        const xPosition = (width - imageWidth) / 2;
+        const yPosition = (height - imageHeight) / 2;
+
+        page.drawImage(watermarkImage, {
+          x: xPosition,
+          y: yPosition,
+          width: imageWidth,
+          height: imageHeight,
+          opacity: 0.3, // Adjust opacity as needed
+        });
+      });
+
+      // Save the final PDF with watermark
+      const watermarkedPdfBytes = await pdfDoc.save();
       res.setHeader(
         "Content-disposition",
-        `attachment; filename="case_history_${user_id}.pdf"`
+        `attachment; filename="session_case_history_${user_id}.pdf"`
       );
       res.setHeader("Content-type", "application/pdf");
-      res.send(pdfBuffer);
+      res.send(Buffer.from(watermarkedPdfBytes));
+
+      // const pdfBuffer = Buffer.concat(chunks);
+      // res.setHeader(
+      //   "Content-disposition",
+      //   `attachment; filename="case_history_${user_id}.pdf"`
+      // );
+      // res.setHeader("Content-type", "application/pdf");
+      // res.send(pdfBuffer);
     });
 
     // End the PDF document
@@ -1737,9 +1780,19 @@ const formatText = (text) => {
 
 async function downloadFirtDraft(req, res) {
   const user_id = req.body?.courtroomClient?.userBooking?.userId;
-  // const user_id = req.body?.userId;
+  let favor = req.body?.courtroomClient?.userBooking?.drafteFavor;
+
+  const response = await axios.get(
+    "https://res.cloudinary.com/dumjofgxz/image/upload/v1725968109/gptclaw_l8krlt.png",
+    {
+      responseType: "arraybuffer",
+    }
+  );
+  const imageBuffer = Buffer.from(response.data, "binary");
+
+  // const user_id = req.body?.userId;x
   try {
-    const draft = await FetchGetDraft({ user_id });
+    const draft = await FetchGetDraft({ user_id, favor });
 
     const revelentCaseLaws = await FetchRelevantCases({ user_id });
 
@@ -1808,14 +1861,50 @@ async function downloadFirtDraft(req, res) {
     // Collect the PDF in chunks
     const chunks = [];
     doc.on("data", (chunk) => chunks.push(chunk));
-    doc.on("end", () => {
+    doc.on("end", async () => {
       const pdfBuffer = Buffer.concat(chunks);
+
+      // Load the generated PDF to add watermark on every page
+      const { PDFDocument: LibPDFDocument, rgb } = require("pdf-lib");
+      const pdfDoc = await LibPDFDocument.load(pdfBuffer);
+      const pages = pdfDoc.getPages();
+      const watermarkImage = await pdfDoc.embedPng(imageBuffer);
+
+      const watermarkText = "CONFIDENTIAL";
+
+      pages.forEach((page) => {
+        const { width, height } = page.getSize();
+        const imageWidth = 400; // Adjust size as needed
+        const imageHeight =
+          (imageWidth / watermarkImage.width) * watermarkImage.height; // Maintain aspect ratio
+        const xPosition = (width - imageWidth) / 2;
+        const yPosition = (height - imageHeight) / 2;
+
+        page.drawImage(watermarkImage, {
+          x: xPosition,
+          y: yPosition,
+          width: imageWidth,
+          height: imageHeight,
+          opacity: 0.3, // Adjust opacity as needed
+        });
+      });
+
+      // Save the final PDF with watermark
+      const watermarkedPdfBytes = await pdfDoc.save();
       res.setHeader(
         "Content-disposition",
-        `attachment; filename="draft_${user_id}.pdf"`
+        `attachment; filename="session_case_history_${user_id}.pdf"`
       );
       res.setHeader("Content-type", "application/pdf");
-      res.send(pdfBuffer);
+      res.send(Buffer.from(watermarkedPdfBytes));
+
+      // const pdfBuffer = Buffer.concat(chunks);
+      // res.setHeader(
+      //   "Content-disposition",
+      //   `attachment; filename="draft_${user_id}.pdf"`
+      // );
+      // res.setHeader("Content-type", "application/pdf");
+      // res.send(pdfBuffer);
     });
 
     // End the PDF document
@@ -1832,6 +1921,14 @@ async function downloadFirtDraft(req, res) {
 async function download(req, res) {
   const { data, type } = req.body;
   const user_id = req.body?.courtroomClient?.userBooking?.userId;
+
+  const response = await axios.get(
+    "https://res.cloudinary.com/dumjofgxz/image/upload/v1725968109/gptclaw_l8krlt.png",
+    {
+      responseType: "arraybuffer",
+    }
+  );
+  const imageBuffer = Buffer.from(response.data, "binary");
 
   try {
     //   const draft = await FetchGetDraft({ user_id });
@@ -1876,14 +1973,50 @@ async function download(req, res) {
     // Collect the PDF in chunks
     const chunks = [];
     doc.on("data", (chunk) => chunks.push(chunk));
-    doc.on("end", () => {
+    doc.on("end", async () => {
       const pdfBuffer = Buffer.concat(chunks);
+
+      // Load the generated PDF to add watermark on every page
+      const { PDFDocument: LibPDFDocument, rgb } = require("pdf-lib");
+      const pdfDoc = await LibPDFDocument.load(pdfBuffer);
+      const pages = pdfDoc.getPages();
+      const watermarkImage = await pdfDoc.embedPng(imageBuffer);
+
+      const watermarkText = "CONFIDENTIAL";
+
+      pages.forEach((page) => {
+        const { width, height } = page.getSize();
+        const imageWidth = 400; // Adjust size as needed
+        const imageHeight =
+          (imageWidth / watermarkImage.width) * watermarkImage.height; // Maintain aspect ratio
+        const xPosition = (width - imageWidth) / 2;
+        const yPosition = (height - imageHeight) / 2;
+
+        page.drawImage(watermarkImage, {
+          x: xPosition,
+          y: yPosition,
+          width: imageWidth,
+          height: imageHeight,
+          opacity: 0.3, // Adjust opacity as needed
+        });
+      });
+
+      // Save the final PDF with watermark
+      const watermarkedPdfBytes = await pdfDoc.save();
       res.setHeader(
         "Content-disposition",
-        `attachment; filename="draft${user_id}.pdf"`
+        `attachment; filename="session_case_history_${user_id}.pdf"`
       );
       res.setHeader("Content-type", "application/pdf");
-      res.send(pdfBuffer);
+      res.send(Buffer.from(watermarkedPdfBytes));
+
+      //   const pdfBuffer = Buffer.concat(chunks);
+      //   res.setHeader(
+      //     "Content-disposition",
+      //     `attachment; filename="draft${user_id}.pdf"`
+      //   );
+      //   res.setHeader("Content-type", "application/pdf");
+      //   res.send(pdfBuffer);
     });
 
     // End the PDF document
