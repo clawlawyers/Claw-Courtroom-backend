@@ -46,7 +46,7 @@ router.post(
 router.post(
   "/fileUpload",
   upload.single("file"),
-  // authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkCourtroomAuth,
   CourtroomController.newcase2
 );
 
