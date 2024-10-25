@@ -319,6 +319,27 @@ router.post(
   SpecificLawyerCourtroomController.draftNextAppeal
 );
 
+router.post(
+  "/api/pro_application",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.proApplication
+);
+
+router.post(
+  "/api/edit_pro_application",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.editProApplication
+);
+
+router.post(
+  "/api/document_evidence",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.documentEvidence
+);
+
 // chatbot
 
 router.post(

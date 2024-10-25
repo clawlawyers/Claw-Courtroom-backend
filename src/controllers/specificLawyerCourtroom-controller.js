@@ -2296,6 +2296,189 @@ async function fetchDraftNextAppeal({ user_id, favor }) {
   }
 }
 
+async function proApplication(req, res) {
+  const user_id = req.body?.courtroomClient?.userId;
+  let favor = req.body?.courtroomClient?.userBooking?.drafteFavor;
+  if (favor === undefined) favor = "";
+
+  const { action } = req.body;
+  try {
+    const fetchedProApplication = await fetchProApplication({
+      user_id,
+      favor,
+      action,
+    });
+    return res
+      .status(StatusCodes.OK)
+      .json(SuccessResponse({ fetchedProApplication }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function fetchProApplication({ user_id, favor, action }) {
+  try {
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/pro_application`,
+      {
+        method: "POST",
+        body: JSON.stringify({ user_id, favor, action }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch pro application");
+  }
+}
+
+async function editProApplication(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userId;
+    const { query } = req.body;
+    const editProApplication = await fetchEditProApplication({
+      user_id,
+      query,
+    });
+    res.status(StatusCodes.OK).json(SuccessResponse({ editProApplication }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function fetchEditProApplication({ user_id, query }) {
+  try {
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/edit_pro_application`,
+      {
+        method: "POST",
+        body: JSON.stringify({ user_id, query }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch edit pro application");
+  }
+}
+
+async function documentEvidence(req, res) {
+  const files = req.files; // This will be an array of file objects
+  if (!files || files.length === 0) {
+    return res.status(400).json({ error: "No files uploaded" });
+  }
+
+  const { userId } = req.body?.courtroomClient;
+
+  try {
+    let fileNameArray = [];
+
+    const folderName = "test_long_file";
+
+    // Rename the first file to `file`
+    const fileKeys = Object.keys(files);
+
+    // Using Promise.all to handle asynchronous file uploads
+    await Promise.all(
+      fileKeys.map(async (key, index) => {
+        const file = files[key][0]; // Get the first file from each key
+
+        // Generate a UUID
+        const uniqueId = uuidv4();
+
+        console.log(file.originalname);
+        const extension = path.extname(file.originalname);
+        const newFilename = `${uniqueId}${extension}`; // Rename the first file
+
+        fileNameArray[index] = newFilename;
+        // Create a renamed file object with buffer data
+        const renamedFile = {
+          ...file,
+          originalname: newFilename,
+        };
+
+        await uploadfileToBucker(renamedFile, folderName);
+      })
+    ).then(async () => {
+      let evidence = await fetchDodumentEvidence({
+        user_id: userId,
+        file: fileNameArray,
+        bucket_name: "ai_courtroom",
+        folder_name: folderName + "/",
+      });
+
+      console.log(evidence);
+
+      return res.status(StatusCodes.OK).json(SuccessResponse({ evidence }));
+    });
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function fetchDodumentEvidence({
+  user_id,
+  file,
+  bucket_name,
+  folder_name,
+}) {
+  try {
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/document_evidence`,
+      {
+        method: "POST",
+        body: JSON.stringify({ user_id, file, bucket_name, folder_name }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch document evidence");
+  }
+}
+
 async function consultant(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
@@ -2607,4 +2790,7 @@ module.exports = {
   caseSummary,
   getoverviewFormfilename,
   newcase2,
+  proApplication,
+  editProApplication,
+  documentEvidence,
 };

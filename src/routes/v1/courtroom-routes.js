@@ -46,7 +46,7 @@ router.post(
 router.post(
   "/fileUpload",
   upload.single("file"),
-  authMiddleware.checkCourtroomAuth,
+  // authMiddleware.checkCourtroomAuth,
   CourtroomController.newcase2
 );
 
@@ -246,6 +246,24 @@ router.post(
   "/api/draft_next_appeal",
   authMiddleware.checkCourtroomAuth,
   CourtroomController.draftNextAppeal
+);
+
+router.post(
+  "/api/pro_application",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.proApplication
+);
+
+router.post(
+  "/api/edit_pro_application",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.editProApplication
+);
+
+router.post(
+  "/api/document_evidence",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.documentEvidence
 );
 
 // chatbot api
