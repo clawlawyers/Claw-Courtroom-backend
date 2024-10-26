@@ -623,9 +623,21 @@ async function newcase2(req, res) {
 
   try {
     // const userId = "progressBar"; // Assuming you have user authentication
+    // Generate a UUID
     const uniqueId = uuidv4();
+
+    console.log(file.originalname);
+    const extension = path.extname(file.originalname);
+    const newFilename = `${uniqueId}${extension}`; // Rename the first file
+
+    // Create a renamed file object with buffer data
+    const renamedFile = {
+      ...file,
+      originalname: newFilename,
+    };
+
     // Define the file path in the user's folder
-    const filePath = `${folderName}/${uniqueId}`;
+    const filePath = `${folderName}/${newFilename}`;
 
     // Create a resumable upload session
     const blob = bucket.file(filePath);
@@ -639,6 +651,7 @@ async function newcase2(req, res) {
       SuccessResponse({
         uploadUrl: uploadResponse, // The resumable upload URL that can be used to upload chunks
         filePath: filePath,
+        fileName: newFilename,
       })
     );
 
