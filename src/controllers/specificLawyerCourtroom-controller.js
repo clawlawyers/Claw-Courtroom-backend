@@ -2842,4 +2842,5 @@ module.exports = {
   proApplication,
   editProApplication,
   documentEvidence,
+  printCaseDetails,
 };
