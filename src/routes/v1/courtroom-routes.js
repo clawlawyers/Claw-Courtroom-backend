@@ -101,7 +101,7 @@ router.post(
 );
 
 router.post(
-  "/api/relevant_cases_judge_lawyer",
+  "/api/relevant_cases_judge_lawyer_updated",
   authMiddleware.checkCourtroomAuth,
   CourtroomController.relevantCasesJudgeLawyer
 );
@@ -200,7 +200,7 @@ router.post(
 );
 
 router.post(
-  "/api/relevant_case_law",
+  "/api/relevant_case_law_updated",
   authMiddleware.checkCourtroomAuth,
 
   CourtroomController.relevantCaseLaw
@@ -228,6 +228,12 @@ router.post(
   "/api/view_document",
   authMiddleware.checkCourtroomAuth,
   CourtroomController.viewDocument
+);
+
+router.post(
+  "/api/print_case_details",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.printCaseDetails
 );
 
 router.post(

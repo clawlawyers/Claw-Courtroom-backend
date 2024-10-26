@@ -127,7 +127,7 @@ router.post(
 );
 
 router.post(
-  "/api/relevant_cases_judge_lawyer",
+  "/api/relevant_cases_judge_lawyer_updated",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.relevantCasesJudgeLawyer
@@ -264,7 +264,7 @@ router.post(
 
 // not encrypted
 router.post(
-  "/api/relevant_case_law",
+  "/api/relevant_case_law_updated",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.relevantCaseLaw
@@ -296,6 +296,13 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.viewDocument
+);
+
+router.post(
+  "/api/print_case_details",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.printCaseDetails
 );
 
 router.post(

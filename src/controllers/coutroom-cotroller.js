@@ -1219,7 +1219,7 @@ async function FetchRelevantCasesJudgeLawyer(body) {
   try {
     console.log(body);
     const response = await fetch(
-      `${COURTROOM_API_ENDPOINT}/api/relevant_cases_judge_lawyer`,
+      `${COURTROOM_API_ENDPOINT}/api/relevant_cases_judge_lawyer_updated`,
       {
         method: "POST",
         headers: {
@@ -2202,7 +2202,7 @@ async function relevantCaseLaw(req, res) {
 async function FetchRelevantCases({ user_id }) {
   try {
     const response = await fetch(
-      `${COURTROOM_API_ENDPOINT}/api/relevant_case_law`,
+      `${COURTROOM_API_ENDPOINT}/api/relevant_case_law_updated`,
       {
         method: "POST",
         body: JSON.stringify({ user_id }),
@@ -2273,7 +2273,9 @@ async function application(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userBooking?.userId;
     const { action } = req.body;
-    const application = await fetchApplication({ user_id, action });
+    let favor = req.body?.courtroomClient?.userBooking?.drafteFavor;
+    if (favor === undefined) favor = "";
+    const application = await fetchApplication({ user_id, action, favor });
     res.status(StatusCodes.OK).json(SuccessResponse({ application }));
   } catch (error) {
     console.error(error);
@@ -2284,11 +2286,11 @@ async function application(req, res) {
   }
 }
 
-async function fetchApplication({ user_id, action }) {
+async function fetchApplication({ user_id, action, favor }) {
   try {
     const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/application`, {
       method: "POST",
-      body: JSON.stringify({ user_id, action }),
+      body: JSON.stringify({ user_id, action, favor }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -2384,6 +2386,53 @@ async function FetchViewDocument({ folder_id, case_id }) {
   } catch (error) {
     console.error(error);
     throw new Error("Failed to fetch view document");
+  }
+}
+
+async function printCaseDetails(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userBooking?.userId;
+    const { filename } = req.body;
+    const FetchedprintCaseDetails = await FetchPrintCaseDetails({
+      user_id,
+      filename,
+    });
+    res
+      .status(StatusCodes.OK)
+      .json(SuccessResponse({ FetchedprintCaseDetails }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function FetchPrintCaseDetails({ user_id, filename }) {
+  try {
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/print_case_details`,
+      {
+        method: "POST",
+        body: JSON.stringify({ user_id, filename }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+
+    const responseData = await response.json();
+    return responseData;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch print case details");
   }
 }
 
@@ -3045,4 +3094,5 @@ module.exports = {
   proApplication,
   editProApplication,
   documentEvidence,
+  printCaseDetails,
 };
