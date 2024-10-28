@@ -268,6 +268,12 @@ router.post(
 
 router.post(
   "/api/document_evidence",
+  upload.fields([
+    { name: "file" },
+    { name: "file1" },
+    { name: "file2" },
+    { name: "file3" },
+  ]),
   authMiddleware.checkCourtroomAuth,
   CourtroomController.documentEvidence
 );
