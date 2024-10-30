@@ -801,6 +801,11 @@ async function newcase2(req, res) {
     const options = {
       resumable: true,
       contentType: file.mimetype,
+      origin: [
+        "https://courtroom-dev.netlify.app",
+        "https://courtroom.clawlaw.in",
+        "http://localhost:3001",
+      ],
     };
 
     const [uploadResponse] = await blob.createResumableUpload(options);

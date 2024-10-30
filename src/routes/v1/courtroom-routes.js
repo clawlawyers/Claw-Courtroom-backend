@@ -297,4 +297,34 @@ router.post(
 router.post("/add/ContactUsQuery", CourtroomController.AddContactUsQuery);
 router.post("/get_pdf", CourtroomController.getpdf);
 
+// dummy apis
+
+// Function to generate the two arrays with unique random numbers
+function getRandomArrays() {
+  const min = 9;
+  const max = 21;
+  const array1Length = 3;
+  const array2Length = 2;
+  const numbers = new Set();
+
+  // Generate unique random numbers
+  while (numbers.size < array1Length + array2Length) {
+    const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
+    numbers.add(randomNum);
+  }
+
+  // Split into two arrays
+  const numArray = Array.from(numbers);
+  const array1 = numArray.slice(0, array1Length);
+  const array2 = numArray.slice(array1Length);
+
+  return { array1, array2 };
+}
+
+// API endpoint
+router.get("/random-arrays", (req, res) => {
+  const { array1, array2 } = getRandomArrays();
+  res.json({ array1, array2 });
+});
+
 module.exports = router;
