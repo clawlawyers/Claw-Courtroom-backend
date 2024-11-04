@@ -497,7 +497,7 @@ async function fetchOverview({ user_id, case_overview }) {
     const fetch = (await import("node-fetch")).default;
     const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/new_case`, {
       method: "POST",
-      body: JSON.stringify({ user_id, case_overview }),
+      body: JSON.stringify({ user_id, case_overview, action: "append" }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -577,6 +577,8 @@ async function newcase1(req, res) {
         file: fileNameArray,
         bucket_name: "ai_courtroom",
         folder_name: folderName + "/",
+        action: "add",
+        language: "gujarati, english",
       });
     } else {
       case_overview = await getOverview1({
@@ -584,6 +586,7 @@ async function newcase1(req, res) {
         file: fileNameArray,
         bucket_name: "ai_courtroom",
         folder_name: folderName + "/",
+        action: "add",
       });
     }
 
@@ -700,6 +703,8 @@ async function getoverviewFormfilename(req, res) {
         file: fileNameArray,
         bucket_name: "ai_courtroom",
         folder_name: folderName + "/",
+        action: "add",
+        language: "gujarati, english",
       });
     } else {
       case_overview = await getOverview1({
@@ -707,6 +712,7 @@ async function getoverviewFormfilename(req, res) {
         file: fileNameArray,
         bucket_name: "ai_courtroom",
         folder_name: folderName + "/",
+        action: "add",
       });
     }
 
