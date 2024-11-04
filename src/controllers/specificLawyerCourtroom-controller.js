@@ -497,7 +497,7 @@ async function fetchOverview({ user_id, case_overview }) {
     const fetch = (await import("node-fetch")).default;
     const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/new_case`, {
       method: "POST",
-      body: JSON.stringify({ user_id, case_overview, action: "append" }),
+      body: JSON.stringify({ user_id, case_overview, action: "add" }),
       headers: {
         "Content-Type": "application/json",
       },
