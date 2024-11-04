@@ -2503,7 +2503,7 @@ async function fetchDodumentEvidence({
 async function generateHypoDraft(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
-    const favor = req.body?.courtroomClient?.favor;
+    let favor = req.body?.courtroomClient?.favor;
     if (favor === undefined) favor = "";
 
     const fetchedHypoDraft = await fetchHypoDraft({ user_id, favor });
@@ -2521,13 +2521,16 @@ async function generateHypoDraft(req, res) {
 
 async function fetchHypoDraft({ user_id, favor }) {
   try {
-    const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/hypo_draft`, {
-      method: "POST",
-      body: JSON.stringify({ user_id, favor }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `${COURTROOM_API_ENDPOINT}/api/generate_hypo_draft`,
+      {
+        method: "POST",
+        body: JSON.stringify({ user_id, favor }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     if (!response.ok) {
       const errorText = await response.text(); // Get the error message from the response
       throw new Error(
