@@ -347,6 +347,13 @@ router.post(
   SpecificLawyerCourtroomController.documentEvidence
 );
 
+router.post(
+  "/api/generate_hypo_draft",
+  authMiddleware.checkSpecificLawyerCourtroomAuth,
+  authMiddleware.checkSpecificLawyerCourtroomUserId,
+  SpecificLawyerCourtroomController.generateHypoDraft
+);
+
 // chatbot
 
 router.post(

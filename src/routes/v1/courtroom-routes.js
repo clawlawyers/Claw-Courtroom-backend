@@ -278,6 +278,12 @@ router.post(
   CourtroomController.documentEvidence
 );
 
+router.post(
+  "/api/generate_hypo_draft",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomController.generateHypoDraft
+);
+
 // chatbot api
 
 router.post(

@@ -2500,6 +2500,48 @@ async function fetchDodumentEvidence({
   }
 }
 
+async function generateHypoDraft(req, res) {
+  try {
+    const user_id = req.body?.courtroomClient?.userId;
+    const favor = req.body?.courtroomClient?.favor;
+    if (favor === undefined) favor = "";
+
+    const fetchedHypoDraft = await fetchHypoDraft({ user_id, favor });
+    return res
+      .status(StatusCodes.OK)
+      .json(SuccessResponse({ fetchedHypoDraft }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function fetchHypoDraft({ user_id, favor }) {
+  try {
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/hypo_draft`, {
+      method: "POST",
+      body: JSON.stringify({ user_id, favor }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) {
+      const errorText = await response.text(); // Get the error message from the response
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+    const responseText = await response.json(); // Get the error message from the response
+    return responseText; // Return the error message from the response
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch hypo draft");
+  }
+}
+
 async function consultant(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
@@ -2862,4 +2904,5 @@ module.exports = {
   editProApplication,
   documentEvidence,
   printCaseDetails,
+  generateHypoDraft,
 };
