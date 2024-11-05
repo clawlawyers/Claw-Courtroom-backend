@@ -547,10 +547,11 @@ async function getOverviewMultilang(formData) {
 async function newCaseText(req, res) {
   try {
     const { userId } = req.body?.courtroomClient?.userBooking;
-    const { case_overview } = req.body;
+    const { case_overview, action } = req.body;
     const fetchedOverview = await fetchOverview({
       user_id: userId,
       case_overview,
+      action,
     });
     console.log(fetchedOverview);
     return res
@@ -565,13 +566,13 @@ async function newCaseText(req, res) {
   }
 }
 
-async function fetchOverview({ user_id, case_overview }) {
+async function fetchOverview({ user_id, case_overview, action }) {
   try {
     // Dynamically import node-fetch
     const fetch = (await import("node-fetch")).default;
     const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/new_case`, {
       method: "POST",
-      body: JSON.stringify({ user_id, case_overview, action: "add" }),
+      body: JSON.stringify({ user_id, case_overview, action }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -694,7 +695,7 @@ async function newcase1(req, res) {
   const { key } = req.body?.courtroomClient?.userBooking;
   // const userId = "f497c76b-2894-4636-8d2b-6391bc6bccdc";
   console.log(userId);
-  const { isMultilang } = req.body;
+  const { isMultilang, action, language } = req.body;
 
   try {
     // Rename only the first file and prepare the data object for getOverview
@@ -740,8 +741,8 @@ async function newcase1(req, res) {
           file: fileNameArray,
           bucket_name: "ai_courtroom",
           folder_name: folderName + "/",
-          action: "add",
-          language: "gujarati, english",
+          action,
+          language,
         });
       } else {
         case_overview = await getOverview1({
@@ -749,7 +750,7 @@ async function newcase1(req, res) {
           file: fileNameArray,
           bucket_name: "ai_courtroom",
           folder_name: folderName + "/",
-          action: "add",
+          action,
         });
       }
 
@@ -850,7 +851,7 @@ async function newcase2(req, res) {
 
 async function getoverviewFormfilename(req, res) {
   try {
-    const { fileNameArray, isMultilang } = req.body;
+    const { fileNameArray, isMultilang, action, language } = req.body;
     const { userId } = req.body?.courtroomClient?.userBooking;
 
     const { _id } = req.body?.courtroomClient?.userBooking;
@@ -865,8 +866,8 @@ async function getoverviewFormfilename(req, res) {
         file: fileNameArray,
         bucket_name: "ai_courtroom",
         folder_name: folderName + "/",
-        action: "add",
-        language: "gujarati, english",
+        action,
+        language,
       });
     } else {
       case_overview = await getOverview1({
@@ -874,7 +875,7 @@ async function getoverviewFormfilename(req, res) {
         file: fileNameArray,
         bucket_name: "ai_courtroom",
         folder_name: folderName + "/",
-        action: "add",
+        action,
       });
     }
 
