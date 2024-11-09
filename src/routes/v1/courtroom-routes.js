@@ -25,6 +25,9 @@ router.post(
   CourtroomController.adminLoginValidation
 );
 router.post("/adminLogin/login", CourtroomController.AdminLoginToCourtRoom);
+
+// competition login and booking routes pending
+
 router.post(
   "/getCourtroomUser",
   authMiddleware.checkCourtroomAuth,

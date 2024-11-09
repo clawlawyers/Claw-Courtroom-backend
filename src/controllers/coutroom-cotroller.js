@@ -5,7 +5,7 @@ const { ErrorResponse, SuccessResponse } = require("../utils/common");
 const { StatusCodes } = require("http-status-codes");
 const { COURTROOM_API_ENDPOINT } = process.env;
 const path = require("path");
-const CourtroomUser = require("../models/CourtroomUser");
+const CourtroomUserIIM = require("../models/courtroomUserIIM");
 const FormData = require("form-data");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
@@ -388,7 +388,7 @@ async function getUserDetails(req, res) {
 
     return res.status(StatusCodes.OK).json(
       SuccessResponse({
-        slotTime: courtroomClient.slotTime,
+        // slotTime: courtroomClient.slotTime,
         ...token,
         userId: courtroomClient.userBooking._id,
         phoneNumber: courtroomClient.userBooking.phoneNumber,
@@ -460,8 +460,8 @@ async function newcase(req, res) {
 
     console.log(case_overview);
 
-    // // Find the CourtroomUser document by userId
-    // const courtroomUser = await CourtroomUser.findOne({ userId });
+    // // Find the CourtroomUserIIM document by userId
+    // const courtroomUser = await CourtroomUserIIM.findOne({ userId });
 
     // if (!courtroomUser) {
     //   return res
@@ -476,7 +476,7 @@ async function newcase(req, res) {
 
     // console.log(courtroomUser);
 
-    // // Save the updated CourtroomUser document
+    // // Save the updated CourtroomUserIIM document
     // await courtroomUser.save();
 
     // console.log(courtroomUser);
@@ -621,8 +621,8 @@ async function fetchOverview({ user_id, case_overview, action }) {
 
 //     console.log(case_overview);
 
-//     // Find the CourtroomUser document by userId
-//     const courtroomUser = await CourtroomUser.findOne({ userId });
+//     // Find the CourtroomUserIIM document by userId
+//     const courtroomUser = await CourtroomUserIIM.findOne({ userId });
 
 //     if (!courtroomUser) {
 //       return res
@@ -637,7 +637,7 @@ async function fetchOverview({ user_id, case_overview, action }) {
 
 //     console.log(courtroomUser);
 
-//     // Save the updated CourtroomUser document
+//     // Save the updated CourtroomUserIIM document
 //     await courtroomUser.save();
 
 //     console.log(courtroomUser);
@@ -692,7 +692,7 @@ async function newcase1(req, res) {
 
   const { userId } = req.body?.courtroomClient?.userBooking;
   const { _id } = req.body?.courtroomClient?.userBooking;
-  const { key } = req.body?.courtroomClient?.userBooking;
+  // const { key } = req.body?.courtroomClient?.userBooking;
   // const userId = "f497c76b-2894-4636-8d2b-6391bc6bccdc";
   console.log(userId);
   const { isMultilang, action, language } = req.body;
@@ -1002,8 +1002,8 @@ async function edit_case(req, res) {
   try {
     const editedArgument = await FetchEdit_Case({ user_id, case_overview });
 
-    // Find the CourtroomUser document by userId
-    const courtroomUser = await CourtroomUser.findOne({ userId: user_id });
+    // Find the CourtroomUserIIM document by userId
+    const courtroomUser = await CourtroomUserIIM.findOne({ userId: user_id });
 
     if (!courtroomUser) {
       return res
@@ -1018,7 +1018,7 @@ async function edit_case(req, res) {
     courtroomUser.caseId = uniqueId;
     // console.log(courtroomUser);
 
-    // Save the updated CourtroomUser document
+    // Save the updated CourtroomUserIIM document
     await courtroomUser.save();
 
     // console.log(courtroomUser);
@@ -1050,8 +1050,8 @@ async function getCaseOverview(req, res) {
 
   console.log(user_id);
   try {
-    // Find the CourtroomUser document by userId
-    const courtroomUser = await CourtroomUser.findOne({ userId: user_id });
+    // Find the CourtroomUserIIM document by userId
+    const courtroomUser = await CourtroomUserIIM.findOne({ userId: user_id });
 
     console.log(courtroomUser);
 
@@ -1258,7 +1258,7 @@ async function setFavor(req, res) {
   const user_id = req.body?.courtroomClient?.userBooking?.userId;
   const favor = req.body.favor;
   try {
-    const updateUserFavor = await CourtroomUser.findOneAndUpdate(
+    const updateUserFavor = await CourtroomUserIIM.findOneAndUpdate(
       { userId: user_id },
       { drafteFavor: favor }
     );

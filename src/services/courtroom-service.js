@@ -12,6 +12,7 @@ const { trusted, default: mongoose } = require("mongoose");
 const TrailCourtRoomBooking = require("../models/trailCourtRoomBooking");
 const TrailCourtroomUser = require("../models/trailCourtRoomUser");
 const CourtroomFeedback = require("../models/courtroomFeedback");
+const CourtroomUserIIM = require("../models/courtroomUserIIM");
 const { COURTROOM_API_ENDPOINT } = process.env;
 
 async function adminCourtRoomBook(
@@ -761,59 +762,59 @@ async function registerNewCourtRoomUser(body) {
 
 async function getClientByPhoneNumber(phoneNumber) {
   try {
-    let currentDate, currentHour;
+    // let currentDate, currentHour;
 
-    if (process.env.NODE_ENV === "production") {
-      // Get current date and time in UTC
-      const now = new Date();
+    // if (process.env.NODE_ENV === "production") {
+    //   // Get current date and time in UTC
+    //   const now = new Date();
 
-      // Convert to milliseconds
-      const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
+    //   // Convert to milliseconds
+    //   const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
 
-      // IST offset is +5:30
-      const istOffset = 5.5 * 60 * 60000;
+    //   // IST offset is +5:30
+    //   const istOffset = 5.5 * 60 * 60000;
 
-      // Create new date object for IST
-      const istTime = new Date(utcTime + istOffset);
+    //   // Create new date object for IST
+    //   const istTime = new Date(utcTime + istOffset);
 
-      currentDate = new Date(
-        Date.UTC(istTime.getFullYear(), istTime.getMonth(), istTime.getDate())
-      );
-      currentHour = istTime.getHours();
-    } else {
-      // Get the current date and hour in local time (for development)
-      const now = new Date();
-      currentDate = new Date(
-        Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-      );
-      currentHour = now.getHours();
-    }
+    //   currentDate = new Date(
+    //     Date.UTC(istTime.getFullYear(), istTime.getMonth(), istTime.getDate())
+    //   );
+    //   currentHour = istTime.getHours();
+    // } else {
+    //   // Get the current date and hour in local time (for development)
+    //   const now = new Date();
+    //   currentDate = new Date(
+    //     Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+    //   );
+    //   currentHour = now.getHours();
+    // }
 
-    console.log(currentDate, currentHour);
+    // console.log(currentDate, currentHour);
 
     // const currentDate = "2024-07-30";
     // const currentHour = 14;
 
     // Find existing booking for the current date and hour
-    const booking = await CourtRoomBooking.findOne({
-      date: currentDate,
-      hour: currentHour,
-    }).populate("courtroomBookings");
+    // const booking = await CourtRoomBooking.findOne({
+    //   date: currentDate,
+    //   hour: currentHour,
+    // }).populate("courtroomBookings");
 
-    if (!booking) {
-      return "No bookings found for the current time slot.";
-    }
+    // if (!booking) {
+    //   return "No bookings found for the current time slot.";
+    // }
 
     // console.log(booking);
 
     // Check if the user with the given phone number is in the booking
-    const userBooking = booking.courtroomBookings.find((courtroomBooking) => {
-      return courtroomBooking.phoneNumber == phoneNumber;
+    const userBooking = await CourtroomUserIIM.findOne({
+      phoneNumber: phoneNumber,
     });
 
     // console.log(userBooking);
 
-    return { userBooking, slotTime: booking.hour };
+    return { userBooking };
   } catch (error) {
     console.error(error);
     throw new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
