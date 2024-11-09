@@ -31,16 +31,16 @@ const generateToken = (payload) => {
     now = new Date();
   }
 
-  // Calculate the remaining time in seconds until the next hour
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-  const remainingSeconds = (60 - minutes) * 60 - seconds;
+  // // Calculate the remaining time in seconds until the next hour
+  // const minutes = now.getMinutes();
+  // const seconds = now.getSeconds();
+  // const remainingSeconds = (60 - minutes) * 60 - seconds;
 
   // Calculate the expiration time
-  const expiresAt = now.getTime() + remainingSeconds * 1000;
+  const expiresAt = now.getTime() + 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
   // Generate the token with the calculated expiration time
-  const token = jwt.sign(payload, jwtSecret, { expiresIn: remainingSeconds });
+  const token = jwt.sign(payload, jwtSecret, { expiresIn: 24 * 60 * 60  });
 
   return { token, expiresAt };
 };
