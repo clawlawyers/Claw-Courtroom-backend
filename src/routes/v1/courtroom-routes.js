@@ -28,6 +28,9 @@ router.post("/adminLogin/login", CourtroomController.AdminLoginToCourtRoom);
 
 // competition login and booking routes pending
 
+router.post("/book-courtroom-new", CourtroomController.NewBookCourtRoom);
+router.post("/courtroom-login", CourtroomController.NewCourtroomLogin);
+
 router.post(
   "/getCourtroomUser",
   authMiddleware.checkCourtroomAuth,

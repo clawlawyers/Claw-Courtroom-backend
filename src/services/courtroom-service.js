@@ -1,9 +1,9 @@
 const { StatusCodes } = require("http-status-codes");
 const AppError = require("../utils/errors/app-error");
 const CourtRoomBooking = require("../models/courtRoomBooking");
-const CourtroomUser = require("../models/CourtroomUser");
+const CourtroomUserIIM = require("../models/courtroomUserIIM");
 const { comparePassword, generateToken } = require("../utils/coutroom/auth");
-const CourtroomHistory = require("../models/courtRoomHistory");
+const CourtroomHistoryIIM = require("../models/courtroomHistoryIIM");
 const ContactUs = require("../models/contact");
 const {
   sendAdminContactUsNotification,
@@ -12,7 +12,6 @@ const { trusted, default: mongoose } = require("mongoose");
 const TrailCourtRoomBooking = require("../models/trailCourtRoomBooking");
 const TrailCourtroomUser = require("../models/trailCourtRoomUser");
 const CourtroomFeedback = require("../models/courtroomFeedback");
-const CourtroomUserIIM = require("../models/courtroomUserIIM");
 const { COURTROOM_API_ENDPOINT } = process.env;
 
 async function adminCourtRoomBook(
@@ -165,7 +164,7 @@ async function createCourtRoomUser(
   caseOverview
 ) {
   // Create a new courtroom user
-  const newCourtroomUser = new CourtroomUser({
+  const newCourtroomUser = new CourtroomUserIIM({
     name,
     phoneNumber,
     email,
@@ -234,7 +233,7 @@ async function courtRoomBook(
     }
 
     // Create a new courtroom user
-    const newCourtroomUser = new CourtroomUser({
+    const newCourtroomUser = new CourtroomUserIIM({
       name,
       phoneNumber,
       email,
@@ -312,7 +311,7 @@ async function AdminLoginCourtRoomBook(
     }
 
     // Create a new courtroom user
-    const newCourtroomUser = new CourtroomUser({
+    const newCourtroomUser = new CourtroomUserIIM({
       name,
       phoneNumber,
       email,
@@ -444,57 +443,9 @@ async function getBookedData(startDate, endDate) {
 
 async function loginToCourtRoom(phoneNumber, password) {
   try {
-    let currentDate, currentHour;
-
-    if (process.env.NODE_ENV === "production") {
-      // Get current date and time in UTC
-      const now = new Date();
-
-      // Convert to milliseconds
-      const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
-
-      // IST offset is +5:30
-      const istOffset = 5.5 * 60 * 60000;
-
-      // Create new date object for IST
-      const istTime = new Date(utcTime + istOffset);
-
-      currentDate = new Date(
-        Date.UTC(istTime.getFullYear(), istTime.getMonth(), istTime.getDate())
-      );
-      currentHour = istTime.getHours();
-    } else {
-      // Get the current date and hour in local time (for development)
-      const now = new Date();
-      currentDate = new Date(
-        Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-      );
-      currentHour = now.getHours();
-    }
-
-    console.log(currentDate, currentHour);
-
-    // const currentDate = "2024-07-30";
-    // const currentHour = 14;
-
-    // Find existing booking for the current date and hour
-    const booking = await CourtRoomBooking.findOne({
-      date: currentDate,
-      hour: currentHour,
-    }).populate("courtroomBookings");
-
-    if (!booking) {
-      return "No bookings found for the current time slot.";
-    }
-
-    console.log(booking);
-
-    console.log(booking.courtroomBookings.length);
-
     // Check if the user with the given phone number is in the booking
-    const userBooking = booking.courtroomBookings.find((courtroomBooking) => {
-      console.log(courtroomBooking.phoneNumber, phoneNumber);
-      return courtroomBooking.phoneNumber == phoneNumber;
+    const userBooking = await CourtroomUserIIM.findOne({
+      phoneNumber: phoneNumber,
     });
 
     console.log(userBooking);
@@ -532,7 +483,6 @@ async function loginToCourtRoom(phoneNumber, password) {
 
     // Respond with the token
     return {
-      slotTime: booking.hour,
       ...token,
       userId: userId,
       phoneNumber: userBooking.phoneNumber,
@@ -859,7 +809,7 @@ async function getClientByUseridForEndCase(userid) {
     // const currentHour = 20;
 
     // Find existing booking for the current date and hour
-    const courtroomUser = await CourtroomUser.findOne({
+    const courtroomUser = await CourtroomUserIIM.findOne({
       userId: userid,
     });
 
@@ -890,83 +840,32 @@ async function getClientByUseridForEndCase(userid) {
 
 async function getClientByUserid(userid) {
   try {
-    // Get the current date and hour
-    let currentDate, currentHour;
-
-    if (process.env.NODE_ENV === "production") {
-      // Get current date and time in UTC
-      const now = new Date();
-
-      // Convert to milliseconds
-      const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
-
-      // IST offset is +5:30
-      const istOffset = 5.5 * 60 * 60000;
-
-      // Create new date object for IST
-      const istTime = new Date(utcTime + istOffset);
-
-      currentDate = new Date(
-        Date.UTC(istTime.getFullYear(), istTime.getMonth(), istTime.getDate())
-      );
-      currentHour = istTime.getHours();
-    } else {
-      // Get the current date and hour in local time (for development)
-      const now = new Date();
-      currentDate = new Date(
-        Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-      );
-      currentHour = now.getHours();
-    }
-
-    console.log(currentDate, currentHour);
-
-    // Manual Override for Testing
-    // const formattedDate = new Date("2024-07-23T00:00:00.000Z");
-    // const currentHour = 20;
-
-    // Find existing booking for the current date and hour
-    const booking = await CourtRoomBooking.findOne({
-      date: currentDate,
-      hour: currentHour,
-    }).populate("courtroomBookings");
-
-    // console.log(booking);
-
-    if (!booking) {
-      throw Error("No bookings found for the current time slot.");
-      // return "No bookings found for the current time slot.";
-    }
-
     // Check if the user with the given phone number is in the booking
-    const userBooking = booking.courtroomBookings.find((courtroomBooking) => {
-      return courtroomBooking.userId == userid;
+    const userBooking = await CourtroomUserIIM.findOne({
+      userId: userid,
     });
 
-    console.log(userBooking);
-
-    return { User_id: userBooking._id, Booking_id: booking };
+    return { User_id: userBooking._id };
   } catch (error) {
     console.error(error);
     throw new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
   }
 }
 
-async function storeCaseHistory(userId, slotId, caseHistoryDetails) {
+async function storeCaseHistory(userId, caseHistoryDetails) {
   try {
-    const user = await CourtroomUser.findById(userId);
+    const user = await CourtroomUserIIM.findById(userId);
 
     // Find the courtroom history by userId and slotId
-    let courtroomHistory = await CourtroomHistory.findOne({
+    let courtroomHistory = await CourtroomHistoryIIM.findOne({
       userId: userId,
-      slot: slotId,
+      // slot: slotId,
     });
 
     if (!courtroomHistory) {
       // Create a new courtroom history if it doesn't exist
-      courtroomHistory = new CourtroomHistory({
+      courtroomHistory = new CourtroomHistoryIIM({
         userId: userId,
-        slot: slotId,
         history: [],
         latestCaseHistory: {},
       });
@@ -991,19 +890,19 @@ async function storeCaseHistory(userId, slotId, caseHistoryDetails) {
   }
 }
 
-async function OverridestoreCaseHistory(userId, slotId, caseHistoryDetails) {
+async function OverridestoreCaseHistory(userId, caseHistoryDetails) {
   try {
-    const user = await CourtroomUser.findById(userId);
+    const user = await CourtroomUserIIM.findById(userId);
 
     // Find the courtroom history by userId and slotId
-    let courtroomHistory = await CourtroomHistory.findOne({
+    let courtroomHistory = await CourtroomHistoryIIM.findOne({
       userId: userId,
-      slot: slotId,
+      // slot: slotId,
     });
 
     // if (!courtroomHistory) {
     //   // Create a new courtroom history if it doesn't exist
-    //   courtroomHistory = new CourtroomHistory({
+    //   courtroomHistory = new CourtroomHistoryIIM({
     //     userId: userId,
     //     slot: slotId,
     //     history: [],
@@ -1033,7 +932,7 @@ async function OverridestoreCaseHistory(userId, slotId, caseHistoryDetails) {
 async function getSessionCaseHistory(userId) {
   try {
     console.log(userId);
-    const caseHistory = await CourtroomHistory.findOne({ userId: userId });
+    const caseHistory = await CourtroomHistoryIIM.findOne({ userId: userId });
     // console.log("Case history retrieved:", caseHistory);
     return caseHistory;
   } catch (error) {
@@ -1058,7 +957,7 @@ async function setFeedback(_id, rating, feedback) {
 
 async function checkFirtVisit(phoneNumber) {
   try {
-    const user = await CourtroomUser.findOne({ phoneNumber: phoneNumber });
+    const user = await CourtroomUserIIM.findOne({ phoneNumber: phoneNumber });
     if (user) {
       return false;
     } else {
@@ -1072,9 +971,11 @@ async function checkFirtVisit(phoneNumber) {
 
 async function isNewCaseHistory(userId) {
   try {
-    const user = await CourtroomUser.findById(userId);
+    const user = await CourtroomUserIIM.findById(userId);
     const currentCaseId = user.caseId;
-    const courtroomHistory = await CourtroomHistory.findOne({ userId: userId });
+    const courtroomHistory = await CourtroomHistoryIIM.findOne({
+      userId: userId,
+    });
     if (!courtroomHistory) {
       return false; // inster new case history entry
     }

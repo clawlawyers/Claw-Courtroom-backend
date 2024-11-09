@@ -40,7 +40,7 @@ const generateToken = (payload) => {
   const expiresAt = now.getTime() + 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
   // Generate the token with the calculated expiration time
-  const token = jwt.sign(payload, jwtSecret, { expiresIn: 24 * 60 * 60  });
+  const token = jwt.sign(payload, jwtSecret, { expiresIn: 24 * 60 * 60 });
 
   return { token, expiresAt };
 };

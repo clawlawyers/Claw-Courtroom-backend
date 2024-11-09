@@ -365,6 +365,52 @@ async function AdminLoginToCourtRoom(req, res) {
   }
 }
 
+async function NewBookCourtRoom(req, res) {
+  try {
+    const { name, phoneNumber, email, recording, password } = req.body;
+    const hashedPassword = await hashPassword(password);
+    const newBooking = await CourtroomUserIIM.create({
+      name,
+      phoneNumber,
+      email,
+      password: hashedPassword,
+      recording,
+      caseOverview: "NA",
+    });
+    console.log(newBooking);
+    res.status(201).json(newBooking);
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function NewCourtroomLogin(req, res) {
+  try {
+    const { phoneNumber, password } = req.body;
+    const user = await CourtroomUserIIM.findOne({ phoneNumber });
+    if (!user) {
+      return res.status(404).send("User not found.");
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).send("Invalid credentials.");
+    }
+    // Generate a JWT token
+    const token = generateToken({ userId: user._id });
+    return res.status(200).json(SuccessResponse({ token }));
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
 async function getUserDetails(req, res) {
   const { courtroomClient } = req.body;
   try {
@@ -1469,23 +1515,17 @@ async function CaseHistory(req, res) {
     const caseHistory = await FetchCaseHistory({ user_id });
 
     // save into database or update database with new data if case history is already present in the database
-    const { User_id, Booking_id } = await CourtroomService.getClientByUserid(
-      user_id
-    );
+    const { User_id } = await CourtroomService.getClientByUserid(user_id);
 
-    console.log(User_id, Booking_id);
+    console.log(User_id);
     const isNewCaseHistoryInDB = await CourtroomService.isNewCaseHistory(
       User_id
     );
 
     if (isNewCaseHistoryInDB) {
-      await CourtroomService.OverridestoreCaseHistory(
-        User_id,
-        Booking_id,
-        caseHistory
-      );
+      await CourtroomService.OverridestoreCaseHistory(User_id, caseHistory);
     } else {
-      await CourtroomService.storeCaseHistory(User_id, Booking_id, caseHistory);
+      await CourtroomService.storeCaseHistory(User_id, caseHistory);
     }
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ caseHistory }));
@@ -1521,7 +1561,7 @@ async function FetchCaseHistory(body) {
     }
 
     const responseData = await response.json();
-    // console.log("Response Data:", responseData);
+    console.log("Response Data:", responseData);
     return responseData;
   } catch (error) {
     console.error("Error in FetchCaseHistory:", error);
@@ -2955,13 +2995,11 @@ async function getSessionCaseHistory(req, res) {
     const caseHistory = await FetchCaseHistory({ user_id });
 
     // save into database or update database with new data if case history is already present in the database
-    const { User_id, Booking_id } = await CourtroomService.getClientByUserid(
-      user_id
-    );
+    const { User_id } = await CourtroomService.getClientByUserid(user_id);
 
-    console.log(User_id, Booking_id);
+    console.log(User_id);
 
-    await CourtroomService.storeCaseHistory(User_id, Booking_id, caseHistory);
+    await CourtroomService.storeCaseHistory(User_id, caseHistory);
 
     const FetchedCaseHistorys = await CourtroomService.getSessionCaseHistory(
       User_id
@@ -3153,4 +3191,6 @@ module.exports = {
   documentEvidence,
   printCaseDetails,
   generateHypoDraft,
+  NewBookCourtRoom,
+  NewCourtroomLogin,
 };
