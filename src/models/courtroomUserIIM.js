@@ -17,7 +17,7 @@ const CourtroomUserIIMSchema = new Schema({
   },
   caseId: {
     type: String,
-    unique: true,
+    // unique: true,
   },
 });
 
