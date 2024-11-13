@@ -929,7 +929,7 @@ async function getOverviewMultilang1(body) {
     const response = await fetch(
       `${COURTROOM_API_ENDPOINT}/api/new_case_multilang1`,
       {
-        method: "POST",
+        method: "z",
         headers: {
           "Content-Type": "application/json",
         },

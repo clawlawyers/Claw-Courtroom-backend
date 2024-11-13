@@ -2548,7 +2548,11 @@ async function fetchHypoDraft({ user_id, favor }) {
 async function consultant(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
-    const { query } = req.body;
+    var { query } = req.body;
+    const key = req.body?.courtroomClient?.key;
+    console.log(key)
+     query =await  decryption(query,key)
+  
     const fetchedConsultant = await fetchConsultant({ user_id, query });
     return res
       .status(StatusCodes.OK)
@@ -2637,7 +2641,11 @@ async function editApplication(req, res) {
     const user_id = req.body?.courtroomClient?.userId;
     const key = req.body?.courtroomClient?.key;
 
-    const { query } = req.body;
+    var  { query } = req.body;
+    query= await decryption(query, key)
+    console.log("decryption")
+    console.log(key)
+    console.log(query)
     const editApplication = await fetchEditApplication({ user_id, query });
 
     editApplication.application = await encryption(
