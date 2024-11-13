@@ -2606,23 +2606,12 @@ async function fetchHypoDraft({ user_id, favor }) {
 async function consultant(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
-    const { query } = req.body;
-
-    const user = await SpecificLawyerCourtroomUser.findOne({ userId: user_id });
-    if (!user) {
-      return res.status(StatusCodes.NOT_FOUND).json(ErrorResponse({}, 'User not found'));
-    }
-
-    const key = user.key;
-
-    // Encrypt the query
-    const encryptedQuery = (await encryption(query, key)).toString(); // Ensure it is a string
-
-    // console.log("Encrypted Query:", encryptedQuery);
-    // const decryptedQuery = await decryption(encryptedQuery, key);
-    // console.log("Decrypted Query:", decryptedQuery); // Should match the original `query`
-    const fetchedConsultant = await fetchConsultant({ user_id, query: encryptedQuery });
-
+    var { query } = req.body;
+    const key = req.body?.courtroomClient?.key;
+    console.log(key)
+     query =await  decryption(query,key)
+  
+    const fetchedConsultant = await fetchConsultant({ user_id, query });
     return res
       .status(StatusCodes.OK)
       .json(SuccessResponse({ fetchedConsultant }));
@@ -2712,7 +2701,11 @@ async function editApplication(req, res) {
     const user_id = req.body?.courtroomClient?.userId;
     const key = req.body?.courtroomClient?.key;
 
-    const { query } = req.body;
+    var  { query } = req.body;
+    query= await decryption(query, key)
+    console.log("decryption")
+    console.log(key)
+    console.log(query)
     const editApplication = await fetchEditApplication({ user_id, query });
 
     editApplication.application = await encryption(
