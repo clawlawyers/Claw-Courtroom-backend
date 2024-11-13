@@ -72,14 +72,14 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.getoverviewFormfilename
-);
+); 
 
 router.post(
   "/api/case_summary",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.caseSummary
-);
+); //Not encrypted
 
 router.post(
   "/api/new_case/text",
@@ -99,7 +99,7 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.getCaseOverview
-);
+); //Not encrypted
 router.post(
   "/user_arguemnt",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
@@ -124,7 +124,7 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.summary
-);
+); //Not encrypted
 
 router.post(
   "/api/relevant_cases_judge_lawyer_updated",
@@ -138,7 +138,7 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.setFavor
-);
+); //Not encrypted
 
 router.post(
   "/api/draft",
@@ -164,7 +164,7 @@ router.post(
   SpecificLawyerCourtroomController.restCase
 );
 
-// not encrypted
+// encrypted
 router.post(
   "/api/end",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
@@ -177,7 +177,7 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomUserId,
 
   SpecificLawyerCourtroomController.hallucination_questions
-);
+); //encrypted
 
 //encrypted
 router.post(
@@ -188,7 +188,7 @@ router.post(
   SpecificLawyerCourtroomController.CaseHistory
 );
 
-// not encrypted
+
 
 router.post(
   "/api/downloadCaseHistory",
@@ -196,7 +196,6 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.downloadCaseHistory
 );
-
 // not encrypted
 
 router.post(
@@ -206,7 +205,6 @@ router.post(
   SpecificLawyerCourtroomController.downloadSessionCaseHistory
 );
 
-// not encrypted
 
 router.post(
   "/api/getSessionCaseHistory",
@@ -215,7 +213,7 @@ router.post(
   SpecificLawyerCourtroomController.getSessionCaseHistory
 );
 
-// not encrypted
+
 
 router.post(
   "/api/downloadFirtDraft",
@@ -223,7 +221,6 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.downloadFirtDraft
 );
-
 // not encrypted
 
 router.post(
@@ -233,7 +230,7 @@ router.post(
   SpecificLawyerCourtroomController.download
 );
 
-// not encrypted
+
 
 router.get(
   "/getHistory",
@@ -260,9 +257,9 @@ router.post(
   "/resetUserid",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   SpecificLawyerCourtroomController.resetUserId
-);
+);// //Not  encrypted
 
-// not encrypted
+
 router.post(
   "/api/relevant_case_law_updated",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
@@ -275,7 +272,7 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.testimonyQuestions
-);
+); 
 
 router.post(
   "/api/application",
@@ -324,35 +321,35 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.draftNextAppeal
-);
+);  //Not encrypted
 
 router.post(
   "/api/pro_application",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.proApplication
-);
+);  //Not encrypted
 
 router.post(
   "/api/edit_pro_application",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
-  SpecificLawyerCourtroomController.editProApplication
-);
+  SpecificLawyerCourtroomController.editProApplication 
+);// //Not encrypted
 
 router.post(
   "/api/document_evidence",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.documentEvidence
-);
+); //Not encrypted
 
 router.post(
   "/api/generate_hypo_draft",
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.generateHypoDraft
-);
+);//not encrypted
 
 // chatbot
 
@@ -361,14 +358,14 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.consultant
-);
+); //Not encrypted
 
-// AddContactUsQuery Route
+// AddContactUsQuery Route 
 
 router.post(
   "/add/ContactUsQuery",
   SpecificLawyerCourtroomController.AddContactUsQuery
-);
+); //Not encrypted
 
 //time storing
 

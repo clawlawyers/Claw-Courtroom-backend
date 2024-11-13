@@ -189,6 +189,7 @@ async function encryptArrayOfObjects(
   );
 }
 
+
 module.exports = {
   generateEncryptedKey,
   decryption,
@@ -197,4 +198,5 @@ module.exports = {
   decryptObject,
   decryptArrayOfObjects,
   encryptArrayOfObjects,
+  decryptKey
 };

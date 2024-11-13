@@ -790,6 +790,7 @@ async function getOverviewMultilang1(body) {
 
 async function caseSummary(req, res) {
   try {
+    console.log("Request Body:", req.body);
     const user_id = req.body?.courtroomClient?.userId;
 
     const fetchedCaseSummary = await fetchCaseSummary({ user_id });
@@ -2145,7 +2146,15 @@ async function caseSearch(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
     const { query } = req.body;
-    const caseSearch = await FetchCaseSearch({ user_id, query });
+    const user = await SpecificLawyerCourtroomUser.findOne({ userId: user_id });
+    if (!user) {
+      return res.status(StatusCodes.NOT_FOUND).json(ErrorResponse({}, 'User not found'));
+    }
+    const key = user.key;
+    // Encrypt the query
+    const encryptedQuery = (await encryption(query, key));
+     console.log("Encrypted Query:", encryptedQuery);
+    const caseSearch = await FetchCaseSearch({ user_id, query:encryptedQuery });
     res.status(StatusCodes.OK).json(SuccessResponse({ caseSearch }));
   } catch (error) {
     console.error(error);
@@ -2229,13 +2238,26 @@ async function FetchViewDocument({ folder_id, case_id }) {
 }
 
 async function sidebarCasesearch(req, res) {
-  const user_id = req.body?.courtroomClient?.userId;
-  const { context } = req.body;
   try {
+    const user_id = req.body?.courtroomClient?.userId;
+    const { context } = req.body;
+
+    // Fetch user data to get encryption key
+    const user = await SpecificLawyerCourtroomUser.findOne({ userId: user_id });
+    if (!user) {
+      return res.status(StatusCodes.NOT_FOUND).json(ErrorResponse({}, 'User not found'));
+    }
+
+    const key = user.key;
+
+    // Encrypt the context
+    const encryptedContext = await encryption(context, key); // Ensure it's a string
+
     const FetchedSidebarCasesearch = await FetchSidebarCasesearch({
       user_id,
-      context,
+      context: encryptedContext,  // Use encrypted context
     });
+
     return res
       .status(StatusCodes.OK)
       .json(SuccessResponse({ FetchedSidebarCasesearch }));
@@ -2247,6 +2269,7 @@ async function sidebarCasesearch(req, res) {
       .json(errorResponse);
   }
 }
+
 
 async function FetchSidebarCasesearch({ user_id, context }) {
   try {
@@ -2275,10 +2298,23 @@ async function draftNextAppeal(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
     let favor = req.body?.courtroomClient?.drafteFavor;
+
+    // Fetch user data to get encryption key
+    const user = await SpecificLawyerCourtroomUser.findOne({ userId: user_id });
+    if (!user) {
+      return res.status(StatusCodes.NOT_FOUND).json(ErrorResponse({}, 'User not found'));
+    }
+
+    const key = user.key;
+
+    // Encrypt the favor data
+    const encryptedFavor = (await encryption(favor, key)).toString(); // Ensure it's a string
+
     const fetchedDraftNextAppeal = await fetchDraftNextAppeal({
       user_id,
-      favor,
+      favor: encryptedFavor,  // Use encrypted favor
     });
+
     return res
       .status(StatusCodes.OK)
       .json(SuccessResponse({ fetchedDraftNextAppeal }));
@@ -2290,6 +2326,7 @@ async function draftNextAppeal(req, res) {
       .json(errorResponse);
   }
 }
+
 
 async function fetchDraftNextAppeal({ user_id, favor }) {
   try {
@@ -2318,6 +2355,7 @@ async function fetchDraftNextAppeal({ user_id, favor }) {
 }
 
 async function proApplication(req, res) {
+  console.log("Request Body:", req.body);
   const user_id = req.body?.courtroomClient?.userId;
   let favor = req.body?.courtroomClient?.drafteFavor;
   if (favor === undefined) favor = "";
@@ -2371,9 +2409,19 @@ async function editProApplication(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
     const { query } = req.body;
+    const user = await SpecificLawyerCourtroomUser.findOne({ userId: user_id });
+    if (!user) {
+      return res.status(StatusCodes.NOT_FOUND).json(ErrorResponse({}, 'User not found'));
+    }
+
+    const key = user.key;
+
+    // Encrypt the query
+    const encryptedQuery = await encryption(query, key);
+    console.log("Encrypted Query:", encryptedQuery);
     const editProApplication = await fetchEditProApplication({
       user_id,
-      query,
+      query: encryptedQuery,
     });
     res.status(StatusCodes.OK).json(SuccessResponse({ editProApplication }));
   } catch (error) {
@@ -2506,7 +2554,17 @@ async function generateHypoDraft(req, res) {
     let favor = req.body?.courtroomClient?.favor;
     if (favor === undefined) favor = "";
 
-    const fetchedHypoDraft = await fetchHypoDraft({ user_id, favor });
+    const user = await SpecificLawyerCourtroomUser.findOne({ userId: user_id });
+    if (!user) {
+      return res.status(StatusCodes.NOT_FOUND).json(ErrorResponse({}, 'User not found'));
+    }
+
+    const key = user.key;
+
+    // Encrypt the query
+    const encryptedFavor = await encryption(favor, key);
+    console.log("Encrypted favor:", encryptedFavor);
+    const fetchedHypoDraft = await fetchHypoDraft({ user_id, favor: encryptedFavor });
     return res
       .status(StatusCodes.OK)
       .json(SuccessResponse({ fetchedHypoDraft }));
@@ -2549,7 +2607,22 @@ async function consultant(req, res) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
     const { query } = req.body;
-    const fetchedConsultant = await fetchConsultant({ user_id, query });
+
+    const user = await SpecificLawyerCourtroomUser.findOne({ userId: user_id });
+    if (!user) {
+      return res.status(StatusCodes.NOT_FOUND).json(ErrorResponse({}, 'User not found'));
+    }
+
+    const key = user.key;
+
+    // Encrypt the query
+    const encryptedQuery = (await encryption(query, key)).toString(); // Ensure it is a string
+
+    // console.log("Encrypted Query:", encryptedQuery);
+    // const decryptedQuery = await decryption(encryptedQuery, key);
+    // console.log("Decrypted Query:", decryptedQuery); // Should match the original `query`
+    const fetchedConsultant = await fetchConsultant({ user_id, query: encryptedQuery });
+
     return res
       .status(StatusCodes.OK)
       .json(SuccessResponse({ fetchedConsultant }));
@@ -2564,6 +2637,7 @@ async function consultant(req, res) {
 
 async function fetchConsultant({ user_id, query }) {
   try {
+    console.log("Query being sent:", query); // Debug to verify encrypted query
     const response = await fetch(`${COURTROOM_API_ENDPOINT}/api/consultant`, {
       method: "POST",
       body: JSON.stringify({ user_id, query }),
@@ -2584,6 +2658,7 @@ async function fetchConsultant({ user_id, query }) {
     throw new Error("Failed to fetch consultant");
   }
 }
+
 
 async function printCaseDetails(req, res) {
   try {

@@ -866,7 +866,7 @@ async function getoverviewFormfilename(req, res) {
         file: fileNameArray,
         bucket_name: "ai_courtroom",
         folder_name: folderName + "/",
-        action,
+        action:"append",
         language,
       });
     } else {
@@ -875,7 +875,7 @@ async function getoverviewFormfilename(req, res) {
         file: fileNameArray,
         bucket_name: "ai_courtroom",
         folder_name: folderName + "/",
-        action,
+        action:"add",
       });
     }
 
