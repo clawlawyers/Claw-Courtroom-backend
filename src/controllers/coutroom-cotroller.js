@@ -866,7 +866,7 @@ async function getoverviewFormfilename(req, res) {
         file: fileNameArray,
         bucket_name: "ai_courtroom",
         folder_name: folderName + "/",
-        action:"append",
+        action: "append",
         language,
       });
     } else {
@@ -875,7 +875,7 @@ async function getoverviewFormfilename(req, res) {
         file: fileNameArray,
         bucket_name: "ai_courtroom",
         folder_name: folderName + "/",
-        action:"add",
+        action: "add",
       });
     }
 
@@ -929,7 +929,7 @@ async function getOverviewMultilang1(body) {
     const response = await fetch(
       `${COURTROOM_API_ENDPOINT}/api/new_case_multilang1`,
       {
-        method: "z",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
