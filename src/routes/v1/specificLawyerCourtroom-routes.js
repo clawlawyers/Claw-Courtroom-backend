@@ -342,7 +342,7 @@ router.post(
   authMiddleware.checkSpecificLawyerCourtroomAuth,
   authMiddleware.checkSpecificLawyerCourtroomUserId,
   SpecificLawyerCourtroomController.documentEvidence
-); //Not encrypted
+); 
 
 router.post(
   "/api/generate_hypo_draft",
