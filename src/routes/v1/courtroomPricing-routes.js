@@ -1,7 +1,8 @@
 const express = require("express");
-const CourtroomController = require("../../controllers/courtRoomPricing-controller");
+// const CourtroomPricingController = require("../../controllers/courtRoomPricing-controller");
 const { authMiddleware } = require("../../middlewares");
 const multer = require("multer");
+const { CourtroomPricingController } = require("../../controllers");
 
 const router = express.Router();
 
@@ -9,26 +10,29 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-router.post("/book-courtroom", CourtroomController.bookCourtRoom);
+router.post("/book-courtroom", CourtroomPricingController.bookCourtRoom);
 router.post(
   "/adminLogin/book-courtroom",
-  CourtroomController.adminLoginBookCourtRoom
+  CourtroomPricingController.adminLoginBookCourtRoom
 );
 router.post(
   "/book-courtroom-validation",
-  CourtroomController.bookCourtRoomValidation
+  CourtroomPricingController.bookCourtRoomValidation
 );
-router.get("/book-courtroom", CourtroomController.getBookedData);
-router.post("/login", CourtroomController.loginToCourtRoom);
+router.get("/book-courtroom", CourtroomPricingController.getBookedData);
+router.post("/login", CourtroomPricingController.loginToCourtRoom);
 router.post(
   "/admin-login-validation",
-  CourtroomController.adminLoginValidation
+  CourtroomPricingController.adminLoginValidation
 );
-router.post("/adminLogin/login", CourtroomController.AdminLoginToCourtRoom);
+router.post(
+  "/adminLogin/login",
+  CourtroomPricingController.AdminLoginToCourtRoom
+);
 router.post(
   "/getCourtroomUser",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.getUserDetails
+  CourtroomPricingController.getUserDetails
 );
 
 router.post(
@@ -40,230 +44,230 @@ router.post(
     { name: "file3" },
   ]),
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.newcase1
+  CourtroomPricingController.newcase1
 );
 
 router.post(
   "/fileUpload",
   upload.single("file"),
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.newcase2
+  CourtroomPricingController.newcase2
 );
 
 router.post(
   "/getoverview-formfilename",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.getoverviewFormfilename
+  CourtroomPricingController.getoverviewFormfilename
 );
 
 router.post(
   "/api/case_summary",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.caseSummary
+  CourtroomPricingController.caseSummary
 );
 
 router.post(
   "/api/new_case/text",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.newCaseText
+  CourtroomPricingController.newCaseText
 );
 
 router.post(
   "/edit_case",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.edit_case
+  CourtroomPricingController.edit_case
 );
 router.post(
   "/getCaseOverview",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.getCaseOverview
+  CourtroomPricingController.getCaseOverview
 );
 router.post(
   "/user_arguemnt",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.user_arguemnt
+  CourtroomPricingController.user_arguemnt
 );
 router.post(
   "/api/lawyer",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.lawyer_arguemnt
+  CourtroomPricingController.lawyer_arguemnt
 );
 router.post(
   "/api/judge",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.judge_arguemnt
+  CourtroomPricingController.judge_arguemnt
 );
 
 router.post(
   "/api/summary",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.summary
+  CourtroomPricingController.summary
 );
 
 router.post(
   "/api/relevant_cases_judge_lawyer_updated",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.relevantCasesJudgeLawyer
+  CourtroomPricingController.relevantCasesJudgeLawyer
 );
 
 router.post(
   "/api/setFavor",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.setFavor
+  CourtroomPricingController.setFavor
 );
 
 router.post(
   "/api/draft",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.getDraft
+  CourtroomPricingController.getDraft
 );
 router.post(
   "/api/change_states",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.changeState
+  CourtroomPricingController.changeState
 );
 router.post(
   "/api/rest",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.restCase
+  CourtroomPricingController.restCase
 );
 router.post(
   "/api/end",
   // authMiddleware.checkCourtroomAuth,
-  CourtroomController.endCase
+  CourtroomPricingController.endCase
 );
 router.post(
   "/api/hallucination_questions",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.hallucination_questions
+  CourtroomPricingController.hallucination_questions
 );
 router.post(
   "/api/history",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.CaseHistory
+  CourtroomPricingController.CaseHistory
 );
 router.post(
   "/api/downloadCaseHistory",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.downloadCaseHistory
+  CourtroomPricingController.downloadCaseHistory
 );
 router.post(
   "/api/downloadSessionCaseHistory",
 
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.downloadSessionCaseHistory
+  CourtroomPricingController.downloadSessionCaseHistory
 );
 
 router.post(
   "/api/getSessionCaseHistory",
 
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.getSessionCaseHistory
+  CourtroomPricingController.getSessionCaseHistory
 );
 
 router.post(
   "/api/downloadFirtDraft",
   authMiddleware.checkCourtroomAuth,
 
-  CourtroomController.downloadFirtDraft
+  CourtroomPricingController.downloadFirtDraft
 );
 router.post(
   "/api/download",
   authMiddleware.checkCourtroomAuth,
 
-  CourtroomController.download
+  CourtroomPricingController.download
 );
 router.get(
   "/getHistory",
   authMiddleware.checkCourtroomAuth,
 
-  CourtroomController.getHistory
+  CourtroomPricingController.getHistory
 );
 
 router.post(
   "/api/evidence",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.evidence
+  CourtroomPricingController.evidence
 );
 
 router.post(
   "/api/ask_query",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.askQuery
+  CourtroomPricingController.askQuery
 );
 
 router.post(
   "/resetUserid",
   authMiddleware.checkCourtroomAuth,
 
-  CourtroomController.resetUserId
+  CourtroomPricingController.resetUserId
 );
 
 router.post(
   "/api/relevant_case_law_updated",
   authMiddleware.checkCourtroomAuth,
 
-  CourtroomController.relevantCaseLaw
+  CourtroomPricingController.relevantCaseLaw
 );
 
 router.post(
   "/api/testimony_questions",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.testimonyQuestions
+  CourtroomPricingController.testimonyQuestions
 );
 
 router.post(
   "/api/application",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.application
+  CourtroomPricingController.application
 );
 
 router.post(
   "/api/case_search",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.caseSearch
+  CourtroomPricingController.caseSearch
 );
 
 router.post(
   "/api/view_document",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.viewDocument
+  CourtroomPricingController.viewDocument
 );
 
 router.post(
   "/api/print_case_details",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.printCaseDetails
+  CourtroomPricingController.printCaseDetails
 );
 
 router.post(
   "/api/edit_application",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.editApplication
+  CourtroomPricingController.editApplication
 );
 
 router.post(
   "/api/sidebar-casesearch",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.sidebarCasesearch
+  CourtroomPricingController.sidebarCasesearch
 );
 
 router.post(
   "/api/draft_next_appeal",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.draftNextAppeal
+  CourtroomPricingController.draftNextAppeal
 );
 
 router.post(
   "/api/pro_application",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.proApplication
+  CourtroomPricingController.proApplication
 );
 
 router.post(
   "/api/edit_pro_application",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.editProApplication
+  CourtroomPricingController.editProApplication
 );
 
 router.post(
@@ -275,13 +279,13 @@ router.post(
     { name: "file3" },
   ]),
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.documentEvidence
+  CourtroomPricingController.documentEvidence
 );
 
 router.post(
   "/api/generate_hypo_draft",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.generateHypoDraft
+  CourtroomPricingController.generateHypoDraft
 );
 
 // chatbot api
@@ -289,19 +293,22 @@ router.post(
 router.post(
   "/api/consultant",
   authMiddleware.checkCourtroomAuth,
-  CourtroomController.consultant
+  CourtroomPricingController.consultant
 );
 
-router.post("/verify-coupon", CourtroomController.verifyCoupon);
+router.post("/verify-coupon", CourtroomPricingController.verifyCoupon);
 
 // AddContactUsQuery Route
 router.post(
   "/api/feedback",
   // authMiddleware.checkCourtroomAuth,
-  CourtroomController.Courtroomfeedback
+  CourtroomPricingController.Courtroomfeedback
 );
-router.post("/add/ContactUsQuery", CourtroomController.AddContactUsQuery);
-router.post("/get_pdf", CourtroomController.getpdf);
+router.post(
+  "/add/ContactUsQuery",
+  CourtroomPricingController.AddContactUsQuery
+);
+router.post("/get_pdf", CourtroomPricingController.getpdf);
 
 // dummy apis
 

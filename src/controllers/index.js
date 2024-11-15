@@ -2,6 +2,7 @@ module.exports = {
   UserController: require("./user-controller"),
   ClientController: require("./client-controller"),
   CourtroomController: require("./coutroom-cotroller"),
+  CourtroomPricingController: require("./courtRoomPricing-controller"),
   SpecificLawyerCourtroomController: require("./specificLawyerCourtroom-controller"),
   PostController: require("./post-controller"),
   LeadController: require("./lead-controller"),
