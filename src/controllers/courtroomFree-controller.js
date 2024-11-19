@@ -5,7 +5,7 @@ const { ErrorResponse, SuccessResponse } = require("../utils/common");
 const { StatusCodes } = require("http-status-codes");
 const { COURTROOM_API_ENDPOINT } = process.env;
 const path = require("path");
-const CourtroomPricingUser = require("../models/courtroomPricingUser");
+const CourtroomUser = require("../models/CourtroomUser");
 const FormData = require("form-data");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
@@ -501,26 +501,26 @@ async function newcase(req, res) {
 
     console.log(case_overview);
 
-    // // Find the CourtroomPricingUser document by userId
-    // const courtroomPricingUser = await CourtroomPricingUser.findOne({ userId });
+    // // Find the CourtroomUser document by userId
+    // const courtroomUser = await CourtroomUser.findOne({ userId });
 
-    // if (!courtroomPricingUser) {
+    // if (!courtroomUser) {
     //   return res
     //     .status(StatusCodes.NOT_FOUND)
     //     .json({ error: "User not found" });
     // }
 
-    // console.log(courtroomPricingUser);
+    // console.log(courtroomUser);
 
     // // Append the case overview to the user's caseOverview array
-    // courtroomPricingUser.caseOverview = case_overview.case_overview;
+    // courtroomUser.caseOverview = case_overview.case_overview;
 
-    // console.log(courtroomPricingUser);
+    // console.log(courtroomUser);
 
-    // // Save the updated CourtroomPricingUser document
-    // await courtroomPricingUser.save();
+    // // Save the updated CourtroomUser document
+    // await courtroomUser.save();
 
-    // console.log(courtroomPricingUser);
+    // console.log(courtroomUser);
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ case_overview }));
   } catch (error) {
@@ -662,26 +662,26 @@ async function fetchOverview({ user_id, case_overview, action }) {
 
 //     console.log(case_overview);
 
-//     // Find the CourtroomPricingUser document by userId
-//     const courtroomPricingUser = await CourtroomPricingUser.findOne({ userId });
+//     // Find the CourtroomUser document by userId
+//     const courtroomUser = await CourtroomUser.findOne({ userId });
 
-//     if (!courtroomPricingUser) {
+//     if (!courtroomUser) {
 //       return res
 //         .status(StatusCodes.NOT_FOUND)
 //         .json({ error: "User not found" });
 //     }
 
-//     console.log(courtroomPricingUser);
+//     console.log(courtroomUser);
 
 //     // Append the case overview to the user's caseOverview array
-//     courtroomPricingUser.caseOverview = case_overview.case_overview;
+//     courtroomUser.caseOverview = case_overview.case_overview;
 
-//     console.log(courtroomPricingUser);
+//     console.log(courtroomUser);
 
-//     // Save the updated CourtroomPricingUser document
-//     await courtroomPricingUser.save();
+//     // Save the updated CourtroomUser document
+//     await courtroomUser.save();
 
-//     console.log(courtroomPricingUser);
+//     console.log(courtroomUser);
 
 //     return res.status(StatusCodes.OK).json(SuccessResponse({ case_overview }));
 //   } catch (error) {
@@ -1043,12 +1043,10 @@ async function edit_case(req, res) {
   try {
     const editedArgument = await FetchEdit_Case({ user_id, case_overview });
 
-    // Find the CourtroomPricingUser document by userId
-    const courtroomPricingUser = await CourtroomPricingUser.findOne({
-      userId: user_id,
-    });
+    // Find the CourtroomUser document by userId
+    const courtroomUser = await CourtroomUser.findOne({ userId: user_id });
 
-    if (!courtroomPricingUser) {
+    if (!courtroomUser) {
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ error: "User not found" });
@@ -1057,14 +1055,14 @@ async function edit_case(req, res) {
     const uniqueId = uuidv4();
 
     // Append the case overview to the user's caseOverview array
-    courtroomPricingUser.caseOverview = editedArgument.case_overview;
-    courtroomPricingUser.caseId = uniqueId;
-    // console.log(courtroomPricingUser);
+    courtroomUser.caseOverview = editedArgument.case_overview;
+    courtroomUser.caseId = uniqueId;
+    // console.log(courtroomUser);
 
-    // Save the updated CourtroomPricingUser document
-    await courtroomPricingUser.save();
+    // Save the updated CourtroomUser document
+    await courtroomUser.save();
 
-    // console.log(courtroomPricingUser);
+    // console.log(courtroomUser);
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ editedArgument }));
   } catch (error) {
@@ -1093,23 +1091,21 @@ async function getCaseOverview(req, res) {
 
   console.log(user_id);
   try {
-    // Find the CourtroomPricingUser document by userId
-    const courtroomPricingUser = await CourtroomPricingUser.findOne({
-      userId: user_id,
-    });
+    // Find the CourtroomUser document by userId
+    const courtroomUser = await CourtroomUser.findOne({ userId: user_id });
 
-    console.log(courtroomPricingUser);
+    console.log(courtroomUser);
 
-    if (!courtroomPricingUser) {
+    if (!courtroomUser) {
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ error: "User not found" });
     }
 
-    // console.log(courtroomPricingUser);
+    // console.log(courtroomUser);
 
     // Append the case overview to the user's caseOverview array
-    const case_overview = courtroomPricingUser.caseOverview;
+    const case_overview = courtroomUser.caseOverview;
 
     // console.log(case_overview);
     return res.status(StatusCodes.OK).json(SuccessResponse({ case_overview }));
@@ -1303,7 +1299,7 @@ async function setFavor(req, res) {
   const user_id = req.body?.courtroomClient?.userBooking?.userId;
   const favor = req.body.favor;
   try {
-    const updateUserFavor = await CourtroomPricingUser.findOneAndUpdate(
+    const updateUserFavor = await CourtroomUser.findOneAndUpdate(
       { userId: user_id },
       { drafteFavor: favor }
     );
@@ -2223,13 +2219,12 @@ async function resetUserId(req, res) {
 
     let userId;
 
-    const userId1 = await registerNewCourtRoomPricingUser();
-    const updateUser =
-      await SpecificLawyerCourtroomPricingUser.findByIdAndUpdate(
-        courtroomClient._id,
-        { userId: userId1.user_id },
-        { new: true }
-      );
+    const userId1 = await registerNewCourtRoomUser();
+    const updateUser = await SpecificLawyerCourtroomUser.findByIdAndUpdate(
+      courtroomClient._id,
+      { userId: userId1.user_id },
+      { new: true }
+    );
     userId = updateUser.userId;
 
     return res.status(StatusCodes.OK).json(

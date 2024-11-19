@@ -21,6 +21,9 @@ const CourtroomUserSchema = new Schema({
   },
 });
 
-const CourtroomUser = mongoose.model("CourtroomPricingUser", CourtroomUserSchema);
+const CourtroomUser = mongoose.model(
+  "CourtroomPricingUser",
+  CourtroomUserSchema
+);
 
 module.exports = CourtroomUser;
