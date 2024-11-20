@@ -1,4 +1,4 @@
-const prisma = require("../config/prisma-client");
+  const prisma = require("../config/prisma-client");
 
 async function handleExpiredPlans() {
   try {

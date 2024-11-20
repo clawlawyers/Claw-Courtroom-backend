@@ -5,6 +5,7 @@ const { StatusCodes } = require("http-status-codes");
 const router = express.Router();
 const { GptServices, ClientService } = require("../../services");
 const mongoose = require("mongoose");
+const courtroomFreeUser = require("../../models/courtroomFreeUser");
 
 router.post("/news", async (req, res) => {
   try {
@@ -222,5 +223,20 @@ router.post("/engagement/time", (req, res) => {
 });
 
 setInterval(flushInMemoryDataToDatabase, 60000); // Flush to database every minute
+
+router.get("/renewCourtroomTrialSlots", (req,res)=>{
+  try{
+
+    const update = courtroomFreeUser.updateMany({}, { $set: { isAvailable: true } })
+    return res.send(200)
+
+  }
+  catch(e){
+    console.log(e)
+    return res.sendStatus(500)
+  }
+
+})
+
 
 module.exports = router;

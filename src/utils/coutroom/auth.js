@@ -2,7 +2,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const saltRounds = 10;
-const jwtSecret = "your_jwt_secret"; // Replace with your own secret
+const { SECRET_KEY, EXPIRES_IN } = require("../../config/server-config");
+const jwtSecret = SECRET_KEY; // Replace with your own secret
 
 // Function to hash the password
 const hashPassword = async (password) => {
@@ -40,7 +41,7 @@ const generateToken = (payload) => {
   const expiresAt = now.getTime() + remainingSeconds * 1000;
 
   // Generate the token with the calculated expiration time
-  const token = jwt.sign(payload, jwtSecret, { expiresIn: remainingSeconds });
+  const token = jwt.sign(payload, jwtSecret);
 
   return { token, expiresAt };
 };

@@ -2,13 +2,16 @@ const express = require("express");
 // const CourtroomPricingController = require("../../controllers/courtRoomPricing-controller");
 const { authMiddleware } = require("../../middlewares");
 const multer = require("multer");
-const { CourtroomPricingController } = require("../../controllers");
+const { CourtroomPricingController, CourtroomFreeController } = require("../../controllers");
 
 const router = express.Router();
 
 // Set up Multer for file upload
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+
+
+ 
 
 router.post("/book-courtroom", CourtroomPricingController.bookCourtRoom);
 router.post(
@@ -20,14 +23,14 @@ router.post(
   CourtroomPricingController.bookCourtRoomValidation
 );
 router.get("/book-courtroom", CourtroomPricingController.getBookedData);
-router.post("/login", CourtroomPricingController.loginToCourtRoom);
+router.post("/login", CourtroomFreeController.loginToCourtRoom);
 router.post(
   "/admin-login-validation",
-  CourtroomPricingController.adminLoginValidation
+  CourtroomFreeController.adminLoginValidation
 );
 router.post(
   "/adminLogin/login",
-  CourtroomPricingController.AdminLoginToCourtRoom
+  CourtroomFreeController.AdminLoginToCourtRoom
 );
 router.post(
   "/getCourtroomUser",
@@ -43,65 +46,65 @@ router.post(
     { name: "file2" },
     { name: "file3" },
   ]),
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.newcase1
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.newcase1
 );
 
-router.post(
-  "/fileUpload",
-  upload.single("file"),
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.newcase2
-);
+// router.post(
+//   "/fileUpload",
+//   upload.single("file"),
+//   authMiddleware.checkCourtroomAuth,
+//   CourtroomPricingController.newcase2
+// );
 
-router.post(
-  "/getoverview-formfilename",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.getoverviewFormfilename
-);
+// router.post(
+//   "/getoverview-formfilename",
+//   authMiddleware.checkCourtroomAuth,
+//   CourtroomPricingController.getoverviewFormfilename
+// );
 
-router.post(
-  "/api/case_summary",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.caseSummary
-);
+// router.post(
+//   "/api/case_summary",
+//   authMiddleware.checkCourtroomAuth,
+//   CourtroomPricingController.caseSummary
+// );
 
 router.post(
   "/api/new_case/text",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.newCaseText
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.newCaseText
 );
 
 router.post(
   "/edit_case",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.edit_case
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.edit_case
 );
 router.post(
   "/getCaseOverview",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.getCaseOverview
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.getCaseOverview
 );
 router.post(
   "/user_arguemnt",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.user_arguemnt
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.user_arguemnt
 );
 router.post(
   "/api/lawyer",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.lawyer_arguemnt
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.lawyer_arguemnt
 );
 router.post(
   "/api/judge",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.judge_arguemnt
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.judge_arguemnt
 );
 
 router.post(
   "/api/summary",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.summary
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.summary
 );
 
 router.post(
@@ -312,6 +315,11 @@ router.post("/get_pdf", CourtroomPricingController.getpdf);
 
 // dummy apis
 
+router.get("/getAllusers",
+  CourtroomFreeController.getAllusers)
+router.delete("/getAllusers",
+  CourtroomFreeController.deleteallusers)
+
 // Function to generate the two arrays with unique random numbers
 function getRandomArrays() {
   const min = 9;
@@ -339,5 +347,10 @@ router.get("/random-arrays", (req, res) => {
   const { array1, array2 } = getRandomArrays();
   res.json({ array1, array2 });
 });
+
+
+router.post("updateTime", authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.updateTime)
+
 
 module.exports = router;

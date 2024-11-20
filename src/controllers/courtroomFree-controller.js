@@ -18,6 +18,8 @@ const {
 const courtroomDiscountCoupon = require("../models/courtroomDiscountCoupon");
 const { Storage } = require("@google-cloud/storage");
 const courtroomPlan = require("../models/CourtroomPlan");
+const { CourtroomFreeServices } = require("../services");
+const CourtroomFreeUser = require("../models/courtroomFreeUser");
 
 let storage;
 if (process.env.NODE_ENV !== "production") {
@@ -336,15 +338,16 @@ async function getBookedData(req, res) {
 }
 
 async function loginToCourtRoom(req, res) {
-  const { phoneNumber, password } = req.body;
+  const { phoneNumber, name } = req.body;
   try {
-    if (!phoneNumber || !password) {
+    if (!phoneNumber || !name) {
       return res.status(400).send("Missing required fields.");
     }
-    const response = await CourtroomPricingService.loginToCourtRoom(
+    const response = await CourtroomFreeServices.loginToCourtRoom(
       phoneNumber,
-      password
+      name
     );
+
     res.status(200).json(response);
   } catch (error) {
     const errorResponse = ErrorResponse({}, error);
@@ -587,7 +590,7 @@ async function getOverviewMultilang(formData) {
 
 async function newCaseText(req, res) {
   try {
-    const { userId } = req.body?.courtroomClient?.userBooking;
+    const { userId } = req.body;
     const { case_overview, action } = req.body;
     const fetchedOverview = await fetchOverview({
       user_id: userId,
@@ -731,9 +734,9 @@ async function newcase1(req, res) {
 
   // console.log(files);
 
-  const { userId } = req.body?.courtroomClient?.userBooking;
-  const { _id } = req.body?.courtroomClient?.userBooking;
-  const { key } = req.body?.courtroomClient?.userBooking;
+  const { userId } = req.body;
+  const { id } = req.body;
+  // const { key } = req.body?.courtroomClient?.userBooking;
   // const userId = "f497c76b-2894-4636-8d2b-6391bc6bccdc";
   console.log(userId);
   const { isMultilang, action, language } = req.body;
@@ -746,7 +749,7 @@ async function newcase1(req, res) {
 
     // const fileBody = {};
     fileNameArray = [];
-    const folderName = _id.toString();
+    const folderName = id.toString();
     console.log(folderName);
 
     // Rename the first file to `file`
@@ -1037,14 +1040,14 @@ async function fetchCaseSummary(body) {
 async function edit_case(req, res) {
   const { case_overview } = req.body;
 
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
 
   // console.log(req.body, " this is body");
   try {
     const editedArgument = await FetchEdit_Case({ user_id, case_overview });
 
     // Find the CourtroomUser document by userId
-    const courtroomUser = await CourtroomUser.findOne({ userId: user_id });
+    const courtroomUser = await CourtroomFreeUser.findOne({ userId: user_id });
 
     if (!courtroomUser) {
       return res
@@ -1119,7 +1122,7 @@ async function getCaseOverview(req, res) {
 
 async function user_arguemnt(req, res) {
   const { argument, argument_index } = req.body;
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
 
   try {
     const argumentIndex = await Fetch_argument_index({
@@ -3149,6 +3152,23 @@ async function getpdf(req, res) {
   } catch (e) {}
 }
 
+async function updateTime(req, res){
+  const {userId}= req.body
+  const updatedUser  = await User.findOneAndUpdate(
+    { userId: userId },
+    { $inc: { todaysSlot: 1 } },
+    { new: true } // This option returns the updated document
+);
+}
+async function getAllusers(req, res){
+  return res.send(await CourtroomFreeUser.find({}))
+
+}
+async function deleteallusers(req, res){
+  return res.send(await CourtroomFreeUser.deleteMany({}))
+
+}
+
 module.exports = {
   bookCourtRoom,
   getBookedData,
@@ -3207,4 +3227,7 @@ module.exports = {
   printCaseDetails,
   generateHypoDraft,
   createNewPlan,
+  updateTime,
+  getAllusers,
+  deleteallusers
 };
