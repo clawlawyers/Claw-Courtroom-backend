@@ -260,53 +260,19 @@ async function adminBookCourtRoom(req, res) {
 
 async function bookCourtRoomValidation(req, res) {
   try {
-    const { name, phoneNumber, email, slots, recording, password } = req.body;
+    const { phoneNumber, email } = req.body;
 
     // Check if required fields are provided
-    if (
-      !name ||
-      !phoneNumber ||
-      !email ||
-      !password ||
-      !slots ||
-      !Array.isArray(slots) ||
-      slots.length === 0
-    ) {
+    if (!phoneNumber || !email) {
       return res.status(400).send("Missing required fields.");
     }
 
-    const caseOverview = "";
+    const resp = await CourtroomPricingService.courtRoomBookValidation(
+      phoneNumber,
+      email
+    );
 
-    for (const slot of slots) {
-      const { date, hour } = slot;
-      if (!date || hour === undefined) {
-        return res.status(400).send("Missing required fields in slot.");
-      }
-
-      const bookingDate = new Date(date);
-
-      const resp = await CourtroomPricingService.courtRoomBookValidation(
-        name,
-        phoneNumber,
-        email,
-        bookingDate,
-        hour,
-        recording,
-        caseOverview
-      );
-
-      console.log(resp);
-
-      if (resp) {
-        return res.status(StatusCodes.OK).json(SuccessResponse({ data: resp }));
-      }
-    }
-
-    console.log("slot can be book");
-
-    return res
-      .status(StatusCodes.OK)
-      .json(SuccessResponse({ data: "Slot can be book" }));
+    return res.status(StatusCodes.OK).json(SuccessResponse({ data: resp }));
   } catch (error) {
     const errorResponse = ErrorResponse({}, error);
     return res
