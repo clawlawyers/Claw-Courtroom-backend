@@ -9,16 +9,15 @@ const courtroomUserPlanSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "CourtroomPricingUser",
     required: true,
-    unique: true,
   },
   isActive: {
     type: Boolean,
     default: true,
   },
-  startData: {
-    type: Date,
+  usedHours: {
+    type: Number,
     required: true,
-    default: Date.now,
+    default: 0,
   },
   endData: {
     type: Date,
