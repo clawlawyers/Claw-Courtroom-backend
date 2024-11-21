@@ -12,7 +12,7 @@ const courtroomFreeUserSchema = new mongoose.Schema({
   },
   caseId: {
     type: String,
-    unique: true,
+    
   },
   todaysSlot:{
     type:Date,
