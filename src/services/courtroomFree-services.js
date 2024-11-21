@@ -479,19 +479,25 @@ async function loginToCourtRoom(phoneNumber, name) {
  const todaysSlot = new Date(user.todaysSlot)
  const todaysSlotTime = todaysSlot.getTime() + todaysSlot.getTimezoneOffset() * 60000;
  const Offset = 0.5 * 60 * 60000;
- const slot = new Date(todaysSlotTime+Offset)
+ let slot = new Date(todaysSlotTime+Offset)
+  slot = new Date(
+    Date.UTC(slot.getFullYear(), slot.getMonth(), slot.getDate(), slot.getHours(), slot.getMinutes())
+  );
+ console.log(slot)
+ console.log(todaysSlot)
+ console.log(currentDate)
 
-         if(todaysSlot.getDay()<currentDate.getDay()){
-   const update = await CourtroomFreeUser.findOneAndUpdate({userId:userId}, {
+         if(todaysSlot.getDay()<currentDate.getDay() || todaysSlot.getFullYear()<currentDate.getFullYear() || (todaysSlot.getFullYear()==currentDate.getFullYear() && todaysSlot.getMonth()<currentDate.getMonth())){
+   const update = await CourtroomFreeUser.findOneAndUpdate({userId:user.userId}, {
     todaysSlot:currentDate
    })
-             const token = generateToken({ userId:userId.user_id, id:newUser._id});
+             const token = generateToken({ userId:user.userId.user_id, id:user._id});
              return  token
              
          }
        
         else if(slot>currentDate){
-            const token = generateToken({ userId:userId.user_id, id:newUser._id});
+            const token = generateToken({ userId:user.userId.user_id, id:user._id});
              return  token
         }
         if(user.name != name){
