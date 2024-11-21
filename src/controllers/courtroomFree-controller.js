@@ -886,7 +886,7 @@ async function newcase2(req, res) {
     // console.log(case_overview);
   } catch (error) {
     console.log(error);
-    const errorResponse = ErrorResponse({}, error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
@@ -3152,21 +3152,19 @@ async function getpdf(req, res) {
   } catch (e) {}
 }
 
-async function updateTime(req, res){
-  const {userId}= req.body
-  const updatedUser  = await User.findOneAndUpdate(
+async function updateTime(req, res) {
+  const { userId } = req.body;
+  const updatedUser = await User.findOneAndUpdate(
     { userId: userId },
     { $inc: { todaysSlot: 1 } },
     { new: true } // This option returns the updated document
-);
+  );
 }
-async function getAllusers(req, res){
-  return res.send(await CourtroomFreeUser.find({}))
-
+async function getAllusers(req, res) {
+  return res.send(await CourtroomFreeUser.find({}));
 }
-async function deleteallusers(req, res){
-  return res.send(await CourtroomFreeUser.deleteMany({}))
-
+async function deleteallusers(req, res) {
+  return res.send(await CourtroomFreeUser.deleteMany({}));
 }
 
 module.exports = {
@@ -3229,5 +3227,5 @@ module.exports = {
   createNewPlan,
   updateTime,
   getAllusers,
-  deleteallusers
+  deleteallusers,
 };

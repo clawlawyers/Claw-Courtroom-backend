@@ -50,19 +50,19 @@ router.post(
 router.post(
   "/fileUpload",
   upload.single("file"),
-  authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkFreeUserControllerApi,
   CourtroomFreeController.newcase2
 );
 
 router.post(
   "/getoverview-formfilename",
-  authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkFreeUserControllerApi,
   CourtroomFreeController.getoverviewFormfilename
 );
 
 router.post(
   "/api/case_summary",
-  authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkFreeUserControllerApi,
   CourtroomFreeController.caseSummary
 );
 
