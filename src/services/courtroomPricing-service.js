@@ -868,7 +868,33 @@ async function isNewCaseHistory(userId) {
   }
 }
 
+async function getClientByIdWithSession(id, session) {
+  try {
+    const user = await CourtroomPricingUser.findById(id).session(session);
+    return user;
+  } catch (error) {
+    console.error(`Error fetching user by phone number ${phoneNumber}:`, error);
+    throw error;
+  }
+}
+
+// Service to update a client by phone number with a session
+async function updateClientByIdWithSession(id, updateData, session) {
+  try {
+    const user = await CourtroomPricingUser.findByIdAndUpdate(id, updateData, {
+      new: true,
+      session,
+    });
+    return user;
+  } catch (error) {
+    console.error(`Error updating user by phone number ${Domain}:`, error);
+    throw error;
+  }
+}
+
 module.exports = {
+  getClientByIdWithSession,
+  updateClientByIdWithSession,
   courtRoomBook,
   getBookedData,
   loginToCourtRoom,

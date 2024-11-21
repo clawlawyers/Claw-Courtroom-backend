@@ -3093,7 +3093,100 @@ async function getpdf(req, res) {
   } catch (e) {}
 }
 
+// storing time =>
+
+let inMemoryEngagementData = {};
+
+const flushInMemoryDataToDatabase = async () => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    for (const Domain in inMemoryEngagementData) {
+      const userEngagement = inMemoryEngagementData[Domain];
+
+      // Find the user by phone number
+      const user = await CourtroomPricingService.getClientByIdWithSession(
+        Domain,
+        session
+      );
+
+      //   console.log(user);
+
+      // if (user) {
+      //   if (!user.engagementTime) {
+      //     user.engagementTime = {
+      //       total: 0,
+      //     };
+      //   }
+
+      // console.log(user.engagementTime);
+
+      if (user) {
+        const totalEngagementTime = userEngagement.total / 3600; // Convert seconds to hours
+
+        await CourtroomPricingService.updateClientByIdWithSession(
+          Domain,
+          {
+            $inc: {
+              totalUsedHours: totalEngagementTime,
+            },
+          },
+          session
+        );
+      } else {
+        console.log(`User not found for phone number: ${Domain}`);
+      }
+    }
+
+    await session.commitTransaction();
+    inMemoryEngagementData = {}; // Clear in-memory data after successful write
+    console.log("Flushing in-memory");
+  } catch (error) {
+    console.log(error);
+    await session.abortTransaction();
+    console.error("Error flushing engagement data to database:", error);
+  } finally {
+    console.log("Finally block executed");
+    session.endSession();
+  }
+};
+
+async function storeTime(req, res) {
+  const engagementData = req.body;
+  const Domain = req.body?.courtroomClient?.userBooking?._id;
+  for (let i = 0; i < engagementData.length; i++) {
+    engagementData[i].Domain = Domain;
+  }
+  // console.log(engagementData);
+
+  engagementData?.forEach(({ Domain, engagementTime, timestamp }) => {
+    const date = new Date(timestamp); // Convert seconds to milliseconds
+    const day = date.toISOString().slice(0, 10);
+    // const month = date.toISOString().slice(0, 7);
+    // const year = date.getFullYear();
+
+    if (!inMemoryEngagementData[Domain]) {
+      inMemoryEngagementData[Domain] = {
+        daily: {},
+        // monthly: {},
+        // yearly: {},
+        total: 0,
+      };
+    }
+
+    inMemoryEngagementData[Domain].daily[day] =
+      (inMemoryEngagementData[Domain].daily[day] || 0) + engagementTime;
+    inMemoryEngagementData[Domain].total += engagementTime; // Add to total engagement time
+  });
+
+  await flushInMemoryDataToDatabase();
+
+  res.status(200).json({ message: "Engagement data received" });
+}
+
 module.exports = {
+  storeTime,
   bookCourtRoom,
   getBookedData,
   loginToCourtRoom,

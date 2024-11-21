@@ -342,4 +342,12 @@ router.get("/random-arrays", (req, res) => {
   res.json({ array1, array2 });
 });
 
+//time storing
+
+router.post(
+  "/api/storeTime",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomPricingController.storeTime
+);
+
 module.exports = router;
