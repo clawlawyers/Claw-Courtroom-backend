@@ -1,4 +1,8 @@
-const { hashPassword, generateToken } = require("../utils/coutroom/auth");
+const {
+  hashPassword,
+  generateToken,
+  generateTokenForCourtroomPricing,
+} = require("../utils/coutroom/auth");
 const { sendConfirmationEmail } = require("../utils/coutroom/sendEmail");
 const CourtroomPricingService = require("../services/courtroomPricing-service");
 const { ErrorResponse, SuccessResponse } = require("../utils/common");
@@ -377,28 +381,10 @@ async function getUserDetails(req, res) {
   try {
     console.log(courtroomClient);
     // Generate a JWT token
-    const token = generateToken({
-      userId: courtroomClient.userBooking._id,
-      phoneNumber: courtroomClient.userBooking.phoneNumber,
-    });
-    console.log(courtroomClient);
-
-    // console.log(token, courtroomClient);
-
-    // console.log({
-    //   ...token,
-    //   userId: courtroomClient.userId,
-    //   phoneNumber: courtroomClient.phoneNumber,
-    // });
-
-    console.log("here");
 
     return res.status(StatusCodes.OK).json(
       SuccessResponse({
-        slotTime: courtroomClient.slotTime,
-        ...token,
-        userId: courtroomClient.userBooking._id,
-        phoneNumber: courtroomClient.userBooking.phoneNumber,
+        message: "Verifed",
       })
     );
   } catch (error) {
@@ -1400,7 +1386,7 @@ async function endCase(req, res) {
 
     // save into database
 
-    const { User_id, Booking_id } =
+    const { User_id } =
       await CourtroomPricingService.getClientByUseridForEndCase(userId);
 
     const isNewCaseHistoryInDB = await CourtroomPricingService.isNewCaseHistory(
@@ -1408,17 +1394,9 @@ async function endCase(req, res) {
     );
 
     if (isNewCaseHistoryInDB) {
-      await CourtroomPricingService.OverridestoreCaseHistory(
-        User_id,
-        Booking_id,
-        endCase
-      );
+      await CourtroomPricingService.OverridestoreCaseHistory(User_id, endCase);
     } else {
-      await CourtroomPricingService.storeCaseHistory(
-        User_id,
-        Booking_id,
-        endCase
-      );
+      await CourtroomPricingService.storeCaseHistory(User_id, endCase);
     }
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ endCase }));
@@ -1484,10 +1462,10 @@ async function CaseHistory(req, res) {
     const caseHistory = await FetchCaseHistory({ user_id });
 
     // save into database or update database with new data if case history is already present in the database
-    const { User_id, Booking_id } =
-      await CourtroomPricingService.getClientByUserid(user_id);
+    const { User_id } = await CourtroomPricingService.getClientByUserid(
+      user_id
+    );
 
-    console.log(User_id, Booking_id);
     const isNewCaseHistoryInDB = await CourtroomPricingService.isNewCaseHistory(
       User_id
     );
@@ -1495,15 +1473,10 @@ async function CaseHistory(req, res) {
     if (isNewCaseHistoryInDB) {
       await CourtroomPricingService.OverridestoreCaseHistory(
         User_id,
-        Booking_id,
         caseHistory
       );
     } else {
-      await CourtroomPricingService.storeCaseHistory(
-        User_id,
-        Booking_id,
-        caseHistory
-      );
+      await CourtroomPricingService.storeCaseHistory(User_id, caseHistory);
     }
 
     return res.status(StatusCodes.OK).json(SuccessResponse({ caseHistory }));
@@ -2918,7 +2891,7 @@ async function Courtroomfeedback(req, res) {
     // const _id = req.body?.courtroomClient?.userBooking?._id;
     const { rating, feedback, userId } = req.body;
 
-    const { User_id, Booking_id } =
+    const { User_id } =
       await CourtroomPricingService.getClientByUseridForEndCase(userId);
 
     const SetFeedback = await CourtroomPricingService.setFeedback(

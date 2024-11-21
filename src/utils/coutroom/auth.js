@@ -16,6 +16,13 @@ const comparePassword = async (password, hashedPassword) => {
   return await bcrypt.compare(password, hashedPassword);
 };
 
+const generateTokenForCourtroomPricing = (payload) => {
+  const token = jwt.sign(payload, jwtSecret, {
+    expiresIn: "1d",
+  });
+  return token;
+};
+
 // Function to generate JWT token
 const generateToken = (payload) => {
   let now;
@@ -60,4 +67,5 @@ module.exports = {
   comparePassword,
   generateToken,
   verifyTokenCR,
+  generateTokenForCourtroomPricing,
 };

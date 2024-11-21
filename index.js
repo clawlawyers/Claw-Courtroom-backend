@@ -64,8 +64,22 @@ app.use("", (req, res) => {
   });
 });
 
+// Schedule the job to run every day at 1 AM IST
+cron.schedule(
+  "0 1 * * *",
+  () => {
+    console.log("Running cleanup job at 1 AM IST...");
+    DbAutomationService.deleteExpiredPlans();
+  },
+  {
+    scheduled: true,
+    timezone: "Asia/Kolkata", // This ensures the job runs in IST
+  }
+);
+
 app.listen(ServerConfig.PORT, async () => {
   //mongoDB connection
   await ConnectDB();
+  // DbAutomationService.deleteExpiredPlans();
   console.log(`Server is up at ${ServerConfig.PORT}`);
 });

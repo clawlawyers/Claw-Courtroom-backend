@@ -13,6 +13,7 @@ const TrailCourtRoomBooking = require("../models/trailCourtRoomBooking");
 const TrailCourtroomUser = require("../models/trailCourtRoomUser");
 const CourtroomFeedback = require("../models/courtroomFeedback");
 const CourtroomPricingUser = require("../models/courtroomPricingUser");
+const CourtroomUserPlan = require("../models/courtroomUserPlan");
 const { COURTROOM_API_ENDPOINT } = process.env;
 
 async function adminCourtRoomBook(
@@ -188,74 +189,48 @@ async function courtRoomBook(
   name,
   phoneNumber,
   email,
-  bookingDate,
-  hour,
+  planId,
+  endDate,
   recording,
-  caseOverview,
-  hashedPassword
+  hashedPassword,
+  loggedIn,
+  password
 ) {
-  console.log("Here is caseOverview", caseOverview);
   try {
-    // Find existing booking for the same date and hour
-    let booking = await CourtRoomBooking.findOne({
-      date: bookingDate,
-      hour: hour,
-    }).populate("courtroomBookings");
-
-    if (!booking) {
-      // Create a new booking if it doesn't exist
-      booking = new CourtRoomBooking({
-        date: bookingDate,
-        hour: hour,
-        courtroomBookings: [],
+    if (loggedIn) {
+      const user = await CourtroomUser.findOne({
+        email: email,
+        phoneNumber: phoneNumber,
       });
+      const updatePlan = await CourtroomUserPlan.create({
+        plan: planId,
+        user: user._id,
+        usedHours: 0,
+        isActive: true,
+        endData: endDate,
+      });
+      return { updatePlan };
+    } else {
+      const newUser = await CourtroomPricingUser.create({
+        name: name,
+        phoneNumber: phoneNumber,
+        email: email,
+        password: hashedPassword,
+        recording: recording,
+        caseOverview: "NA",
+      });
+
+      const updatePlan = await CourtroomUserPlan.create({
+        plan: planId,
+        user: newUser._id,
+        usedHours: 0,
+        isActive: true,
+        endData: endDate,
+      });
+
+      const loginUser = await loginToCourtRoom(phoneNumber, password);
+      return { loginUser };
     }
-
-    // Check if the total bookings exceed the limit
-    if (booking.courtroomBookings.length >= 6) {
-      console.log(`Maximum of 6 courtrooms can be booked at same time}.`);
-      return `Maximum of 6 courtrooms can be booked at same time}.`;
-    }
-
-    // Check if the user with the same mobile number or email already booked a slot at the same hour
-    const existingBooking = booking.courtroomBookings.find(
-      (courtroomBooking) =>
-        courtroomBooking.phoneNumber == phoneNumber ||
-        courtroomBooking.email == email
-    );
-
-    console.log(existingBooking);
-
-    if (existingBooking) {
-      console.log(
-        `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`
-      );
-      return `User with phone number ${phoneNumber} or email ${email} has already booked a courtroom at same time}.`;
-    }
-
-    // Create a new courtroom user
-    const newCourtroomUser = new CourtroomUser({
-      name,
-      phoneNumber,
-      email,
-      recording: recording, // Assuming recording is required and set to true
-      caseOverview: "NA",
-      password: hashedPassword,
-    });
-
-    console.log(newCourtroomUser);
-
-    // Save the new courtroom user
-    const savedCourtroomUser = await newCourtroomUser.save();
-
-    console.log(savedCourtroomUser);
-
-    // Add the new booking
-    booking.courtroomBookings.push(savedCourtroomUser._id);
-
-    // Save the booking
-    await booking.save();
-    console.log("Booking saved.");
   } catch (error) {
     console.error(error);
     throw new Error("Internal server error.");
@@ -351,13 +326,13 @@ async function courtRoomBookValidation(phoneNumber, email) {
         `User with phone number ${phoneNumber} or email ${email} already exists.`
       );
 
-      return `User with phone number ${phoneNumber} or email ${email} already exists`;
+      return false;
     } else {
       console.log(
         `User with phone number ${phoneNumber} or email ${email} does not exist.`
       );
 
-      return `User with phone number ${phoneNumber} or email ${email} does not exist`;
+      return true;
     }
   } catch (error) {
     console.error(error);
@@ -410,60 +385,9 @@ async function getBookedData(startDate, endDate) {
 
 async function loginToCourtRoom(phoneNumber, password) {
   try {
-    let currentDate, currentHour;
-
-    if (process.env.NODE_ENV === "production") {
-      // Get current date and time in UTC
-      const now = new Date();
-
-      // Convert to milliseconds
-      const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
-
-      // IST offset is +5:30
-      const istOffset = 5.5 * 60 * 60000;
-
-      // Create new date object for IST
-      const istTime = new Date(utcTime + istOffset);
-
-      currentDate = new Date(
-        Date.UTC(istTime.getFullYear(), istTime.getMonth(), istTime.getDate())
-      );
-      currentHour = istTime.getHours();
-    } else {
-      // Get the current date and hour in local time (for development)
-      const now = new Date();
-      currentDate = new Date(
-        Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-      );
-      currentHour = now.getHours();
-    }
-
-    console.log(currentDate, currentHour);
-
-    // const currentDate = "2024-07-30";
-    // const currentHour = 14;
-
-    // Find existing booking for the current date and hour
-    const booking = await CourtRoomBooking.findOne({
-      date: currentDate,
-      hour: currentHour,
-    }).populate("courtroomBookings");
-
-    if (!booking) {
-      return "No bookings found for the current time slot.";
-    }
-
-    console.log(booking);
-
-    console.log(booking.courtroomBookings.length);
-
-    // Check if the user with the given phone number is in the booking
-    const userBooking = booking.courtroomBookings.find((courtroomBooking) => {
-      console.log(courtroomBooking.phoneNumber, phoneNumber);
-      return courtroomBooking.phoneNumber == phoneNumber;
+    const userBooking = await CourtroomPricingUser.findOne({
+      phoneNumber: phoneNumber,
     });
-
-    console.log(userBooking);
 
     if (!userBooking) {
       return "Invalid phone number";
@@ -496,9 +420,13 @@ async function loginToCourtRoom(phoneNumber, password) {
       userId = userBooking.userId;
     }
 
+    const userPlan = await CourtroomUserPlan.findOne({
+      user: userBooking._id,
+    }).populate("plan");
+
     // Respond with the token
     return {
-      slotTime: booking.hour,
+      plan: userPlan,
       ...token,
       userId: userId,
       phoneNumber: userBooking.phoneNumber,
@@ -789,65 +717,11 @@ async function getClientByPhoneNumber(phoneNumber) {
 
 async function getClientByUseridForEndCase(userid) {
   try {
-    // Get the current date and hour
-    let currentDate, currentHour;
-
-    if (process.env.NODE_ENV === "production") {
-      // Get current date and time in UTC
-      const now = new Date();
-
-      // Convert to milliseconds
-      const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
-
-      // IST offset is +5:30
-      const istOffset = 5.5 * 60 * 60000;
-
-      // Create new date object for IST
-      const istTime = new Date(utcTime + istOffset);
-
-      currentDate = new Date(
-        Date.UTC(istTime.getFullYear(), istTime.getMonth(), istTime.getDate())
-      );
-      currentHour = istTime.getHours();
-    } else {
-      // Get the current date and hour in local time (for development)
-      const now = new Date();
-      currentDate = new Date(
-        Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-      );
-      currentHour = now.getHours();
-    }
-
-    console.log(currentDate, currentHour);
-
-    // Manual Override for Testing
-    // const formattedDate = new Date("2024-07-23T00:00:00.000Z");
-    // const currentHour = 20;
-
-    // Find existing booking for the current date and hour
-    const courtroomUser = await CourtroomUser.findOne({
+    const courtroomUser = await CourtroomPricingUser.findOne({
       userId: userid,
     });
 
-    if (!courtroomUser) {
-      throw Error("No user found!!.");
-      // return "No bookings found for the current time slot.";
-    }
-
-    const booking = await CourtRoomBooking.findOne({
-      courtroomBookings: {
-        $elemMatch: {
-          $eq: new mongoose.Types.ObjectId(courtroomUser._id), // Fixed here
-        },
-      },
-    });
-
-    if (!booking) {
-      throw Error("No booking found for the current user.");
-      // return "No bookings found for the current time slot.";
-    }
-
-    return { User_id: courtroomUser._id, Booking_id: booking._id };
+    return { User_id: courtroomUser._id };
   } catch (error) {
     console.error(error);
     throw new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
@@ -856,83 +730,28 @@ async function getClientByUseridForEndCase(userid) {
 
 async function getClientByUserid(userid) {
   try {
-    // Get the current date and hour
-    let currentDate, currentHour;
+    const userBooking = await CourtroomPricingUser.findOne({ userId: userid });
 
-    if (process.env.NODE_ENV === "production") {
-      // Get current date and time in UTC
-      const now = new Date();
-
-      // Convert to milliseconds
-      const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
-
-      // IST offset is +5:30
-      const istOffset = 5.5 * 60 * 60000;
-
-      // Create new date object for IST
-      const istTime = new Date(utcTime + istOffset);
-
-      currentDate = new Date(
-        Date.UTC(istTime.getFullYear(), istTime.getMonth(), istTime.getDate())
-      );
-      currentHour = istTime.getHours();
-    } else {
-      // Get the current date and hour in local time (for development)
-      const now = new Date();
-      currentDate = new Date(
-        Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-      );
-      currentHour = now.getHours();
-    }
-
-    console.log(currentDate, currentHour);
-
-    // Manual Override for Testing
-    // const formattedDate = new Date("2024-07-23T00:00:00.000Z");
-    // const currentHour = 20;
-
-    // Find existing booking for the current date and hour
-    const booking = await CourtRoomBooking.findOne({
-      date: currentDate,
-      hour: currentHour,
-    }).populate("courtroomBookings");
-
-    // console.log(booking);
-
-    if (!booking) {
-      throw Error("No bookings found for the current time slot.");
-      // return "No bookings found for the current time slot.";
-    }
-
-    // Check if the user with the given phone number is in the booking
-    const userBooking = booking.courtroomBookings.find((courtroomBooking) => {
-      return courtroomBooking.userId == userid;
-    });
-
-    console.log(userBooking);
-
-    return { User_id: userBooking._id, Booking_id: booking };
+    return { User_id: userBooking._id };
   } catch (error) {
     console.error(error);
     throw new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
   }
 }
 
-async function storeCaseHistory(userId, slotId, caseHistoryDetails) {
+async function storeCaseHistory(userId, caseHistoryDetails) {
   try {
     const user = await CourtroomUser.findById(userId);
 
     // Find the courtroom history by userId and slotId
     let courtroomHistory = await CourtroomHistory.findOne({
       userId: userId,
-      slot: slotId,
     });
 
     if (!courtroomHistory) {
       // Create a new courtroom history if it doesn't exist
       courtroomHistory = new CourtroomHistory({
         userId: userId,
-        slot: slotId,
         history: [],
         latestCaseHistory: {},
       });
@@ -957,25 +776,14 @@ async function storeCaseHistory(userId, slotId, caseHistoryDetails) {
   }
 }
 
-async function OverridestoreCaseHistory(userId, slotId, caseHistoryDetails) {
+async function OverridestoreCaseHistory(userId, caseHistoryDetails) {
   try {
     const user = await CourtroomUser.findById(userId);
 
     // Find the courtroom history by userId and slotId
     let courtroomHistory = await CourtroomHistory.findOne({
       userId: userId,
-      slot: slotId,
     });
-
-    // if (!courtroomHistory) {
-    //   // Create a new courtroom history if it doesn't exist
-    //   courtroomHistory = new CourtroomHistory({
-    //     userId: userId,
-    //     slot: slotId,
-    //     history: [],
-    //     latestCaseHistory: {},
-    //   });
-    // }
 
     const lengthOfHistory = courtroomHistory.history.length;
 

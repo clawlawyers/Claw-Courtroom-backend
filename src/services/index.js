@@ -2,6 +2,8 @@ module.exports = {
   UserService: require("./user-service"),
   ClientService: require("./client-service"),
   CourtroomService: require("./courtroom-service"),
+  CourtroomPricingService: require("./courtroomPricing-service.js"),
+  CourtroomPaymentService: require("./courtroomPayment-service.js"),
   SpecificLawyerCourtroomService: require("./specificLawyerCourtroom-service"),
   PostService: require("./post-service"),
   GigService: require("./gig-service"),
