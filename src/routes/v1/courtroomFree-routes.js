@@ -50,24 +50,24 @@ router.post(
   CourtroomFreeController.newcase1
 );
 
-// router.post(
-//   "/fileUpload",
-//   upload.single("file"),
-//   authMiddleware.checkCourtroomAuth,
-//   CourtroomPricingController.newcase2
-// );
+router.post(
+  "/fileUpload",
+  upload.single("file"),
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.newcase2
+);
 
-// router.post(
-//   "/getoverview-formfilename",
-//   authMiddleware.checkCourtroomAuth,
-//   CourtroomPricingController.getoverviewFormfilename
-// );
+router.post(
+  "/getoverview-formfilename",
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.getoverviewFormfilename
+);
 
-// router.post(
-//   "/api/case_summary",
-//   authMiddleware.checkCourtroomAuth,
-//   CourtroomPricingController.caseSummary
-// );
+router.post(
+  "/api/case_summary",
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.caseSummary
+);
 
 router.post(
   "/api/new_case/text",

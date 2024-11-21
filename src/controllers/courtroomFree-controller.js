@@ -815,9 +815,9 @@ async function newcase1(req, res) {
 
 async function newcase2(req, res) {
   const file = req.file;
-  const { _id } = req.body?.courtroomClient?.userBooking;
+  const { id } = req.body;
 
-  const folderName = _id.toString();
+  const folderName = id.toString();
   // const folderName = "dummy";
 
   if (!file) {
@@ -896,11 +896,11 @@ async function newcase2(req, res) {
 async function getoverviewFormfilename(req, res) {
   try {
     const { fileNameArray, isMultilang, action, language } = req.body;
-    const { userId } = req.body?.courtroomClient?.userBooking;
+    const { userId } = req.body;
 
-    const { _id } = req.body?.courtroomClient?.userBooking;
+    const { id } = req.body;
 
-    const folderName = _id.toString();
+    const folderName = id.toString();
 
     let case_overview;
 
@@ -997,7 +997,7 @@ async function getOverviewMultilang1(body) {
 
 async function caseSummary(req, res) {
   try {
-    const user_id = req.body?.courtroomClient?.userBooking?.userId;
+    const user_id = req.body?.userId;
 
     const fetchedCaseSummary = await fetchCaseSummary({ user_id });
     return res
