@@ -12,7 +12,7 @@ const upload = multer({ storage: storage });
 
 router.post("/create-new-plan", CourtroomPricingController.createNewPlan);
 
-router.post("/book-courtroom", CourtroomPricingController.bookCourtRoom);
+router.post("/book-courtroom", CourtroomPricingController.bookCourtRoom); // singup
 router.post(
   "/adminLogin/book-courtroom",
   CourtroomPricingController.adminLoginBookCourtRoom
@@ -34,7 +34,7 @@ router.post(
 router.post(
   "/getCourtroomUser",
   authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.getUserDetails
+  CourtroomPricingController.getUserDetails // this
 );
 
 router.post(

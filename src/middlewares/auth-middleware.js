@@ -3,7 +3,8 @@ const {
   UserService,
   CourtroomService,
   SpecificLawyerCourtroomService,
-  CourtroomFreeServices
+  CourtroomFreeServices,
+  CourtroomPricingService,
 } = require("../services");
 const { ErrorResponse } = require("../utils/common/");
 const { StatusCodes } = require("http-status-codes");
@@ -63,6 +64,30 @@ async function checkCourtroomAuth(req, res, next) {
     const response = verifyTokenCR(token);
     // console.log(response);
     const client = await CourtroomService.getClientByPhoneNumber(
+      response.phoneNumber
+    );
+    if (!client) {
+      throw new AppError("No user found", StatusCodes.NOT_FOUND);
+    }
+    console.log(client);
+    req.body.courtroomClient = client;
+    next();
+  } catch (error) {
+    const errorResponse = ErrorResponse({}, error);
+    return res.status(StatusCodes.UNAUTHORIZED).json(errorResponse);
+  }
+}
+
+async function checkCourtroomPricingAuth(req, res, next) {
+  try {
+    const token = req.headers["authorization"].split(" ")[1];
+    console.log(token);
+    if (!token) {
+      throw new AppError("Missing jwt token", StatusCodes.BAD_REQUEST);
+    }
+    const response = verifyTokenCR(token);
+    // console.log(response);
+    const client = await CourtroomPricingService.getClientByPhoneNumber(
       response.phoneNumber
     );
     if (!client) {
@@ -164,43 +189,54 @@ async function checkAmabassador(req, res, next) {
   return next();
 }
 
-async function checkFreeUserControllerApi(req, res, next){
-  
+async function checkFreeUserControllerApi(req, res, next) {
   const token = req.headers["authorization"].split(" ")[1];
   if (!token) {
     throw new AppError("Missing jwt token", StatusCodes.BAD_REQUEST);
   }
-  console.log(token)
+  console.log(token);
   const response = verifyToken(token);
-  const user= await CourtroomFreeUser.findOne({userId:response.userId})
-  console.log(user)
-  if(!user){
-    return res.status(401)
+  const user = await CourtroomFreeUser.findOne({ userId: response.userId });
+  console.log(user);
+  if (!user) {
+    return res.status(401);
+  }
+  const todaysSlot = new Date(user.todaysSlot);
+  const todaysSlotTime =
+    todaysSlot.getTime() + todaysSlot.getTimezoneOffset() * 60000;
+  const Offset = 0.5 * 60 * 60000;
+  const slot = new Date(todaysSlotTime + Offset);
+  console.log(slot.getMinutes());
+  const currenttime = new Date();
+  const utcTime =
+    currenttime.getTime() + currenttime.getTimezoneOffset() * 60000;
+  const istOffset = 5.5 * 60 * 60000;
+  const currentItcTime = new Date(utcTime + istOffset);
+  const realcurrentItcTime = new Date(
+    currentItcTime.getFullYear(),
+    currentItcTime.getMonth(),
+    currentItcTime.getDay(),
+    currentItcTime.getHours(),
+    currentItcTime.getMinutes()
+  );
+  const realslot = new Date(
+    slot.getFullYear(),
+    slot.getMonth(),
+    slot.getDay(),
+    slot.getHours(),
+    slot.getMinutes()
+  );
+  console.log(currentItcTime.getMinutes());
 
-}
-const todaysSlot = new Date(user.todaysSlot)
-const todaysSlotTime = todaysSlot.getTime() + todaysSlot.getTimezoneOffset() * 60000;
-const Offset = 0.5 * 60 * 60000;
-const slot = new Date(todaysSlotTime+Offset)
-console.log(slot.getMinutes())
-const currenttime = new Date()
-const utcTime = currenttime.getTime() + currenttime.getTimezoneOffset() * 60000;
-const istOffset = 5.5 * 60 * 60000;
-const currentItcTime = new Date(utcTime+istOffset)
-const realcurrentItcTime = new Date(currentItcTime.getFullYear(), currentItcTime.getMonth(), currentItcTime.getDay(), currentItcTime.getHours(), currentItcTime.getMinutes())
-const realslot = new Date(slot.getFullYear(), slot.getMonth(), slot.getDay(), slot.getHours(), slot.getMinutes())
-console.log(currentItcTime.getMinutes())
-
-if(!(realslot>realcurrentItcTime) || (user.userId!= response.userId)){
-  console.log("hi")
-   return res.status(401)
-
-}
+  if (!(realslot > realcurrentItcTime) || user.userId != response.userId) {
+    console.log("hi");
+    return res.status(401);
+  }
   // const ifFreeUserIsValid= await CourtroomFreeServices.ifFreeUserIsValid(response.id, response.userId)
   // if(ifFreeUserIsValid){
-    req.body.id=response.id
-    req.body.userId =response.userId
-    next()
+  req.body.id = response.id;
+  req.body.userId = response.userId;
+  next();
   // }
   // else return res.status(401)
 }
@@ -214,5 +250,5 @@ module.exports = {
   checkCourtroomAuth,
   checkSpecificLawyerCourtroomAuth,
   checkSpecificLawyerCourtroomUserId,
-  checkFreeUserControllerApi
+  checkFreeUserControllerApi,
 };

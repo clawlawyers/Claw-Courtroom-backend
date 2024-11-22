@@ -22,6 +22,7 @@ const {
 const courtroomDiscountCoupon = require("../models/courtroomDiscountCoupon");
 const { Storage } = require("@google-cloud/storage");
 const courtroomPlan = require("../models/CourtroomPlan");
+const CourtroomUserPlan = require("../models/courtroomUserPlan");
 
 let storage;
 if (process.env.NODE_ENV !== "production") {
@@ -96,7 +97,7 @@ async function bookCourtRoom(req, res) {
       return res.status(400).send("Missing required fields in slot.");
     }
 
-    const respo = await CourtroomPricingService.courtRoomBook(
+    const respo = await CourtroomPricingService.addNewCourtroomUser(
       name,
       phoneNumber,
       email,
@@ -361,10 +362,24 @@ async function AdminLoginToCourtRoom(req, res) {
 }
 
 async function getUserDetails(req, res) {
-  const { courtroomClient } = req.body;
+  const userBooking = req.body?.courtroomClient?.userBooking;
+  const token = req.headers["authorization"].split(" ")[1];
+
   try {
-    console.log(courtroomClient);
-    // Generate a JWT token
+    console.log(userBooking);
+
+    const userPlan = await CourtroomUserPlan.findOne({
+      user: userBooking._id,
+    }).populate("plan");
+
+    // Respond with the token
+    return {
+      plan: userPlan,
+      ...token,
+      userId: userBooking.userId,
+      mongoId: userBooking._id,
+      phoneNumber: userBooking.phoneNumber,
+    };
 
     return res.status(StatusCodes.OK).json(
       SuccessResponse({

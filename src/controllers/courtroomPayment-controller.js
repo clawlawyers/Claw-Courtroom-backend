@@ -61,6 +61,7 @@ async function verifyPayment(req, res) {
     razorpay_signature,
     _id,
     bookingData,
+    mongoId,
     amount,
   } = req.body;
 
@@ -79,11 +80,10 @@ async function verifyPayment(req, res) {
 
       console.log(placedOrder);
 
-      const { phoneNumber, email, planId, endDate } = bookingData;
+      const { planId, endDate } = bookingData;
 
       respo = await CourtroomPricingService.addNewPlan(
-        phoneNumber,
-        email,
+        mongoId,
         planId,
         endDate
       );
