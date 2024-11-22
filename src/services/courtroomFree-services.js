@@ -1174,7 +1174,8 @@ async function isNewCaseHistory(userId) {
 async function ifFreeUserIsValid(userid,user_id){
     try{
         console.log("hi")   
-        const user= await CourtroomFreeUser.findOne({userId:user_id})
+        const user=  await CourtroomFreeUser.find({})
+        console.log("hi")   
         cosnole.log(user)
         if(!user){
             return false

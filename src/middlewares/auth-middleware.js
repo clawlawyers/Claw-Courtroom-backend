@@ -172,6 +172,7 @@ async function checkFreeUserControllerApi(req, res, next){
   }
   console.log(token)
   const response = verifyToken(token);
+  console.log(response)
   const user= await CourtroomFreeUser.findOne({userId:response.userId})
   console.log(user)
   if(!user){

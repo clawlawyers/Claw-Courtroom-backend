@@ -814,6 +814,8 @@ async function newcase1(req, res) {
 }
 
 async function newcase2(req, res) {
+  // cosnole.log("hi")
+
   const file = req.file;
   const { id } = req.body;
 
@@ -825,6 +827,8 @@ async function newcase2(req, res) {
   }
 
   try {
+    // cosnole.log("hi")
+
     // const userId = "progressBar"; // Assuming you have user authentication
     // const uniqueId = uuidv4();
 
@@ -840,6 +844,8 @@ async function newcase2(req, res) {
       ...file,
       originalname: newFilename,
     };
+    // cosnole.log("hi")
+
 
     // Define the file path in the user's folder
     const filePath = `${folderName}/${newFilename}`;
@@ -855,6 +861,7 @@ async function newcase2(req, res) {
         "http://localhost:3001",
       ],
     };
+    // cosnole.log("hi")
 
     const [uploadResponse] = await blob.createResumableUpload(options);
     return res.status(StatusCodes.OK).json(
@@ -973,7 +980,7 @@ async function getOverviewMultilang1(body) {
     const response = await fetch(
       `${COURTROOM_API_ENDPOINT}/api/new_case_multilang1`,
       {
-        method: "z",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -1154,7 +1161,7 @@ async function Fetch_argument_index(body) {
 
 async function lawyer_arguemnt(req, res) {
   const { argument_index, action } = req.body;
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
 
   try {
     const lawyerArguemnt = await FetchLawyer_arguemnt({
@@ -1186,7 +1193,7 @@ async function FetchLawyer_arguemnt(body) {
 
 async function judge_arguemnt(req, res) {
   const { argument_index, action } = req.body;
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
 
   try {
     const judgeArguemnt = await FetchJudge_arguemnt({
@@ -1218,7 +1225,7 @@ async function FetchJudge_arguemnt(body) {
 
 async function summary(req, res) {
   try {
-    const user_id = req.body?.courtroomClient?.userBooking?.userId;
+    const user_id = req.body?.userId;
     const summary = await FetchSummary({ user_id });
     return res.status(StatusCodes.OK).json(SuccessResponse({ summary }));
   } catch (error) {
@@ -1299,10 +1306,10 @@ async function FetchRelevantCasesJudgeLawyer(body) {
 }
 
 async function setFavor(req, res) {
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
   const favor = req.body.favor;
   try {
-    const updateUserFavor = await CourtroomUser.findOneAndUpdate(
+    const updateUserFavor = await CourtroomFreeUser.findOneAndUpdate(
       { userId: user_id },
       { drafteFavor: favor }
     );
@@ -1319,8 +1326,9 @@ async function setFavor(req, res) {
 }
 
 async function getDraft(req, res) {
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
-  let favor = req.body?.courtroomClient?.userBooking?.drafteFavor;
+  const user_id = req.body?.userId;
+  let favor = await CourtroomFreeUser.findOne({userId:user_id})
+  favor=favor.drafteFavor
   if (favor === undefined) favor = "";
   try {
     const draft = await FetchGetDraft({ user_id, favor });
@@ -3166,6 +3174,50 @@ async function getAllusers(req, res) {
 async function deleteallusers(req, res) {
   return res.send(await CourtroomFreeUser.deleteMany({}));
 }
+async function checkFreeUserControllerApi(req, res, next){
+  
+  const token = req.headers["authorization"].split(" ")[1];
+  if (!token) {
+    throw new AppError("Missing jwt token", StatusCodes.BAD_REQUEST);
+  }
+  console.log(token)
+  const response = verifyToken(token);
+  console.log(response.id)
+
+  const user = await CourtroomFreeUser.findOne(response.id)
+  console.log(user)
+  console.log("hi")
+  if(user==null){
+    return res.status(401)
+
+}
+console.log(user.todaysSlot)
+const todaysSlot = new Date(user.todaysSlot)
+const todaysSlotTime = todaysSlot.getTime() + todaysSlot.getTimezoneOffset() * 60000;
+const Offset = 0.5 * 60 * 60000;
+const slot = new Date(todaysSlotTime+Offset)
+console.log(slot.getMinutes())
+const currenttime = new Date()
+const utcTime = currenttime.getTime() + currenttime.getTimezoneOffset() * 60000;
+const istOffset = 5.5 * 60 * 60000;
+const currentItcTime = new Date(utcTime+istOffset)
+const realcurrentItcTime = new Date(currentItcTime.getFullYear(), currentItcTime.getMonth(), currentItcTime.getDay(), currentItcTime.getHours(), currentItcTime.getMinutes())
+const realslot = new Date(slot.getFullYear(), slot.getMonth(), slot.getDay(), slot.getHours(), slot.getMinutes())
+console.log(currentItcTime.getMinutes())
+
+if(!(realslot>realcurrentItcTime) || (user.userId!= response.userId)){
+  console.log("hi")
+   return res.status(401)
+
+}
+  // const ifFreeUserIsValid= await CourtroomFreeServices.ifFreeUserIsValid(response.id, response.userId)
+  // if(ifFreeUserIsValid){
+    req.body.id=response.id
+    req.body.userId =response.userId
+    next()
+  // }
+  // else return res.status(401)
+}
 
 module.exports = {
   bookCourtRoom,
@@ -3227,5 +3279,5 @@ module.exports = {
   createNewPlan,
   updateTime,
   getAllusers,
-  deleteallusers,
+  deleteallusers,checkFreeUserControllerApi
 };

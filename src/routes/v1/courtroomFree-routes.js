@@ -112,14 +112,14 @@ router.post(
 
 router.post(
   "/api/setFavor",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.setFavor
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.setFavor
 );
 
 router.post(
   "/api/draft",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.getDraft
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.getDraft
 );
 router.post(
   "/api/change_states",

@@ -12,6 +12,8 @@ const upload = multer({ storage: storage });
 
 router.post("/create-new-plan", CourtroomPricingController.createNewPlan);
 
+router.get("/getAllPlans",CourtroomPricingController.getAllPlans )
+
 router.post("/book-courtroom", CourtroomPricingController.bookCourtRoom);
 router.post(
   "/adminLogin/book-courtroom",
