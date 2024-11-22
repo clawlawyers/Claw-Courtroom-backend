@@ -62,7 +62,7 @@ async function verifyPayment(req, res) {
     _id,
     bookingData,
     amount,
-    loggedIn,
+    loggedIn, // boolean
   } = req.body;
 
   const hmac = crypto.createHmac("sha256", RAZORPAY_SECRET_KEY);

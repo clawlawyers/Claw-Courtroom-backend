@@ -19,10 +19,10 @@ router.post(
 );
 router.post(
   "/book-courtroom-validation",
-  CourtroomPricingController.bookCourtRoomValidation
+  CourtroomPricingController.bookCourtRoomValidation // this
 );
 router.get("/book-courtroom", CourtroomPricingController.getBookedData);
-router.post("/login", CourtroomPricingController.loginToCourtRoom);
+router.post("/login", CourtroomPricingController.loginToCourtRoom); // this
 router.post(
   "/admin-login-validation",
   CourtroomPricingController.adminLoginValidation
@@ -347,7 +347,7 @@ router.get("/random-arrays", (req, res) => {
 router.post(
   "/api/storeTime",
   authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.storeTime
+  CourtroomPricingController.storeTime // this
 );
 
 module.exports = router;

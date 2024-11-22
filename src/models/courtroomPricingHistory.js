@@ -22,11 +22,6 @@ const CourtroomHistorySchema = new Schema(
       ref: "CourtroomPricingUser",
       required: true,
     },
-    slot: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "CourtRoomBooking",
-      required: true,
-    },
     history: [CaseHistorySchema],
     latestCaseHistory: CaseHistorySchema,
   },
