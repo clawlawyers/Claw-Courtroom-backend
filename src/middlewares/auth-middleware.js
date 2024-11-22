@@ -215,10 +215,12 @@ const currentItcTime = new Date(utcTime+istOffset)
 const realcurrentItcTime = new Date(currentItcTime.getFullYear(), currentItcTime.getMonth(), currentItcTime.getDay(), currentItcTime.getHours(), currentItcTime.getMinutes())
 const realslot = new Date(slot.getFullYear(), slot.getMonth(), slot.getDay(), slot.getHours(), slot.getMinutes())
 console.log(currentItcTime.getMinutes())
+console.log(currentItcTime)
+console.log(slot)
 
-if(!(realslot>realcurrentItcTime) || (user.userId!= response.userId)){
+if((currentItcTime>slot) || (user.userId!= response.userId)){
   console.log("hi")
-   return res.status(401)
+   return res.sendStatus(401)
 
 }
   // const ifFreeUserIsValid= await CourtroomFreeServices.ifFreeUserIsValid(response.id, response.userId)

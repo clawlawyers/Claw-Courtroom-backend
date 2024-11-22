@@ -493,12 +493,16 @@ async function loginToCourtRoom(phoneNumber, name) {
   );
  console.log(slot)
  console.log(todaysSlot)
+ console.log(todaysSlot.getUTCDate())
  console.log(currentDate)
+ console.log(currentDate.getUTCDate())
 
 
 
-         if(todaysSlot.getDay()<currentDate.getDay() || todaysSlot.getFullYear()<currentDate.getFullYear() || (todaysSlot.getFullYear()==currentDate.getFullYear() && todaysSlot.getMonth()<currentDate.getMonth())){
-   const update = await CourtroomFreeUser.findOneAndUpdate({userId:user.userId}, {
+         if(todaysSlot.getUTCDate()<currentDate.getUTCDate() || todaysSlot.getFullYear()<currentDate.getFullYear() || (todaysSlot.getFullYear()==currentDate.getFullYear() && todaysSlot.getMonth()<currentDate.getMonth())){
+ console.log("TODAYSLSOT")
+   
+            const update = await CourtroomFreeUser.findOneAndUpdate({userId:user.userId}, {
     todaysSlot:currentDate
    })
              const token = generateToken({ userId:user.userId, id:user._id});
@@ -509,6 +513,8 @@ async function loginToCourtRoom(phoneNumber, name) {
 
        
         else if(slot>currentDate){
+ console.log("SLOT")
+
             const token = generateToken({ userId:user.userId, id:user._id});
              return  token
         }
