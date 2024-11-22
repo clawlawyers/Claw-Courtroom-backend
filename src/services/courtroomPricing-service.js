@@ -219,7 +219,7 @@ async function addNewCourtroomUser(
     });
 
     // Generate a JWT token
-    const token = generateToken({
+    const token = generateTokenForCourtroomPricing({
       userId: addNewUser._id,
       phoneNumber: addNewUser.phoneNumber,
     });
@@ -420,7 +420,7 @@ async function loginToCourtRoom(phoneNumber, password) {
     }
 
     // Generate a JWT token
-    const token = generateToken({
+    const token = generateTokenForCourtroomPricing({
       userId: userBooking._id,
       phoneNumber: userBooking.phoneNumber,
     });
