@@ -82,55 +82,39 @@ async function createNewPlan(req, res) {
 
 async function bookCourtRoom(req, res) {
   try {
-    const { name, phoneNumber, email, slots, recording, password } = req.body;
+    const { name, phoneNumber, email, password } = req.body;
 
     // Check if required fields are provided
-    if (
-      !name ||
-      !phoneNumber ||
-      !email ||
-      !slots ||
-      !password ||
-      !Array.isArray(slots) ||
-      slots.length === 0
-    ) {
+    if (!name || !phoneNumber || !email || !password) {
       return res.status(400).send("Missing required fields.");
     }
 
     const hashedPassword = await hashPassword(password);
-    const caseOverview = "";
+    const caseOverview = "NA";
 
-    for (const slot of slots) {
-      const { date, hour } = slot;
-      if (!date || hour === undefined) {
-        return res.status(400).send("Missing required fields in slot.");
-      }
-
-      const bookingDate = new Date(date);
-
-      const respo = await CourtroomPricingService.courtRoomBook(
-        name,
-        phoneNumber,
-        email,
-        bookingDate,
-        hour,
-        recording,
-        caseOverview,
-        hashedPassword
-      );
-
-      if (respo) {
-        return res.status(400).send(respo);
-      }
+    if (!date || hour === undefined) {
+      return res.status(400).send("Missing required fields in slot.");
     }
-    await sendConfirmationEmail(
-      email,
+
+    const respo = await CourtroomPricingService.courtRoomBook(
       name,
       phoneNumber,
-      password,
-      slots,
-      (amount = slots.length * 100)
+      email,
+      hashedPassword,
+      caseOverview
     );
+
+    if (respo) {
+      return res.status(400).send(respo);
+    }
+    // await sendConfirmationEmail(
+    //   email,
+    //   name,
+    //   phoneNumber,
+    //   password,
+    //   slots,
+    //   (amount = slots.length * 100)
+    // );
 
     res.status(201).send("Courtroom slots booked successfully.");
   } catch (error) {

@@ -185,52 +185,42 @@ async function createCourtRoomUser(
   return savedCourtroomUser._id;
 }
 
-async function courtRoomBook(
+async function addNewPlan(phoneNumber, email, planId, endDate) {
+  try {
+    const user = await CourtroomUser.findOne({
+      email: email,
+      phoneNumber: phoneNumber,
+    });
+    const updatePlan = await CourtroomUserPlan.create({
+      plan: planId,
+      user: user._id,
+      usedHours: 0,
+      isActive: true,
+      endData: endDate,
+    });
+    return { updatePlan };
+  } catch (error) {
+    console.error(error);
+    throw new Error("Internal server error.");
+  }
+}
+
+async function addNewCourtroomUser(
   name,
   phoneNumber,
   email,
-  planId,
-  endDate,
-  recording,
-  hashedPassword,
-  loggedIn,
-  password
+  hashPassword,
+  caseOverview
 ) {
   try {
-    if (loggedIn) {
-      const user = await CourtroomUser.findOne({
-        email: email,
-        phoneNumber: phoneNumber,
-      });
-      const updatePlan = await CourtroomUserPlan.create({
-        plan: planId,
-        user: user._id,
-        usedHours: 0,
-        isActive: true,
-        endData: endDate,
-      });
-      return { updatePlan };
-    } else {
-      const newUser = await CourtroomPricingUser.create({
-        name: name,
-        phoneNumber: phoneNumber,
-        email: email,
-        password: hashedPassword,
-        recording: recording,
-        caseOverview: "NA",
-      });
-
-      const updatePlan = await CourtroomUserPlan.create({
-        plan: planId,
-        user: newUser._id,
-        usedHours: 0,
-        isActive: true,
-        endData: endDate,
-      });
-
-      const loginUser = await loginToCourtRoom(phoneNumber, password);
-      return { loginUser };
-    }
+    const addNewUser = await CourtroomPricingUser.create({
+      name,
+      phoneNumber,
+      email,
+      password: hashPassword,
+      caseOverview,
+    });
+    return addNewUser;
   } catch (error) {
     console.error(error);
     throw new Error("Internal server error.");
@@ -895,7 +885,7 @@ async function updateClientByIdWithSession(id, updateData, session) {
 module.exports = {
   getClientByIdWithSession,
   updateClientByIdWithSession,
-  courtRoomBook,
+  addNewPlan,
   getBookedData,
   loginToCourtRoom,
   getClientByPhoneNumber,
@@ -913,4 +903,5 @@ module.exports = {
   checkFirtVisit,
   isNewCaseHistory,
   OverridestoreCaseHistory,
+  addNewCourtroomUser,
 };

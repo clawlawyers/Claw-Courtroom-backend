@@ -62,7 +62,6 @@ async function verifyPayment(req, res) {
     _id,
     bookingData,
     amount,
-    loggedIn, // boolean
   } = req.body;
 
   const hmac = crypto.createHmac("sha256", RAZORPAY_SECRET_KEY);
@@ -80,29 +79,13 @@ async function verifyPayment(req, res) {
 
       console.log(placedOrder);
 
-      const {
-        name,
+      const { phoneNumber, email, planId, endDate } = bookingData;
+
+      respo = await CourtroomPricingService.addNewPlan(
         phoneNumber,
         email,
         planId,
-        endDate,
-        // planName,
-        recording,
-        password,
-      } = bookingData;
-
-      const hashedPassword = await hashPassword(password);
-
-      respo = await CourtroomPricingService.courtRoomBook(
-        name,
-        phoneNumber,
-        email,
-        planId,
-        endDate,
-        recording,
-        hashedPassword,
-        loggedIn,
-        password
+        endDate
       );
 
       // res.status(200).json(respo);
