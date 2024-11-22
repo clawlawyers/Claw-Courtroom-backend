@@ -36,7 +36,7 @@ router.post(
 router.post(
   "/getCourtroomUser",
   authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.getUserDetails
+  CourtroomPricingController.getUserDetails // this
 );
 
 router.post(

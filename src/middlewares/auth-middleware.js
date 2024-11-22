@@ -3,7 +3,8 @@ const {
   UserService,
   CourtroomService,
   SpecificLawyerCourtroomService,
-  CourtroomFreeServices
+  CourtroomFreeServices,
+  CourtroomPricingService,
 } = require("../services");
 const { ErrorResponse } = require("../utils/common/");
 const { StatusCodes } = require("http-status-codes");
@@ -63,6 +64,30 @@ async function checkCourtroomAuth(req, res, next) {
     const response = verifyTokenCR(token);
     // console.log(response);
     const client = await CourtroomService.getClientByPhoneNumber(
+      response.phoneNumber
+    );
+    if (!client) {
+      throw new AppError("No user found", StatusCodes.NOT_FOUND);
+    }
+    console.log(client);
+    req.body.courtroomClient = client;
+    next();
+  } catch (error) {
+    const errorResponse = ErrorResponse({}, error);
+    return res.status(StatusCodes.UNAUTHORIZED).json(errorResponse);
+  }
+}
+
+async function checkCourtroomPricingAuth(req, res, next) {
+  try {
+    const token = req.headers["authorization"].split(" ")[1];
+    console.log(token);
+    if (!token) {
+      throw new AppError("Missing jwt token", StatusCodes.BAD_REQUEST);
+    }
+    const response = verifyTokenCR(token);
+    // console.log(response);
+    const client = await CourtroomPricingService.getClientByPhoneNumber(
       response.phoneNumber
     );
     if (!client) {
@@ -164,13 +189,12 @@ async function checkAmabassador(req, res, next) {
   return next();
 }
 
-async function checkFreeUserControllerApi(req, res, next){
-  
+async function checkFreeUserControllerApi(req, res, next) {
   const token = req.headers["authorization"].split(" ")[1];
   if (!token) {
     throw new AppError("Missing jwt token", StatusCodes.BAD_REQUEST);
   }
-  console.log(token)
+  console.log(token);
   const response = verifyToken(token);
   console.log(response)
   const user= await CourtroomFreeUser.findOne({userId:response.userId})
@@ -199,9 +223,9 @@ if(!(realslot>realcurrentItcTime) || (user.userId!= response.userId)){
 }
   // const ifFreeUserIsValid= await CourtroomFreeServices.ifFreeUserIsValid(response.id, response.userId)
   // if(ifFreeUserIsValid){
-    req.body.id=response.id
-    req.body.userId =response.userId
-    next()
+  req.body.id = response.id;
+  req.body.userId = response.userId;
+  next();
   // }
   // else return res.status(401)
 }
@@ -215,5 +239,5 @@ module.exports = {
   checkCourtroomAuth,
   checkSpecificLawyerCourtroomAuth,
   checkSpecificLawyerCourtroomUserId,
-  checkFreeUserControllerApi
+  checkFreeUserControllerApi,
 };

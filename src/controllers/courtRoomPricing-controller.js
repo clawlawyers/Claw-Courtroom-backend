@@ -22,6 +22,7 @@ const {
 const courtroomDiscountCoupon = require("../models/courtroomDiscountCoupon");
 const { Storage } = require("@google-cloud/storage");
 const courtroomPlan = require("../models/CourtroomPlan");
+const CourtroomUserPlan = require("../models/courtroomUserPlan");
 
 let storage;
 if (process.env.NODE_ENV !== "production") {
@@ -82,55 +83,39 @@ async function createNewPlan(req, res) {
 
 async function bookCourtRoom(req, res) {
   try {
-    const { name, phoneNumber, email, slots, recording, password } = req.body;
+    const { name, phoneNumber, email, password } = req.body;
 
     // Check if required fields are provided
-    if (
-      !name ||
-      !phoneNumber ||
-      !email ||
-      !slots ||
-      !password ||
-      !Array.isArray(slots) ||
-      slots.length === 0
-    ) {
+    if (!name || !phoneNumber || !email || !password) {
       return res.status(400).send("Missing required fields.");
     }
 
     const hashedPassword = await hashPassword(password);
-    const caseOverview = "";
+    const caseOverview = "NA";
 
-    for (const slot of slots) {
-      const { date, hour } = slot;
-      if (!date || hour === undefined) {
-        return res.status(400).send("Missing required fields in slot.");
-      }
-
-      const bookingDate = new Date(date);
-
-      const respo = await CourtroomPricingService.courtRoomBook(
-        name,
-        phoneNumber,
-        email,
-        bookingDate,
-        hour,
-        recording,
-        caseOverview,
-        hashedPassword
-      );
-
-      if (respo) {
-        return res.status(400).send(respo);
-      }
+    if (!date || hour === undefined) {
+      return res.status(400).send("Missing required fields in slot.");
     }
-    await sendConfirmationEmail(
-      email,
+
+    const respo = await CourtroomPricingService.addNewCourtroomUser(
       name,
       phoneNumber,
-      password,
-      slots,
-      (amount = slots.length * 100)
+      email,
+      hashedPassword,
+      caseOverview
     );
+
+    if (respo) {
+      return res.status(400).send(respo);
+    }
+    // await sendConfirmationEmail(
+    //   email,
+    //   name,
+    //   phoneNumber,
+    //   password,
+    //   slots,
+    //   (amount = slots.length * 100)
+    // );
 
     res.status(201).send("Courtroom slots booked successfully.");
   } catch (error) {
@@ -377,10 +362,24 @@ async function AdminLoginToCourtRoom(req, res) {
 }
 
 async function getUserDetails(req, res) {
-  const { courtroomClient } = req.body;
+  const userBooking = req.body?.courtroomClient?.userBooking;
+  const token = req.headers["authorization"].split(" ")[1];
+
   try {
-    console.log(courtroomClient);
-    // Generate a JWT token
+    console.log(userBooking);
+
+    const userPlan = await CourtroomUserPlan.findOne({
+      user: userBooking._id,
+    }).populate("plan");
+
+    // Respond with the token
+    return {
+      plan: userPlan,
+      ...token,
+      userId: userBooking.userId,
+      mongoId: userBooking._id,
+      phoneNumber: userBooking.phoneNumber,
+    };
 
     return res.status(StatusCodes.OK).json(
       SuccessResponse({

@@ -185,52 +185,68 @@ async function createCourtRoomUser(
   return savedCourtroomUser._id;
 }
 
-async function courtRoomBook(
+async function addNewPlan(mongoId, planId, endDate) {
+  try {
+    const user = await CourtroomUser.findById(mongoId);
+    const updatePlan = await CourtroomUserPlan.create({
+      plan: planId,
+      user: user._id,
+      usedHours: 0,
+      isActive: true,
+      endData: endDate,
+    });
+    return { updatePlan };
+  } catch (error) {
+    console.error(error);
+    throw new Error("Internal server error.");
+  }
+}
+
+async function addNewCourtroomUser(
   name,
   phoneNumber,
   email,
-  planId,
-  endDate,
-  recording,
-  hashedPassword,
-  loggedIn,
-  password
+  hashPassword,
+  caseOverview
 ) {
   try {
-    if (loggedIn) {
-      const user = await CourtroomUser.findOne({
-        email: email,
-        phoneNumber: phoneNumber,
-      });
-      const updatePlan = await CourtroomUserPlan.create({
-        plan: planId,
-        user: user._id,
-        usedHours: 0,
-        isActive: true,
-        endData: endDate,
-      });
-      return { updatePlan };
+    const addNewUser = await CourtroomPricingUser.create({
+      name,
+      phoneNumber,
+      email,
+      password: hashPassword,
+      caseOverview,
+    });
+
+    // Generate a JWT token
+    const token = generateTokenForCourtroomPricing({
+      userId: addNewUser._id,
+      phoneNumber: addNewUser.phoneNumber,
+    });
+
+    let userId;
+
+    if (!addNewUser.userId) {
+      const userId1 = await registerNewCourtRoomUser();
+      addNewUser.userId = userId1.user_id;
+      userId = userId1.user_id;
+      await addNewUser.save();
     } else {
-      const newUser = await CourtroomPricingUser.create({
-        name: name,
-        phoneNumber: phoneNumber,
-        email: email,
-        password: hashedPassword,
-        recording: recording,
-        caseOverview: "NA",
-      });
-
-      const updatePlan = await CourtroomUserPlan.create({
-        plan: planId,
-        user: newUser._id,
-        usedHours: 0,
-        isActive: true,
-        endData: endDate,
-      });
-
-      const loginUser = await loginToCourtRoom(phoneNumber, password);
-      return { loginUser };
+      userId = addNewUser.userId;
     }
+
+    const userPlan = await CourtroomUserPlan.findOne({
+      user: addNewUser._id,
+    }).populate("plan");
+
+    // Respond with the token
+    return {
+      plan: userPlan,
+      ...token,
+      userId: userId,
+      mongoId: addNewUser._id,
+      phoneNumber: addNewUser.phoneNumber,
+    };
   } catch (error) {
     console.error(error);
     throw new Error("Internal server error.");
@@ -404,7 +420,7 @@ async function loginToCourtRoom(phoneNumber, password) {
     }
 
     // Generate a JWT token
-    const token = generateToken({
+    const token = generateTokenForCourtroomPricing({
       userId: userBooking._id,
       phoneNumber: userBooking.phoneNumber,
     });
@@ -429,6 +445,7 @@ async function loginToCourtRoom(phoneNumber, password) {
       plan: userPlan,
       ...token,
       userId: userId,
+      mongoId: userBooking._id,
       phoneNumber: userBooking.phoneNumber,
     };
   } catch (error) {
@@ -656,59 +673,11 @@ async function registerNewCourtRoomUser(body) {
 
 async function getClientByPhoneNumber(phoneNumber) {
   try {
-    let currentDate, currentHour;
-
-    if (process.env.NODE_ENV === "production") {
-      // Get current date and time in UTC
-      const now = new Date();
-
-      // Convert to milliseconds
-      const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
-
-      // IST offset is +5:30
-      const istOffset = 5.5 * 60 * 60000;
-
-      // Create new date object for IST
-      const istTime = new Date(utcTime + istOffset);
-
-      currentDate = new Date(
-        Date.UTC(istTime.getFullYear(), istTime.getMonth(), istTime.getDate())
-      );
-      currentHour = istTime.getHours();
-    } else {
-      // Get the current date and hour in local time (for development)
-      const now = new Date();
-      currentDate = new Date(
-        Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-      );
-      currentHour = now.getHours();
-    }
-
-    console.log(currentDate, currentHour);
-
-    // const currentDate = "2024-07-30";
-    // const currentHour = 14;
-
-    // Find existing booking for the current date and hour
-    const booking = await CourtRoomBooking.findOne({
-      date: currentDate,
-      hour: currentHour,
-    }).populate("courtroomBookings");
-
-    if (!booking) {
-      return "No bookings found for the current time slot.";
-    }
-
-    // console.log(booking);
-
-    // Check if the user with the given phone number is in the booking
-    const userBooking = booking.courtroomBookings.find((courtroomBooking) => {
-      return courtroomBooking.phoneNumber == phoneNumber;
+    const userBooking = await CourtroomPricingUser.findOne({
+      phoneNumber: phoneNumber,
     });
 
-    // console.log(userBooking);
-
-    return { userBooking, slotTime: booking.hour };
+    return { userBooking };
   } catch (error) {
     console.error(error);
     throw new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
@@ -895,7 +864,7 @@ async function updateClientByIdWithSession(id, updateData, session) {
 module.exports = {
   getClientByIdWithSession,
   updateClientByIdWithSession,
-  courtRoomBook,
+  addNewPlan,
   getBookedData,
   loginToCourtRoom,
   getClientByPhoneNumber,
@@ -913,4 +882,5 @@ module.exports = {
   checkFirtVisit,
   isNewCaseHistory,
   OverridestoreCaseHistory,
+  addNewCourtroomUser,
 };
