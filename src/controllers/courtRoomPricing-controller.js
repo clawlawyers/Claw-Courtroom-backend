@@ -3119,7 +3119,7 @@ const flushInMemoryDataToDatabase = async () => {
           Domain,
           {
             $inc: {
-              totalUsedHours: totalEngagementTime,
+              usedHours: totalEngagementTime,
             },
           },
           session
