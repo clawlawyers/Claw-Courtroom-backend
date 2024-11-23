@@ -360,7 +360,7 @@ async function getUserDetails(req, res) {
   // const token = req.headers["authorization"].split(" ")[1];
 
   try {
-    console.log(userBooking);
+    // console.log(userBooking);
 
     const userPlan = await CourtroomUserPlan.findOne({
       user: userBooking._id,
@@ -370,7 +370,7 @@ async function getUserDetails(req, res) {
 
     return res.status(StatusCodes.OK).json(
       SuccessResponse({
-        plan: userPlan?.length > 0 ? userPlan : [],
+        plan: userPlan,
         // ...token,
         userId: userBooking.userId,
         mongoId: userBooking._id,
