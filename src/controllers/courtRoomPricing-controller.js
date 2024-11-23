@@ -93,10 +93,6 @@ async function bookCourtRoom(req, res) {
     const hashedPassword = await hashPassword(password);
     const caseOverview = "NA";
 
-    if (!date || hour === undefined) {
-      return res.status(400).send("Missing required fields in slot.");
-    }
-
     const respo = await CourtroomPricingService.addNewCourtroomUser(
       name,
       phoneNumber,
@@ -119,7 +115,7 @@ async function bookCourtRoom(req, res) {
 
     res.status(201).send("Courtroom slots booked successfully.");
   } catch (error) {
-    const errorResponse = ErrorResponse({}, error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);

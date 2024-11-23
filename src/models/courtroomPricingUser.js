@@ -8,7 +8,7 @@ const CourtroomUserSchema = new Schema({
   phoneNumber: { type: String, required: true },
   email: { type: String, required: true },
   password: { type: String },
-  recording: { type: Boolean, required: true },
+  recording: { type: Boolean, required: true, default: false },
   drafteFavor: { type: String },
   caseOverview: {
     type: String,
@@ -17,7 +17,7 @@ const CourtroomUserSchema = new Schema({
   },
   caseId: {
     type: String,
-    unique: true,
+    // unique: true,
   },
 });
 
