@@ -6,6 +6,7 @@ const {
   CourtroomPricingController,
   CourtroomFreeController,
 } = require("../../controllers");
+const CourtroomFreeUser = require("../../models/courtroomFreeUser");
 
 const router = express.Router();
 
@@ -112,14 +113,14 @@ router.post(
 
 router.post(
   "/api/setFavor",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.setFavor
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.setFavor
 );
 
 router.post(
   "/api/draft",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.getDraft
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.getDraft
 );
 router.post(
   "/api/change_states",
@@ -348,5 +349,10 @@ router.post(
   authMiddleware.checkFreeUserControllerApi,
   CourtroomFreeController.updateTime
 );
+
+router.post("/updateUser",  async(req, res) => {
+  const user =await CourtroomFreeUser.findOneAndUpdate({phoneNumber:"8603805697"},{todaysSlot:new Date("2024-11-21T10:00:00.000Z")})
+  return res.send(user)
+})
 
 module.exports = router;

@@ -3180,6 +3180,16 @@ async function storeTime(req, res) {
   res.status(200).json({ message: "Engagement data received" });
 }
 
+async function getAllPlans(req,res) {
+  try{
+return res.send(await courtroomPlan.find({}))
+  }
+  catch(e){
+
+  }
+
+}
+
 module.exports = {
   storeTime,
   bookCourtRoom,
@@ -3239,4 +3249,5 @@ module.exports = {
   printCaseDetails,
   generateHypoDraft,
   createNewPlan,
+  getAllPlans
 };
