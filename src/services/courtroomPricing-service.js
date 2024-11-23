@@ -2,7 +2,11 @@ const { StatusCodes } = require("http-status-codes");
 const AppError = require("../utils/errors/app-error");
 const CourtRoomBooking = require("../models/courtRoomBooking");
 const CourtroomUser = require("../models/courtroomPricingUser");
-const { comparePassword, generateToken } = require("../utils/coutroom/auth");
+const {
+  comparePassword,
+  generateToken,
+  generateTokenForCourtroomPricing,
+} = require("../utils/coutroom/auth");
 const CourtroomHistory = require("../models/courtroomPricingHistory");
 const ContactUs = require("../models/contact");
 const {
@@ -239,9 +243,11 @@ async function addNewCourtroomUser(
       user: addNewUser._id,
     }).populate("plan");
 
+    console.log(userPlan);
+
     // Respond with the token
     return {
-      plan: userPlan,
+      plan: userPlan?.length > 0 ? userPlan : [],
       ...token,
       userId: userId,
       mongoId: addNewUser._id,
@@ -666,9 +672,11 @@ async function registerNewCourtRoomUser(body) {
     body: JSON.stringify(body),
   });
 
-  console.log(response);
+  const resp = await response.json();
 
-  return response.json();
+  console.log(resp);
+
+  return resp;
 }
 
 async function getClientByPhoneNumber(phoneNumber) {

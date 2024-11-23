@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const moment = require("moment");
 
 const saltRounds = 10;
 const { SECRET_KEY, EXPIRES_IN } = require("../../config/server-config");
@@ -17,10 +18,16 @@ const comparePassword = async (password, hashedPassword) => {
 };
 
 const generateTokenForCourtroomPricing = (payload) => {
-  const token = jwt.sign(payload, jwtSecret, {
-    expiresIn: "1d",
-  });
-  return token;
+  try {
+    const expiresIn = moment.duration({ days: parseInt(EXPIRES_IN) });
+    const expiresAt = moment().add(expiresIn).valueOf();
+    const token = jwt.sign(payload, SECRET_KEY, {
+      expiresIn: expiresIn.asSeconds(),
+    });
+    return { jwt: token, expiresAt };
+  } catch (error) {
+    throw error;
+  }
 };
 
 // Function to generate JWT token
