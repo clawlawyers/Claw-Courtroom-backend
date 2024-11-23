@@ -479,6 +479,7 @@ async function loginToCourtRoom(phoneNumber, name) {
          })
          
          const token = generateToken({ userId:newUser.userId, id:newUser._id});
+         token["slot"]=user.todaysSlot
          return  token
         }
 
@@ -506,6 +507,7 @@ async function loginToCourtRoom(phoneNumber, name) {
     todaysSlot:currentDate
    })
              const token = generateToken({ userId:user.userId, id:user._id});
+             token["slot"]=user.todaysSlot
              return  token
              
          }
@@ -516,7 +518,8 @@ async function loginToCourtRoom(phoneNumber, name) {
  console.log("SLOT")
 
             const token = generateToken({ userId:user.userId, id:user._id});
-             return  token
+            token["slot"]=user.todaysSlot
+            return  token
         }
 
 
