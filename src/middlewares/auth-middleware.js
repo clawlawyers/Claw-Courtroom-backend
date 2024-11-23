@@ -62,8 +62,8 @@ async function checkCourtroomAuth(req, res, next) {
       throw new AppError("Missing jwt token", StatusCodes.BAD_REQUEST);
     }
     const response = verifyTokenCR(token);
-    // console.log(response);
-    const client = await CourtroomService.getClientByPhoneNumber(
+    console.log(response);
+    const client = await CourtroomPricingService.getClientByPhoneNumber(
       response.phoneNumber
     );
     if (!client) {
@@ -196,33 +196,45 @@ async function checkFreeUserControllerApi(req, res, next) {
   }
   console.log(token);
   const response = verifyToken(token);
-  console.log(response)
-  const user= await CourtroomFreeUser.findOne({userId:response.userId})
-  console.log(user)
-  if(!user){
-    return res.status(401)
+  console.log(response);
+  const user = await CourtroomFreeUser.findOne({ userId: response.userId });
+  console.log(user);
+  if (!user) {
+    return res.status(401);
+  }
+  const todaysSlot = new Date(user.todaysSlot);
+  const todaysSlotTime =
+    todaysSlot.getTime() + todaysSlot.getTimezoneOffset() * 60000;
+  const Offset = 0.5 * 60 * 60000;
+  const slot = new Date(todaysSlotTime + Offset);
+  console.log(slot.getMinutes());
+  const currenttime = new Date();
+  const utcTime =
+    currenttime.getTime() + currenttime.getTimezoneOffset() * 60000;
+  const istOffset = 5.5 * 60 * 60000;
+  const currentItcTime = new Date(utcTime + istOffset);
+  const realcurrentItcTime = new Date(
+    currentItcTime.getFullYear(),
+    currentItcTime.getMonth(),
+    currentItcTime.getDay(),
+    currentItcTime.getHours(),
+    currentItcTime.getMinutes()
+  );
+  const realslot = new Date(
+    slot.getFullYear(),
+    slot.getMonth(),
+    slot.getDay(),
+    slot.getHours(),
+    slot.getMinutes()
+  );
+  console.log(currentItcTime.getMinutes());
+  console.log(currentItcTime);
+  console.log(slot);
 
-}
-const todaysSlot = new Date(user.todaysSlot)
-const todaysSlotTime = todaysSlot.getTime() + todaysSlot.getTimezoneOffset() * 60000;
-const Offset = 0.5 * 60 * 60000;
-const slot = new Date(todaysSlotTime+Offset)
-console.log(slot.getMinutes())
-const currenttime = new Date()
-const utcTime = currenttime.getTime() + currenttime.getTimezoneOffset() * 60000;
-const istOffset = 5.5 * 60 * 60000;
-const currentItcTime = new Date(utcTime+istOffset)
-const realcurrentItcTime = new Date(currentItcTime.getFullYear(), currentItcTime.getMonth(), currentItcTime.getDay(), currentItcTime.getHours(), currentItcTime.getMinutes())
-const realslot = new Date(slot.getFullYear(), slot.getMonth(), slot.getDay(), slot.getHours(), slot.getMinutes())
-console.log(currentItcTime.getMinutes())
-console.log(currentItcTime)
-console.log(slot)
-
-if((currentItcTime>slot) || (user.userId!= response.userId)){
-  console.log("hi")
-   return res.sendStatus(401)
-
-}
+  if (currentItcTime > slot || user.userId != response.userId) {
+    console.log("hi");
+    return res.sendStatus(401);
+  }
   // const ifFreeUserIsValid= await CourtroomFreeServices.ifFreeUserIsValid(response.id, response.userId)
   // if(ifFreeUserIsValid){
   req.body.id = response.id;

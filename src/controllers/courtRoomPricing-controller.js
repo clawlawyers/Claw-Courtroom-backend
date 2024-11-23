@@ -100,10 +100,6 @@ async function bookCourtRoom(req, res) {
       hashedPassword,
       caseOverview
     );
-
-    if (respo) {
-      return res.status(400).send(respo);
-    }
     // await sendConfirmationEmail(
     //   email,
     //   name,
@@ -113,7 +109,9 @@ async function bookCourtRoom(req, res) {
     //   (amount = slots.length * 100)
     // );
 
-    res.status(201).send("Courtroom slots booked successfully.");
+    res
+      .status(201)
+      .json({ message: "Courtroom slots booked successfully.", respo });
   } catch (error) {
     const errorResponse = ErrorResponse({}, error.message);
     return res
@@ -359,7 +357,7 @@ async function AdminLoginToCourtRoom(req, res) {
 
 async function getUserDetails(req, res) {
   const userBooking = req.body?.courtroomClient?.userBooking;
-  const token = req.headers["authorization"].split(" ")[1];
+  // const token = req.headers["authorization"].split(" ")[1];
 
   try {
     console.log(userBooking);
@@ -368,18 +366,13 @@ async function getUserDetails(req, res) {
       user: userBooking._id,
     }).populate("plan");
 
-    // Respond with the token
-    return {
-      plan: userPlan,
-      ...token,
-      userId: userBooking.userId,
-      mongoId: userBooking._id,
-      phoneNumber: userBooking.phoneNumber,
-    };
-
     return res.status(StatusCodes.OK).json(
       SuccessResponse({
-        message: "Verifed",
+        plan: userPlan?.length > 0 ? userPlan : [],
+        // ...token,
+        userId: userBooking.userId,
+        mongoId: userBooking._id,
+        phoneNumber: userBooking.phoneNumber,
       })
     );
   } catch (error) {
@@ -3180,14 +3173,10 @@ async function storeTime(req, res) {
   res.status(200).json({ message: "Engagement data received" });
 }
 
-async function getAllPlans(req,res) {
-  try{
-return res.send(await courtroomPlan.find({}))
-  }
-  catch(e){
-
-  }
-
+async function getAllPlans(req, res) {
+  try {
+    return res.send(await courtroomPlan.find({}));
+  } catch (e) {}
 }
 
 module.exports = {
@@ -3249,5 +3238,5 @@ module.exports = {
   printCaseDetails,
   generateHypoDraft,
   createNewPlan,
-  getAllPlans
+  getAllPlans,
 };
