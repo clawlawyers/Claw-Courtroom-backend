@@ -366,6 +366,8 @@ async function getUserDetails(req, res) {
       user: userBooking._id,
     }).populate("plan");
 
+    console.log(userPlan);
+
     return res.status(StatusCodes.OK).json(
       SuccessResponse({
         plan: userPlan?.length > 0 ? userPlan : [],
