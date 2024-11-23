@@ -248,7 +248,7 @@ async function addNewCourtroomUser(
 
     // Respond with the token
     return {
-      plan: userPlan?.length > 0 ? userPlan : [],
+      plan: userPlan,
       ...token,
       userId: userId,
       mongoId: addNewUser._id,
