@@ -6,7 +6,7 @@ const AppError = require("../utils/errors/app-error");
 const CourtRoomBooking = require("../models/courtRoomBooking");
 const CourtroomUser = require("../models/courtroomPricingUser");
 const { comparePassword, generateToken } = require("../utils/coutroom/auth");
-const CourtroomHistory = require("../models/courtroomPricingHistory");
+const CourtroomHistory = require("../models/courtroomFreeHistory");
 const ContactUs = require("../models/contact");
 const {
     sendAdminContactUsNotification,
@@ -976,71 +976,18 @@ async function getClientByUseridForEndCase(userid) {
 
 async function getClientByUserid(userid) {
     try {
-        // Get the current date and hour
-        let currentDate, currentHour;
-
-        if (process.env.NODE_ENV === "production") {
-            // Get current date and time in UTC
-            const now = new Date();
-
-            // Convert to milliseconds
-            const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
-
-            // IST offset is +5:30
-            const istOffset = 5.5 * 60 * 60000;
-
-            // Create new date object for IST
-            const istTime = new Date(utcTime + istOffset);
-
-            currentDate = new Date(
-                Date.UTC(istTime.getFullYear(), istTime.getMonth(), istTime.getDate())
-            );
-            currentHour = istTime.getHours();
-        } else {
-            // Get the current date and hour in local time (for development)
-            const now = new Date();
-            currentDate = new Date(
-                Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-            );
-            currentHour = now.getHours();
-        }
-
-        console.log(currentDate, currentHour);
-
-        // Manual Override for Testing
-        // const formattedDate = new Date("2024-07-23T00:00:00.000Z");
-        // const currentHour = 20;
-
-        // Find existing booking for the current date and hour
-        const booking = await CourtRoomBooking.findOne({
-            date: currentDate,
-            hour: currentHour,
-        }).populate("courtroomBookings");
-
-        // console.log(booking);
-
-        if (!booking) {
-            throw Error("No bookings found for the current time slot.");
-            // return "No bookings found for the current time slot.";
-        }
-
-        // Check if the user with the given phone number is in the booking
-        const userBooking = booking.courtroomBookings.find((courtroomBooking) => {
-            return courtroomBooking.userId == userid;
-        });
-
-        console.log(userBooking);
-
-        return { User_id: userBooking._id, Booking_id: booking };
+      const userBooking = await CourtroomFreeUser.findOne({ userId: userid });
+  
+      return { User_id: userBooking._id };
     } catch (error) {
-        console.error(error);
-        throw new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
+      console.error(error);
+      throw new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
     }
-}
+  }
 
 async function storeCaseHistory(userId, slotId, caseHistoryDetails) {
     try {
-        const user = await CourtroomUser.findById(userId);
+        const user = await CourtroomFreeUser.findById(userId);
 
         // Find the courtroom history by userId and slotId
         let courtroomHistory = await CourtroomHistory.findOne({
@@ -1079,7 +1026,7 @@ async function storeCaseHistory(userId, slotId, caseHistoryDetails) {
 
 async function OverridestoreCaseHistory(userId, slotId, caseHistoryDetails) {
     try {
-        const user = await CourtroomUser.findById(userId);
+        const user = await CourtroomFreeUser.findById(userId);
 
         // Find the courtroom history by userId and slotId
         let courtroomHistory = await CourtroomHistory.findOne({
@@ -1119,6 +1066,7 @@ async function OverridestoreCaseHistory(userId, slotId, caseHistoryDetails) {
 async function getSessionCaseHistory(userId) {
     try {
         console.log(userId);
+        console.log("dashajdskja")
         const caseHistory = await CourtroomHistory.findOne({ userId: userId });
         // console.log("Case history retrieved:", caseHistory);
         return caseHistory;
@@ -1158,7 +1106,7 @@ async function checkFirtVisit(phoneNumber) {
 
 async function isNewCaseHistory(userId) {
     try {
-        const user = await CourtroomUser.findById(userId);
+        const user = await CourtroomFreeUser.findById(userId);
         const currentCaseId = user.caseId;
         const courtroomHistory = await CourtroomHistory.findOne({ userId: userId });
         if (!courtroomHistory) {

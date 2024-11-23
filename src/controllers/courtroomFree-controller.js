@@ -1410,7 +1410,7 @@ async function FetchChangeState(body) {
 }
 
 async function restCase(req, res) {
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
   try {
     const restDetail = await FetchRestCase({ user_id });
     return res.status(StatusCodes.OK).json(SuccessResponse({ restDetail }));
@@ -1522,27 +1522,28 @@ async function FetchHallucinationQuestions(body) {
 }
 
 async function CaseHistory(req, res) {
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
+  console.log(user_id )
   try {
     const caseHistory = await FetchCaseHistory({ user_id });
 
     // save into database or update database with new data if case history is already present in the database
     const { User_id, Booking_id } =
-      await CourtroomPricingService.getClientByUserid(user_id);
+      await CourtroomFreeServices.getClientByUserid(user_id);
 
     console.log(User_id, Booking_id);
-    const isNewCaseHistoryInDB = await CourtroomPricingService.isNewCaseHistory(
+    const isNewCaseHistoryInDB = await CourtroomFreeServices.isNewCaseHistory(
       User_id
     );
 
     if (isNewCaseHistoryInDB) {
-      await CourtroomPricingService.OverridestoreCaseHistory(
+      await CourtroomFreeServices.OverridestoreCaseHistory(
         User_id,
         Booking_id,
         caseHistory
       );
     } else {
-      await CourtroomPricingService.storeCaseHistory(
+      await CourtroomFreeServices.storeCaseHistory(
         User_id,
         Booking_id,
         caseHistory
@@ -1570,7 +1571,8 @@ async function FetchCaseHistory(body) {
       body: JSON.stringify(body),
     });
 
-    // console.log("Response Status:", response.status);
+
+    console.log("Response Status:", response);
     // console.log("Response Headers:", response.headers);
 
     if (!response.ok) {
@@ -1591,13 +1593,16 @@ async function FetchCaseHistory(body) {
 }
 
 async function downloadCaseHistory(req, res) {
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
+  console.log("this is ")
   const response = await axios.get(
     "https://res.cloudinary.com/dumjofgxz/image/upload/v1725968109/gptclaw_l8krlt.png",
     {
       responseType: "arraybuffer",
     }
   );
+  console.log(" this is the user_id")
+  console.log(user_id)
   const imageBuffer = Buffer.from(response.data, "binary");
   try {
     const caseHistory = await FetchCaseHistory({ user_id });
@@ -1710,7 +1715,7 @@ async function downloadCaseHistory(req, res) {
 }
 
 async function downloadSessionCaseHistory(req, res) {
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
   const response = await axios.get(
     "https://res.cloudinary.com/dumjofgxz/image/upload/v1725968109/gptclaw_l8krlt.png",
     {
@@ -1718,19 +1723,18 @@ async function downloadSessionCaseHistory(req, res) {
     }
   );
   const imageBuffer = Buffer.from(response.data, "binary");
-
+  console.log("ASda")
   console.log(user_id);
   try {
-    const { User_id } = await CourtroomPricingService.getClientByUserid(
-      user_id
-    );
+    const user = await CourtroomFreeUser.findOne({userId:user_id})
 
-    if (!User_id) {
+    if (!user) {
       throw new Error("User not found");
     }
+    console.log(user.userId)
 
     const FetchedCaseHistorys =
-      await CourtroomPricingService.getSessionCaseHistory(User_id);
+      await CourtroomFreeServices.getSessionCaseHistory(user._id);
     console.log(FetchedCaseHistorys);
 
     const caseHistorys = FetchedCaseHistorys.history;
@@ -2014,7 +2018,7 @@ async function downloadFirtDraft(req, res) {
 
 async function download(req, res) {
   const { data, type } = req.body;
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
 
   const response = await axios.get(
     "https://res.cloudinary.com/dumjofgxz/image/upload/v1725968109/gptclaw_l8krlt.png",

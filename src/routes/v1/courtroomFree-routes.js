@@ -7,6 +7,7 @@ const {
   CourtroomFreeController,
 } = require("../../controllers");
 const CourtroomFreeUser = require("../../models/courtroomFreeUser");
+const CourtroomHistory = require("../../models/courtroomFreeHistory");
 
 const router = express.Router();
 
@@ -129,8 +130,8 @@ router.post(
 );
 router.post(
   "/api/rest",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.restCase
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.restCase
 );
 router.post(
   "/api/end",
@@ -144,19 +145,19 @@ router.post(
 );
 router.post(
   "/api/history",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.CaseHistory
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.CaseHistory
 );
 router.post(
   "/api/downloadCaseHistory",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.downloadCaseHistory
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.downloadCaseHistory
 );
 router.post(
   "/api/downloadSessionCaseHistory",
 
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.downloadSessionCaseHistory
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.downloadSessionCaseHistory
 );
 
 router.post(
@@ -174,9 +175,9 @@ router.post(
 );
 router.post(
   "/api/download",
-  authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkFreeUserControllerApi,
 
-  CourtroomPricingController.download
+  CourtroomFreeController.download
 );
 router.get(
   "/getHistory",
@@ -352,6 +353,10 @@ router.post(
 
 router.post("/updateUser",  async(req, res) => {
   const user =await CourtroomFreeUser.findOneAndUpdate({phoneNumber:"8603805697"},{todaysSlot:new Date("2024-11-21T10:00:00.000Z")})
+  return res.send(user)
+})
+router.get("/getHistroy",  async(req, res) => {
+  const user =await CourtroomHistory.find({})
   return res.send(user)
 })
 

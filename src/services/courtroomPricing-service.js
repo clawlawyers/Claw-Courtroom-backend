@@ -18,6 +18,7 @@ const TrailCourtroomUser = require("../models/trailCourtRoomUser");
 const CourtroomFeedback = require("../models/courtroomFeedback");
 const CourtroomPricingUser = require("../models/courtroomPricingUser");
 const CourtroomUserPlan = require("../models/courtroomUserPlan");
+const CourtroomFreeUser = require("../models/courtroomFreeUser");
 const { COURTROOM_API_ENDPOINT } = process.env;
 
 async function adminCourtRoomBook(
@@ -823,7 +824,7 @@ async function checkFirtVisit(phoneNumber) {
 
 async function isNewCaseHistory(userId) {
   try {
-    const user = await CourtroomUser.findById(userId);
+    const user = await CourtroomFreeUser.findById(userId);
     const currentCaseId = user.caseId;
     const courtroomHistory = await CourtroomHistory.findOne({ userId: userId });
     if (!courtroomHistory) {
