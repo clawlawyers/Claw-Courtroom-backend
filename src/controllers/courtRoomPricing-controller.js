@@ -23,6 +23,7 @@ const courtroomDiscountCoupon = require("../models/courtroomDiscountCoupon");
 const { Storage } = require("@google-cloud/storage");
 const courtroomPlan = require("../models/CourtroomPlan");
 const CourtroomUserPlan = require("../models/courtroomUserPlan");
+const { default: mongoose } = require("mongoose");
 
 let storage;
 if (process.env.NODE_ENV !== "production") {
@@ -912,7 +913,7 @@ async function getOverviewMultilang1(body) {
     const response = await fetch(
       `${COURTROOM_API_ENDPOINT}/api/new_case_multilang1`,
       {
-        method: "z",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
