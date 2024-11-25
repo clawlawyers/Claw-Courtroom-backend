@@ -24,7 +24,7 @@ const generateTokenForCourtroomPricing = (payload) => {
     const token = jwt.sign(payload, SECRET_KEY, {
       expiresIn: expiresIn.asSeconds(),
     });
-    return { jwt: token, expiresAt };
+    return { token: token, expiresAt };
   } catch (error) {
     throw error;
   }
