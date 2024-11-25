@@ -685,6 +685,7 @@ async function getClientByPhoneNumber(phoneNumber) {
     const userBooking = await CourtroomPricingUser.findOne({
       phoneNumber: phoneNumber,
     });
+    // console.log(userBooking);
 
     return { userBooking };
   } catch (error) {
