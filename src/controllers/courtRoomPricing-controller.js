@@ -356,6 +356,30 @@ async function AdminLoginToCourtRoom(req, res) {
   }
 }
 
+async function registerNewCourtRoomUser(body) {
+  try {
+    console.log(body);
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/user_id`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch user ID: ${response.statusText}`);
+    }
+
+    console.log(response);
+
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching user ID", error);
+    throw error;
+  }
+}
+
 async function getUserDetails(req, res) {
   const userBooking = req.body?.courtroomClient?.userBooking;
   // const token = req.headers["authorization"].split(" ")[1];
@@ -366,6 +390,43 @@ async function getUserDetails(req, res) {
     const userPlan = await CourtroomUserPlan.findOne({
       user: userBooking._id,
     }).populate("plan");
+
+    plan;
+
+    if (userPlan?.usedHours <= userPlan?.plan?.totalTime) {
+      return res.status(StatusCodes.OK).json(
+        SuccessResponse({
+          message: "You have exceeded your time limit",
+        })
+      );
+    }
+    console.log(userBooking);
+
+    let userId;
+
+    if (!userBooking.userId) {
+      const userId1 = await registerNewCourtRoomUser();
+      const updateUser = await CourtroomPricingUser.findByIdAndUpdate(
+        userBooking._id,
+        { userId: userId1.user_id, caseOverview: "NA" },
+        { new: true }
+      );
+      userId = updateUser.userId;
+      userBooking.userId = userId;
+    }
+
+    const resp = await checkUserIdValidity(userBooking.userId);
+
+    if (resp === "VM Restarted, Create User ID") {
+      const userId1 = await registerNewCourtRoomUser();
+      console.log(userId1);
+      const updateUser = await SpecificLawyerCourtroomUser.findByIdAndUpdate(
+        userBooking._id,
+        { userId: userId1.user_id, caseOverview: "NA" },
+        { new: true }
+      );
+      userId = updateUser.userId;
+    }
 
     console.log(userPlan);
 

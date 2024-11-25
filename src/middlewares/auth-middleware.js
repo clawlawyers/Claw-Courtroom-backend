@@ -152,6 +152,28 @@ async function checkSpecificLawyerCourtroomUserId(req, res, next) {
   }
 }
 
+async function checkCourtroomPricingUserId(req, res, next) {
+  try {
+    const user_id = req.body?.courtroomClient?.userBooking?.userId;
+    console.log(user_id);
+
+    const res = await checkUserIdValidity(user_id);
+
+    if (res === "VM Restarted, Create User ID") {
+      console.log("DONE");
+      throw new AppError(
+        "Please refresh the page",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+
+    next();
+  } catch (error) {
+    const errorResponse = ErrorResponse({}, error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(errorResponse);
+  }
+}
+
 async function checkVerifiedLawyer(req, res, next) {
   try {
     const lawyer = await UserService.getUserByPhoneNumber(req.body.phoneNumber);
@@ -254,4 +276,5 @@ module.exports = {
   checkSpecificLawyerCourtroomAuth,
   checkSpecificLawyerCourtroomUserId,
   checkFreeUserControllerApi,
+  checkCourtroomPricingUserId,
 };
