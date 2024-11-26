@@ -1264,7 +1264,7 @@ async function FetchSummary(body) {
 
 async function relevantCasesJudgeLawyer(req, res) {
   try {
-    const user_id = req.body?.courtroomClient?.userBooking?.userId;
+    const user_id = req.body?.userId;
     const { text_input } = req.body;
     const relevantCases = await FetchRelevantCasesJudgeLawyer({
       user_id,
@@ -1366,7 +1366,7 @@ async function FetchGetDraft(body) {
 }
 
 async function changeState(req, res) {
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
 
   try {
     const changeState = await FetchChangeState({ user_id });
@@ -2129,7 +2129,7 @@ async function download(req, res) {
 }
 
 async function getHistory(req, res) {
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
   try {
     const caseHistory = await FetchCaseHistory({ user_id });
 

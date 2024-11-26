@@ -479,7 +479,8 @@ async function loginToCourtRoom(phoneNumber, name) {
          })
          
          const token = generateToken({ userId:newUser.userId, id:newUser._id});
-         token["slot"]=user.todaysSlot
+         token["slot"]=newUser.todaysSlot
+         token["caseOverview"]=newUser.caseOverview
          return  token
         }
 
@@ -508,6 +509,7 @@ async function loginToCourtRoom(phoneNumber, name) {
    })
              const token = generateToken({ userId:user.userId, id:user._id});
              token["slot"]=user.todaysSlot
+             token["caseOverview"]=user.caseOverview
              return  token
              
          }
@@ -519,6 +521,7 @@ async function loginToCourtRoom(phoneNumber, name) {
 
             const token = generateToken({ userId:user.userId, id:user._id});
             token["slot"]=user.todaysSlot
+            token["caseOverview"]=user.caseOverview
             return  token
         }
 
