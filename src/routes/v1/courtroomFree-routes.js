@@ -108,8 +108,8 @@ router.post(
 
 router.post(
   "/api/relevant_cases_judge_lawyer_updated",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.relevantCasesJudgeLawyer
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.relevantCasesJudgeLawyer
 );
 
 router.post(
@@ -125,8 +125,8 @@ router.post(
 );
 router.post(
   "/api/change_states",
-  authMiddleware.checkCourtroomAuth,
-  CourtroomPricingController.changeState
+  authMiddleware.checkFreeUserControllerApi,
+  CourtroomFreeController.changeState
 );
 router.post(
   "/api/rest",
@@ -181,9 +181,9 @@ router.post(
 );
 router.get(
   "/getHistory",
-  authMiddleware.checkCourtroomAuth,
+  authMiddleware.checkFreeUserControllerApi,
 
-  CourtroomPricingController.getHistory
+  CourtroomFreeController.getHistory
 );
 
 router.post(
