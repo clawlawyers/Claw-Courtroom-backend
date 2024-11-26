@@ -19,6 +19,7 @@ const CourtroomFeedback = require("../models/courtroomFeedback");
 const CourtroomPricingUser = require("../models/courtroomPricingUser");
 const CourtroomUserPlan = require("../models/courtroomUserPlan");
 const CourtroomFreeUser = require("../models/courtroomFreeUser");
+const courtroomPlan = require("../models/CourtroomPlan");
 const { COURTROOM_API_ENDPOINT } = process.env;
 
 async function adminCourtRoomBook(
@@ -192,14 +193,38 @@ async function createCourtRoomUser(
 
 async function addNewPlan(mongoId, planId, endDate) {
   try {
-    const user = await CourtroomUser.findById(mongoId);
+    // const user = await CourtroomUser.findById(mongoId);
+    let usedHours = 0;
+    const existingPlan = await CourtroomUserPlan.find({
+      user: mongoId,
+    }).populate("plan");
+
+    if (existingPlan.length > 0) {
+      existingPlan.forEach((plan) => {
+        if (plan.plan.duration === "Daily") {
+          usedHours = plan.usedHours;
+        }
+      });
+    }
+
+    await CourtroomUserPlan.deleteMany({ user: mongoId });
+
+    let flag = false;
+
+    const durationOfNewPlan = await courtroomPlan.findOne({ _id: planId });
+
+    if (durationOfNewPlan.duration === "Daily") {
+      flag = true;
+    }
+
     const updatePlan = await CourtroomUserPlan.create({
       plan: planId,
-      user: user._id,
-      usedHours: 0,
+      user: mongoId,
+      usedHours: flag ? usedHours : 0,
       isActive: true,
       endData: endDate,
     });
+
     return { updatePlan };
   } catch (error) {
     console.error(error);
@@ -685,6 +710,7 @@ async function getClientByPhoneNumber(phoneNumber) {
     const userBooking = await CourtroomPricingUser.findOne({
       phoneNumber: phoneNumber,
     });
+    // console.log(userBooking);
 
     return { userBooking };
   } catch (error) {

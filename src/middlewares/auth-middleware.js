@@ -57,19 +57,19 @@ async function checkClientAuth(req, res, next) {
 async function checkCourtroomAuth(req, res, next) {
   try {
     const token = req.headers["authorization"].split(" ")[1];
-    console.log(token);
+    // console.log(token);
     if (!token) {
       throw new AppError("Missing jwt token", StatusCodes.BAD_REQUEST);
     }
     const response = verifyTokenCR(token);
-    console.log(response);
+    // console.log(response);
     const client = await CourtroomPricingService.getClientByPhoneNumber(
       response.phoneNumber
     );
     if (!client) {
       throw new AppError("No user found", StatusCodes.NOT_FOUND);
     }
-    console.log(client);
+    // console.log(client);
     req.body.courtroomClient = client;
     next();
   } catch (error) {
@@ -133,6 +133,28 @@ async function checkSpecificLawyerCourtroomAuth(req, res, next) {
 async function checkSpecificLawyerCourtroomUserId(req, res, next) {
   try {
     const user_id = req.body?.courtroomClient?.userId;
+    console.log(user_id);
+
+    const res = await checkUserIdValidity(user_id);
+
+    if (res === "VM Restarted, Create User ID") {
+      console.log("DONE");
+      throw new AppError(
+        "Please refresh the page",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+
+    next();
+  } catch (error) {
+    const errorResponse = ErrorResponse({}, error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(errorResponse);
+  }
+}
+
+async function checkCourtroomPricingUserId(req, res, next) {
+  try {
+    const user_id = req.body?.courtroomClient?.userBooking?.userId;
     console.log(user_id);
 
     const res = await checkUserIdValidity(user_id);
@@ -254,4 +276,5 @@ module.exports = {
   checkSpecificLawyerCourtroomAuth,
   checkSpecificLawyerCourtroomUserId,
   checkFreeUserControllerApi,
+  checkCourtroomPricingUserId,
 };
