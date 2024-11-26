@@ -508,7 +508,7 @@ async function loginToCourtRoom(phoneNumber, name) {
     todaysSlot:currentDate
    })
              const token = generateToken({ userId:user.userId, id:user._id});
-             token["slot"]=user.todaysSlot
+             token["slot"]=currentDate
              token["caseOverview"]=user.caseOverview
              return  token
              
