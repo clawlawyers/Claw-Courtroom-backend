@@ -24,6 +24,7 @@ const { Storage } = require("@google-cloud/storage");
 const courtroomPlan = require("../models/CourtroomPlan");
 const CourtroomUserPlan = require("../models/courtroomUserPlan");
 const { default: mongoose } = require("mongoose");
+const { checkUserIdValidity } = require("../utils/common/auth");
 
 let storage;
 if (process.env.NODE_ENV !== "production") {
@@ -390,10 +391,9 @@ async function getUserDetails(req, res) {
     const userPlan = await CourtroomUserPlan.findOne({
       user: userBooking._id,
     }).populate("plan");
+    console.log(userPlan);
 
-    plan;
-
-    if (userPlan?.usedHours <= userPlan?.plan?.totalTime) {
+    if (userPlan?.usedHours >= userPlan?.plan?.totalTime) {
       return res.status(StatusCodes.OK).json(
         SuccessResponse({
           message: "You have exceeded your time limit",
@@ -420,7 +420,7 @@ async function getUserDetails(req, res) {
     if (resp === "VM Restarted, Create User ID") {
       const userId1 = await registerNewCourtRoomUser();
       console.log(userId1);
-      const updateUser = await SpecificLawyerCourtroomUser.findByIdAndUpdate(
+      const updateUser = await CourtroomPricingUser.findByIdAndUpdate(
         userBooking._id,
         { userId: userId1.user_id, caseOverview: "NA" },
         { new: true }
@@ -440,7 +440,8 @@ async function getUserDetails(req, res) {
       })
     );
   } catch (error) {
-    const errorResponse = ErrorResponse({}, error);
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
