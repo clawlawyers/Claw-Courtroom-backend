@@ -217,13 +217,17 @@ async function addNewPlan(mongoId, planId, endDate) {
       flag = true;
     }
 
-    const updatePlan = await CourtroomUserPlan.create({
+    let updatePlan = await CourtroomUserPlan.create({
       plan: planId,
       user: mongoId,
       usedHours: flag ? usedHours : 0,
       isActive: true,
       endData: endDate,
     });
+
+    updatePlan = await CourtroomUserPlan.findById(updatePlan._id).populate(
+      "plan"
+    );
 
     return { updatePlan };
   } catch (error) {
