@@ -169,7 +169,7 @@ async function checkCourtroomPricingUserId(req, res, next) {
 
     next();
   } catch (error) {
-    const errorResponse = ErrorResponse({}, error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
 }

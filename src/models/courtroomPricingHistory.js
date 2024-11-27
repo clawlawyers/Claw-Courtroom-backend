@@ -15,7 +15,7 @@ const CaseHistorySchema = new Schema({
 });
 
 // Define the courtroom history schema
-const CourtroomHistorySchema = new Schema(
+const CourtroomPricingHistorySchema = new Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -28,9 +28,9 @@ const CourtroomHistorySchema = new Schema(
   { timestamps: true }
 );
 
-const CourtroomHistory = mongoose.model(
+const CourtroomPricingHistory = mongoose.model(
   "CourtroomPricingHistory",
-  CourtroomHistorySchema
+  CourtroomPricingHistorySchema
 );
 
-module.exports = CourtroomHistory;
+module.exports = CourtroomPricingHistory;

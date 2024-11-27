@@ -20,6 +20,7 @@ const CourtroomPricingUser = require("../models/courtroomPricingUser");
 const CourtroomUserPlan = require("../models/courtroomUserPlan");
 const CourtroomFreeUser = require("../models/courtroomFreeUser");
 const courtroomPlan = require("../models/CourtroomPlan");
+const CourtroomPricingHistory = require("../models/courtroomPricingHistory");
 const { COURTROOM_API_ENDPOINT } = process.env;
 
 async function adminCourtRoomBook(
@@ -749,16 +750,16 @@ async function getClientByUserid(userid) {
 
 async function storeCaseHistory(userId, caseHistoryDetails) {
   try {
-    const user = await CourtroomUser.findById(userId);
+    const user = await CourtroomPricingUser.findById(userId);
 
     // Find the courtroom history by userId and slotId
-    let courtroomHistory = await CourtroomHistory.findOne({
+    let courtroomHistory = await CourtroomPricingHistory.findOne({
       userId: userId,
     });
 
     if (!courtroomHistory) {
       // Create a new courtroom history if it doesn't exist
-      courtroomHistory = new CourtroomHistory({
+      courtroomHistory = new CourtroomPricingHistory({
         userId: userId,
         history: [],
         latestCaseHistory: {},
@@ -786,10 +787,10 @@ async function storeCaseHistory(userId, caseHistoryDetails) {
 
 async function OverridestoreCaseHistory(userId, caseHistoryDetails) {
   try {
-    const user = await CourtroomUser.findById(userId);
+    const user = await CourtroomPricingUser.findById(userId);
 
     // Find the courtroom history by userId and slotId
-    let courtroomHistory = await CourtroomHistory.findOne({
+    let courtroomHistory = await CourtroomPricingHistory.findOne({
       userId: userId,
     });
 
@@ -854,9 +855,11 @@ async function checkFirtVisit(phoneNumber) {
 
 async function isNewCaseHistory(userId) {
   try {
-    const user = await CourtroomFreeUser.findById(userId);
-    const currentCaseId = user.caseId;
-    const courtroomHistory = await CourtroomHistory.findOne({ userId: userId });
+    const user = await CourtroomPricingUser.findById(userId);
+    const currentCaseId = user?.caseId;
+    const courtroomHistory = await CourtroomPricingHistory.findOne({
+      userId: userId,
+    });
     if (!courtroomHistory) {
       return false; // inster new case history entry
     }
@@ -864,7 +867,7 @@ async function isNewCaseHistory(userId) {
     if (
       currentCaseId === historyCaseId &&
       courtroomHistory &&
-      courtroomHistory.history.length > 0
+      courtroomHistory?.history?.length > 0
     ) {
       return true; // override case history
     } else {
