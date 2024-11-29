@@ -1485,7 +1485,8 @@ async function hallucination_questions(req, res) {
       .status(StatusCodes.OK)
       .json(SuccessResponse({ hallucinationQuestions }));
   } catch (error) {
-    const errorResponse = ErrorResponse({}, error);
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
