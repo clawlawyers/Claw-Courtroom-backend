@@ -175,6 +175,29 @@ async function checkCourtroomPricingUserId(req, res, next) {
   }
 }
 
+async function checkCourtroomFreeUserId(req, res, next) {
+  try {
+    const user_id = req.body?.userId;
+    console.log(user_id);
+
+    const res = await checkUserIdValidity(user_id);
+
+    if (res === "VM Restarted, Create User ID") {
+      console.log("DONE");
+      throw new AppError(
+        "Please refresh the page",
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+
+    next();
+  } catch (error) {
+    console.log(error.explanation);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(errorResponse);
+  }
+}
+
 async function checkVerifiedLawyer(req, res, next) {
   try {
     const lawyer = await UserService.getUserByPhoneNumber(req.body.phoneNumber);
@@ -220,7 +243,7 @@ async function checkFreeUserControllerApi(req, res, next) {
   console.log(token);
   const response = verifyToken(token);
   console.log(response);
-  const user = await CourtroomFreeUser.findOne({ userId: response.userId });
+  const user = await CourtroomFreeUser.findOne({ _id: response.id });
   console.log(user);
   if (!user) {
     return res.status(401);
@@ -262,6 +285,7 @@ async function checkFreeUserControllerApi(req, res, next) {
   // if(ifFreeUserIsValid){
   req.body.id = response.id;
   req.body.userId = response.userId;
+  req.user = user;
   next();
   // }
   // else return res.status(401)
@@ -278,4 +302,5 @@ module.exports = {
   checkSpecificLawyerCourtroomUserId,
   checkFreeUserControllerApi,
   checkCourtroomPricingUserId,
+  checkCourtroomFreeUserId,
 };

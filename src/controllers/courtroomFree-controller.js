@@ -20,6 +20,7 @@ const { Storage } = require("@google-cloud/storage");
 const courtroomPlan = require("../models/CourtroomPlan");
 const { CourtroomFreeServices } = require("../services");
 const CourtroomFreeUser = require("../models/courtroomFreeUser");
+const { checkUserIdValidity } = require("../utils/common/auth");
 
 let storage;
 if (process.env.NODE_ENV !== "production") {
@@ -409,37 +410,72 @@ async function AdminLoginToCourtRoom(req, res) {
   }
 }
 
-async function getUserDetails(req, res) {
-  const { courtroomClient } = req.body;
+async function registerNewCourtRoomUser(body) {
   try {
-    console.log(courtroomClient);
-    // Generate a JWT token
-    const token = generateToken({
-      userId: courtroomClient.userBooking._id,
-      phoneNumber: courtroomClient.userBooking.phoneNumber,
+    console.log(body);
+    const response = await fetch(`${COURTROOM_API_ENDPOINT}/user_id`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
     });
-    console.log(courtroomClient);
 
-    // console.log(token, courtroomClient);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch user ID: ${response.statusText}`);
+    }
 
-    // console.log({
-    //   ...token,
-    //   userId: courtroomClient.userId,
-    //   phoneNumber: courtroomClient.phoneNumber,
-    // });
+    console.log(response);
 
-    console.log("here");
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching user ID", error);
+    throw error;
+  }
+}
+
+async function getUserDetails(req, res) {
+  const userBooking = req.user;
+
+  try {
+    console.log(userBooking);
+
+    let userId;
+
+    if (!userBooking.userId) {
+      const userId1 = await registerNewCourtRoomUser();
+      const updateUser = await CourtroomFreeUser.findByIdAndUpdate(
+        userBooking._id,
+        { userId: userId1.user_id, caseOverview: "NA" },
+        { new: true }
+      );
+      userId = updateUser.userId;
+      userBooking.userId = userId;
+    }
+
+    const resp = await checkUserIdValidity(userBooking.userId);
+
+    if (resp === "VM Restarted, Create User ID") {
+      const userId1 = await registerNewCourtRoomUser();
+      console.log(userId1);
+      const updateUser = await CourtroomFreeUser.findByIdAndUpdate(
+        userBooking._id,
+        { userId: userId1.user_id, caseOverview: "NA" },
+        { new: true }
+      );
+      userId = updateUser.userId;
+    }
 
     return res.status(StatusCodes.OK).json(
       SuccessResponse({
-        slotTime: courtroomClient.slotTime,
-        ...token,
-        userId: courtroomClient.userBooking._id,
-        phoneNumber: courtroomClient.userBooking.phoneNumber,
+        userId: userBooking.userId,
+        mongoId: userBooking._id,
+        phoneNumber: userBooking.phoneNumber,
       })
     );
   } catch (error) {
-    const errorResponse = ErrorResponse({}, error);
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error.message);
     return res
       .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
       .json(errorResponse);
