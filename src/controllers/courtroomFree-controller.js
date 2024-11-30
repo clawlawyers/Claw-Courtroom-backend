@@ -1132,12 +1132,12 @@ async function FetchEdit_Case(body) {
 }
 
 async function getCaseOverview(req, res) {
-  const user_id = req.body?.courtroomClient?.userBooking?.userId;
+  const user_id = req.body?.userId;
 
   console.log(user_id);
   try {
     // Find the CourtroomUser document by userId
-    const courtroomUser = await CourtroomUser.findOne({ userId: user_id });
+    const courtroomUser = await CourtroomFreeUser.findOne({ userId: user_id });
 
     console.log(courtroomUser);
 
