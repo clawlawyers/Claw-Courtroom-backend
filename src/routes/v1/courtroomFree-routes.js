@@ -337,8 +337,8 @@ router.post("/verify-coupon", CourtroomPricingController.verifyCoupon);
 // AddContactUsQuery Route
 router.post(
   "/api/feedback",
-  authMiddleware.checkFreeUserControllerApi,
-  authMiddleware.checkCourtroomFreeUserId,
+  // authMiddleware.checkFreeUserControllerApi,
+  // authMiddleware.checkCourtroomFreeUserId,
   CourtroomFreeController.Courtroomfeedback
 );
 router.post(
