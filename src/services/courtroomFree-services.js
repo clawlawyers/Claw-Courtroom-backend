@@ -484,7 +484,7 @@ async function loginToCourtRoom(phoneNumber, name) {
       const token = generateToken({ userId: newUser.userId, id: newUser._id });
       token["slot"] = newUser.todaysSlot;
       token["caseOverview"] = newUser.caseOverview;
-      return token;
+      return { ...token, userId: newUser.userId };
     }
 
     const todaysSlot = new Date(user.todaysSlot);
@@ -519,19 +519,22 @@ async function loginToCourtRoom(phoneNumber, name) {
         { userId: user.userId },
         {
           todaysSlot: currentDate,
+        },
+        {
+          new: true,
         }
       );
       const token = generateToken({ userId: user.userId, id: user._id });
       token["slot"] = currentDate;
       token["caseOverview"] = user.caseOverview;
-      return token;
+      return { ...token, userId: update.userId };
     } else if (slot > currentDate) {
       console.log("SLOT");
 
       const token = generateToken({ userId: user.userId, id: user._id });
       token["slot"] = user.todaysSlot;
       token["caseOverview"] = user.caseOverview;
-      return token;
+      return { ...token, userId: user.userId };
     }
 
     if (user.name != name) {
@@ -541,92 +544,6 @@ async function loginToCourtRoom(phoneNumber, name) {
     }
 
     return { message: "inavlid session" };
-
-    // let currentDate, currentHour;
-
-    // if (process.env.NODE_ENV === "production") {
-    //     // Get current date and time in UTC
-    //     const now = new Date();
-
-    //     // Convert to milliseconds
-    //     const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
-
-    //     // IST offset is +5:30
-    //     const istOffset = 5.5 * 60 * 60000;
-
-    //     // Create new date object for IST
-    //     const istTime = new Date(utcTime + istOffset);
-
-    //     currentDate = new Date(
-    //         Date.UTC(istTime.getFullYear(), istTime.getMonth(), istTime.getDate())
-    //     );
-    //     currentHour = istTime.getHours();
-    // } else {
-    //     // Get the current date and hour in local time (for development)
-    //     const now = new Date();
-    //     currentDate = new Date(
-    //         Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-    //     );
-    //     currentHour = now.getHours();
-    // }
-
-    // console.log(currentDate, currentHour);
-
-    // const currentDate = "2024-07-30";
-    // const currentHour = 14;
-
-    // Find existing booking for the current date and hour
-    // const booking = await CourtRoomBooking.findOne({
-    //     date: currentDate,
-    //     hour: currentHour,
-    // // }).populate("courtroomBookings");
-
-    // if (!booking) {
-    //     return "No bookings found for the current time slot.";
-    // }
-
-    // console.log(booking);
-
-    // console.log(booking.courtroomBookings.length);
-
-    // Check if the user with the given phone number is in the booking
-    // const userBooking = booking.courtroomBookings.find((courtroomBooking) => {
-    //     console.log(courtroomBooking.phoneNumber, phoneNumber);
-    //     return courtroomBooking.phoneNumber == phoneNumber;
-    // });
-
-    // console.log(userBooking);
-
-    // if (!userBooking) {
-    //     return "Invalid phone number";
-    // }
-
-    // Check if the password is correct
-
-    // Generate a JWT token
-    // const token = generateToken({
-    //     userId: userBooking._id,
-    //     phoneNumber: userBooking.phoneNumber,
-    // });
-
-    // let userId;
-
-    // if (!userBooking.userId) {
-    //     const userId1 = await registerNewCourtRoomUser();
-    //     userBooking.userId = userId1.user_id;
-    //     userId = userId1.user_id;
-    //     await userBooking.save();
-    // } else {
-    //     userId = userBooking.userId;
-    // }
-
-    // // Respond with the token
-    // return {
-    //     slotTime: booking.hour,
-    //     ...token,
-    //     userId: userId,
-    //     phoneNumber: userBooking.phoneNumber,
-    // };
   } catch (error) {
     console.error(error);
     throw new AppError(error.message, StatusCodes.INTERNAL_SERVER_ERROR);
