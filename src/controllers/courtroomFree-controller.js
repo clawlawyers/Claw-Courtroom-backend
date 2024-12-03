@@ -2996,10 +2996,10 @@ async function Courtroomfeedback(req, res) {
     // const _id = req.body?.courtroomClient?.userBooking?._id;
     const { rating, feedback, userId } = req.body;
 
-    const { User_id, Booking_id } =
+    const { User_id } =
       await CourtroomPricingService.getClientByUseridForEndCase(userId);
 
-    const SetFeedback = await CourtroomPricingService.setFeedback(
+    const SetFeedback = await CourtroomFreeServices.setFeedback(
       User_id,
       rating,
       feedback
