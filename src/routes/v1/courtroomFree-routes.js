@@ -8,6 +8,7 @@ const {
 } = require("../../controllers");
 const CourtroomFreeUser = require("../../models/courtroomFreeUser");
 const CourtroomHistory = require("../../models/courtroomFreeHistory");
+const { verifyClientMiddleware } = require("../../middlewares/auth-middleware");
 
 const router = express.Router();
 
@@ -25,7 +26,11 @@ router.post(
   CourtroomPricingController.bookCourtRoomValidation
 );
 router.get("/book-courtroom", CourtroomPricingController.getBookedData);
-router.post("/login", CourtroomFreeController.loginToCourtRoom);
+router.post(
+  "/login",
+  verifyClientMiddleware,
+  CourtroomFreeController.loginToCourtRoom
+);
 router.post(
   "/admin-login-validation",
   CourtroomFreeController.adminLoginValidation
