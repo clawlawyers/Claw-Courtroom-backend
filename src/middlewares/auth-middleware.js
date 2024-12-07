@@ -13,6 +13,7 @@ const AppError = require("../utils/errors/app-error");
 const { verifyTokenCR } = require("../utils/coutroom/auth");
 const CourtroomFeedback = require("../models/courtroomFeedback");
 const CourtroomFreeUser = require("../models/courtroomFreeUser");
+var jwt = require("jsonwebtoken");
 
 async function checkUserAuth(req, res, next) {
   try {
@@ -291,6 +292,30 @@ async function checkFreeUserControllerApi(req, res, next) {
   // else return res.status(401)
 }
 
+async function verifyClientMiddleware(req, res, next) {
+  try {
+    const token = req.headers["auth-token"]; // or req.get('auth-token')
+    if (!token) {
+      res
+        .status(401)
+        .send({ error: "Please authenticate using a valid token" });
+    }
+    let data = jwt.verify(token, "abcdefghijk1234@#");
+    console.log(data);
+
+    if (data.verified) {
+      req.body.phoneNumber = data.phone;
+      console.log(data);
+
+      next();
+    }
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error);
+    res.status(StatusCodes.BAD_REQUEST).json(errorResponse);
+  }
+}
+
 module.exports = {
   checkUserAuth,
   checkClientAuth,
@@ -303,4 +328,5 @@ module.exports = {
   checkFreeUserControllerApi,
   checkCourtroomPricingUserId,
   checkCourtroomFreeUserId,
+  verifyClientMiddleware,
 };

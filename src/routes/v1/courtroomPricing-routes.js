@@ -3,6 +3,7 @@ const express = require("express");
 const { authMiddleware } = require("../../middlewares");
 const multer = require("multer");
 const { CourtroomPricingController } = require("../../controllers");
+const { verifyClientMiddleware } = require("../../middlewares/auth-middleware");
 
 const router = express.Router();
 
@@ -14,7 +15,11 @@ router.post("/create-new-plan", CourtroomPricingController.createNewPlan);
 
 router.get("/getAllPlans", CourtroomPricingController.getAllPlans);
 
-router.post("/book-courtroom", CourtroomPricingController.bookCourtRoom);
+router.post(
+  "/book-courtroom",
+  verifyClientMiddleware,
+  CourtroomPricingController.bookCourtRoom
+);
 router.post(
   "/adminLogin/book-courtroom",
   CourtroomPricingController.adminLoginBookCourtRoom
