@@ -294,30 +294,44 @@ async function checkFreeUserControllerApi(req, res, next) {
 
 async function verifyClientMiddleware(req, res, next) {
   try {
-    const token = req.headers["auth-token"]; // or req.get('auth-token')
+    const token = req.headers["auth-token"]; // Get the token from the request header
+
     if (!token) {
+      // If no token is provided, check if the user is a "Guest"
       const { name } = req.body;
 
       if (name === "Guest") {
-        next();
+        // Allow the request to proceed if the name is "Guest"
+        return next();
       }
-      res
+
+      // If no token and not a "Guest", return an error
+      return res
         .status(401)
         .send({ error: "Please authenticate using a valid token" });
     }
+
+    // If token exists, verify it
     let data = jwt.verify(token, "abcdefghijk1234@#");
     console.log(data);
 
+    // If token is verified and valid, attach user phone number to request body
     if (data.verified) {
       req.body.phoneNumber = data.phone;
       console.log(data);
 
-      next();
+      // Proceed to the next middleware or route handler
+      return next();
+    } else {
+      // If token is not verified, return an error
+      return res.status(401).send({ error: "Invalid or expired token" });
     }
   } catch (error) {
     console.log(error);
+
+    // Handle any unexpected errors
     const errorResponse = ErrorResponse({}, error);
-    res.status(StatusCodes.BAD_REQUEST).json(errorResponse);
+    return res.status(StatusCodes.BAD_REQUEST).json(errorResponse);
   }
 }
 
