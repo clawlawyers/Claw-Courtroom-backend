@@ -5,7 +5,6 @@ const Schema = mongoose.Schema;
 const CaseHistorySchema = new Schema({
   caseId: {
     type: String,
-    required: true,
   },
   argument: [{ type: String, required: true }],
   counter_argument: [{ type: String, required: true }],
