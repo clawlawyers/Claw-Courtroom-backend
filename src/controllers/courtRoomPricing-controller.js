@@ -3,7 +3,10 @@ const {
   generateToken,
   generateTokenForCourtroomPricing,
 } = require("../utils/coutroom/auth");
-const { sendConfirmationEmail } = require("../utils/coutroom/sendEmail");
+const {
+  sendConfirmationEmail,
+  sendOTP,
+} = require("../utils/coutroom/sendEmail");
 const CourtroomPricingService = require("../services/courtroomPricing-service");
 const { ErrorResponse, SuccessResponse } = require("../utils/common");
 const { StatusCodes } = require("http-status-codes");
@@ -24,7 +27,12 @@ const { Storage } = require("@google-cloud/storage");
 const courtroomPlan = require("../models/CourtroomPlan");
 const CourtroomUserPlan = require("../models/courtroomUserPlan");
 const { default: mongoose } = require("mongoose");
-const { checkUserIdValidity } = require("../utils/common/auth");
+const {
+  checkUserIdValidity,
+  createToken,
+  ResetPasswordCreateToken,
+} = require("../utils/common/auth");
+const ResetPassword = require("../models/resetPassword");
 
 let storage;
 if (process.env.NODE_ENV !== "production") {
@@ -2964,6 +2972,81 @@ async function Courtroomfeedback(req, res) {
   }
 }
 
+async function resetPasswordSendOtp(req, res) {
+  try {
+    const email = req.body.email;
+    const user = await CourtroomPricingService.getUserByEmail(email);
+    if (!user) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json(ErrorResponse({}, "User not found"));
+    }
+    const otp = CourtroomPricingService.generateOTP();
+    await sendOTP(email, otp);
+    await ResetPassword.create({
+      phoneOrEmail: email,
+      otp: otp,
+    });
+    return res
+      .status(StatusCodes.OK)
+      .json(SuccessResponse({ message: "OTP sent" }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function resetPasswordVerifyOtp(req, res) {
+  try {
+    const { email, otp } = req.body;
+    const resetPassword = await ResetPassword.findOne({
+      phoneOrEmail: email,
+      otp: otp,
+    });
+    if (!resetPassword) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json(ErrorResponse({}, "Invalid OTP"));
+    }
+    const token = ResetPasswordCreateToken({ email });
+    await resetPassword.deleteOne();
+    return res
+      .status(StatusCodes.OK)
+      .json(SuccessResponse({ message: "OTP verified", token }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function resetPasswordResetPassword(req, res) {
+  try {
+    const { email, password } = req.body;
+    const user = await CourtroomPricingService.getUserByEmail(email);
+    if (!user) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json(ErrorResponse({}, "User not found"));
+    }
+    await CourtroomPricingService.updateUserPassword(email, password);
+    return res
+      .status(StatusCodes.OK)
+      .json(SuccessResponse({ message: "Password reset successfully" }));
+  } catch (error) {
+    console.error(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
 async function AddContactUsQuery(req, res) {
   const {
     firstName,
@@ -3240,4 +3323,7 @@ module.exports = {
   generateHypoDraft,
   createNewPlan,
   getAllPlans,
+  resetPasswordSendOtp,
+  resetPasswordVerifyOtp,
+  resetPasswordResetPassword,
 };

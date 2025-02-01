@@ -6,6 +6,7 @@ const {
   comparePassword,
   generateToken,
   generateTokenForCourtroomPricing,
+  hashPassword,
 } = require("../utils/coutroom/auth");
 const CourtroomHistory = require("../models/courtroomPricingHistory");
 const ContactUs = require("../models/contact");
@@ -903,6 +904,35 @@ async function updateClientByIdWithSession(id, updateData, session) {
   }
 }
 
+async function getUserByEmail(email) {
+  try {
+    const user = await CourtroomPricingUser.findOne({ email: email });
+    return user;
+  } catch (error) {
+    console.error(`Error fetching user by email:`, error);
+    throw error;
+  }
+}
+
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function updateUserPassword(email, password) {
+  try {
+    const hashedPassword = await hashPassword(password);
+    const user = await CourtroomPricingUser.findOneAndUpdate(
+      { email: email },
+      { password: hashedPassword },
+      { new: true }
+    );
+    return user;
+  } catch (error) {
+    console.error(`Error updating user password:`, error);
+    throw error;
+  }
+}
+
 module.exports = {
   getClientByIdWithSession,
   updateClientByIdWithSession,
@@ -925,4 +955,7 @@ module.exports = {
   isNewCaseHistory,
   OverridestoreCaseHistory,
   addNewCourtroomUser,
+  getUserByEmail,
+  generateOTP,
+  updateUserPassword,
 };

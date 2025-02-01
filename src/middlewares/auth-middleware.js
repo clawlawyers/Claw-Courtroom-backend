@@ -8,7 +8,11 @@ const {
 } = require("../services");
 const { ErrorResponse } = require("../utils/common/");
 const { StatusCodes } = require("http-status-codes");
-const { verifyToken, checkUserIdValidity } = require("../utils/common/auth");
+const {
+  verifyToken,
+  checkUserIdValidity,
+  ResetPasswordVerifyToken,
+} = require("../utils/common/auth");
 const AppError = require("../utils/errors/app-error");
 const { verifyTokenCR } = require("../utils/coutroom/auth");
 const CourtroomFeedback = require("../models/courtroomFeedback");
@@ -335,6 +339,27 @@ async function verifyClientMiddleware(req, res, next) {
   }
 }
 
+async function checkUserPasswordReset(req, res, next) {
+  try {
+    console.log("Here");
+    // console.log(req.headers["passwordrest-token"]);
+    const token = req.headers["passwordrest-token"]; // Get the token from the request header
+    if (!token) {
+      throw new AppError("Missing jwt token", StatusCodes.BAD_REQUEST);
+    }
+    console.log(token);
+    let data = ResetPasswordVerifyToken(token);
+    console.log(data);
+    const email = data.email;
+    req.body.email = email;
+    return next();
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(errorResponse);
+  }
+}
+
 module.exports = {
   checkUserAuth,
   checkClientAuth,
@@ -348,4 +373,5 @@ module.exports = {
   checkCourtroomPricingUserId,
   checkCourtroomFreeUserId,
   verifyClientMiddleware,
+  checkUserPasswordReset,
 };

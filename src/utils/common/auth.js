@@ -57,7 +57,28 @@ function createToken(payload) {
 
 function verifyToken(token) {
   try {
-    return jwt.verify(token, SECRET_KEY);
+    const res = jwt.verify(token, SECRET_KEY);
+    return res;
+  } catch (error) {
+    throw error;
+  }
+}
+
+function ResetPasswordCreateToken(payload) {
+  try {
+    const token = jwt.sign(payload, SECRET_KEY, {
+      expiresIn: "1h",
+    });
+    return { jwt: token };
+  } catch (error) {
+    throw error;
+  }
+}
+
+function ResetPasswordVerifyToken(token) {
+  try {
+    const res = jwt.verify(token, SECRET_KEY);
+    return res;
   } catch (error) {
     throw error;
   }
@@ -68,4 +89,6 @@ module.exports = {
   createToken,
   verifyToken,
   checkUserIdValidity,
+  ResetPasswordCreateToken,
+  ResetPasswordVerifyToken,
 };

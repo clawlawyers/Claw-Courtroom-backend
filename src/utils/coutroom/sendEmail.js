@@ -111,6 +111,8 @@ const sendConfirmationEmail = async (
     },
   });
 
+  const template = handlebars.compile(htmlTemplate);
+
   const filledTemplate = template({
     name,
     phoneNumber,
@@ -134,6 +136,70 @@ const sendConfirmationEmail = async (
   }
   // console.log(info);
 };
+
+const sendResetOtpEmail = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Password Reset OTP</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; text-align: center;">
+  <div style="max-width: 500px; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin: auto;">
+    <h2 style="color: #333;">Password Reset Request</h2>
+    <p style="color: #555; font-size: 16px;">We received a request to reset your password. Use the OTP below to proceed:</p>
+    <div style="font-size: 24px; font-weight: bold; color: #2d89ef; padding: 10px 20px; background-color: #f0f8ff; border-radius: 5px; display: inline-block;">
+      {{otp}}
+    </div>
+    <p style="color: #555; font-size: 14px; margin-top: 20px;">
+      This OTP is valid for 5 minutes. Do not share it with anyone.
+    </p>
+    <p style="color: #555; font-size: 14px;">
+      If you didn't request this, please ignore this email or secure your account.
+    </p>
+    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+    <p style="color: #999; font-size: 12px;">&copy; 2024 Claw Legal Tech. All rights reserved.</p>
+  </div>
+</body>
+</html>
+`;
+
+// Function to send confirmation email
+async function sendOTP(email, otp) {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    port: 465,
+    secure: true, // true for 465, false for other ports
+    logger: true,
+    debug: true,
+    secureConnection: true,
+    auth: {
+      user: MAIL_USER, // Replace with your email
+      pass: MAIL_PASS, // Replace with your email password
+    },
+    tls: {
+      rejectUnauthorized: true,
+    },
+  });
+
+  const template = handlebars.compile(sendResetOtpEmail);
+
+  const filledTemplate = template({ otp });
+
+  const mailOptions = {
+    from: "claw enterprise",
+    to: email,
+    subject: "Password Reset OTP",
+    html: filledTemplate,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent: ", info.response);
+  } catch (error) {
+    console.error("Error sending email: ", error);
+  }
+  // console.log(info);
+}
 
 async function sendAdminContactUsNotification(contactDetails) {
   const transporter = nodemailer.createTransport({
@@ -223,4 +289,5 @@ async function sendAdminContactUsNotification(contactDetails) {
 module.exports = {
   sendConfirmationEmail,
   sendAdminContactUsNotification,
+  sendOTP,
 };

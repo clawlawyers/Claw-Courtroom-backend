@@ -378,6 +378,24 @@ function getRandomArrays() {
   return { array1, array2 };
 }
 
+// Reset Password
+
+router.post(
+  "/resetPassword-sendOtp",
+  CourtroomPricingController.resetPasswordSendOtp
+);
+
+router.post(
+  "/resetPassword-verifyOtp",
+  CourtroomPricingController.resetPasswordVerifyOtp
+);
+
+router.post(
+  "/resetPassword",
+  authMiddleware.checkUserPasswordReset,
+  CourtroomPricingController.resetPasswordResetPassword
+);
+
 // API endpoint
 router.get("/random-arrays", (req, res) => {
   const { array1, array2 } = getRandomArrays();
