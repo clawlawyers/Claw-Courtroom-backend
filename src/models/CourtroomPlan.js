@@ -54,7 +54,11 @@ const courtroomPlanFeaturesSchema = new mongoose.Schema({
 const courtroomPlanSchema = new mongoose.Schema({
   planName: { type: String, required: true },
   price: { type: Number, required: true },
-  duration: { type: String, required: true, enum: ["Daily", "Monthly"] },
+  duration: {
+    type: String,
+    required: true,
+    enum: ["Daily", "Monthly", "LifeTime"],
+  },
   totalTime: { type: Number, required: true },
   features: courtroomPlanFeaturesSchema,
 });

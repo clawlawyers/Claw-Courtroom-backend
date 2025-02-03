@@ -410,4 +410,6 @@ router.post(
   CourtroomPricingController.storeTime // this
 );
 
+router.post("/addPlanUser", CourtroomPricingController.addPlanUser);
+
 module.exports = router;

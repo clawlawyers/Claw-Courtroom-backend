@@ -3263,6 +3263,25 @@ async function getAllPlans(req, res) {
   } catch (e) {}
 }
 
+async function addPlanUser(req, res) {
+  try {
+    const { userId, planId, endDate } = req.body;
+
+    const respo = await CourtroomPricingService.addNewPlan(
+      userId,
+      planId,
+      endDate
+    );
+    return res.status(StatusCodes.OK).json(SuccessResponse(respo));
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
 module.exports = {
   storeTime,
   bookCourtRoom,
@@ -3326,4 +3345,5 @@ module.exports = {
   resetPasswordSendOtp,
   resetPasswordVerifyOtp,
   resetPasswordResetPassword,
+  addPlanUser,
 };
