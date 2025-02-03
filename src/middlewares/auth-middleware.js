@@ -343,7 +343,7 @@ async function checkUserPasswordReset(req, res, next) {
   try {
     console.log("Here");
     // console.log(req.headers["passwordrest-token"]);
-    const token = req.headers["passwordrest-token"]; // Get the token from the request header
+    const token = req.headers["Passwordrest-Token"]; // Get the token from the request header
     if (!token) {
       throw new AppError("Missing jwt token", StatusCodes.BAD_REQUEST);
     }
