@@ -493,7 +493,7 @@ async function loginToCourtRoom(phoneNumber, name) {
     console.log(userPrismaData);
 
     let slotTime;
-    if (slotTime !== null) {
+    if (userPrismaData !== null) {
       slotTime = userPrismaData?.AllPlan?.WarroomTime / 60;
     }
 
