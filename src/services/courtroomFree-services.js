@@ -14,6 +14,7 @@ const TrailCourtroomUser = require("../models/trailCourtRoomUser");
 const CourtroomFeedback = require("../models/courtroomFeedback");
 const CourtroomFreeUser = require("../models/courtroomFreeUser");
 const CourtroomFreeFeedback = require("../models/courtroomFreeFeedback");
+const prisma = require("../config/prisma-client");
 const { COURTROOM_API_ENDPOINT } = process.env;
 
 async function adminCourtRoomBook(
@@ -472,6 +473,34 @@ async function loginToCourtRoom(phoneNumber, name) {
       )
     );
 
+    const userData = await prisma.user.findFirst({
+      where: {
+        phoneNumber: phoneNumber,
+      },
+    });
+
+    console.log(userData);
+
+    const userPrismaData = await prisma.userAllPlan.findFirst({
+      where: {
+        userId: userData.mongoId,
+      },
+      include: {
+        AllPlan: true,
+      },
+    });
+
+    console.log(userPrismaData);
+
+    let slotTime;
+    if (userPrismaData !== null) {
+      slotTime = userPrismaData?.AllPlan?.WarroomTime / 60;
+    }
+
+    if (slotTime === null) {
+      slotTime = 0.5;
+    }
+
     if (!user) {
       const userId = await registerNewCourtRoomUser();
       const newUser = await CourtroomFreeUser.create({
@@ -481,17 +510,21 @@ async function loginToCourtRoom(phoneNumber, name) {
         todaysSlot: currentDate,
       });
 
-      const token = generateToken({ userId: newUser.userId, id: newUser._id });
+      const token = generateToken(
+        { userId: newUser.userId, id: newUser._id, slotTime },
+        slotTime * 60
+      );
       token["slot"] = newUser.todaysSlot;
       token["caseOverview"] = newUser.caseOverview;
-      return { ...token, userId: newUser.userId };
+      return { ...token, userId: newUser.userId, totalTime: slotTime * 60 };
     }
 
     const todaysSlot = new Date(user.todaysSlot);
     const todaysSlotTime =
       todaysSlot.getTime() + todaysSlot.getTimezoneOffset() * 60000;
-    const Offset = 0.5 * 60 * 60000;
+    const Offset = slotTime * 60 * 60000;
     let slot = new Date(todaysSlotTime + Offset);
+    console.log("SLOT:- ", slot);
     slot = new Date(
       Date.UTC(
         slot.getFullYear(),
@@ -524,17 +557,31 @@ async function loginToCourtRoom(phoneNumber, name) {
           new: true,
         }
       );
-      const token = generateToken({ userId: user.userId, id: user._id });
+      const token = generateToken(
+        { userId: user.userId, id: user._id, slotTime },
+        slotTime * 60
+      );
       token["slot"] = currentDate;
       token["caseOverview"] = user.caseOverview;
-      return { ...token, userId: update.userId };
+      return { ...token, userId: update.userId, totalTime: slotTime * 60 };
     } else if (slot > currentDate) {
       console.log("SLOT");
 
-      const token = generateToken({ userId: user.userId, id: user._id });
+      console.log(slot - currentDate);
+
+      let remainingTime = (slot - currentDate) / 60000; // time in minutes
+
+      const token = generateToken(
+        {
+          userId: user.userId,
+          id: user._id,
+          slotTime,
+        },
+        remainingTime
+      );
       token["slot"] = user.todaysSlot;
       token["caseOverview"] = user.caseOverview;
-      return { ...token, userId: user.userId };
+      return { ...token, userId: user.userId, totalTime: slotTime * 60 };
     }
 
     if (user.name != name) {

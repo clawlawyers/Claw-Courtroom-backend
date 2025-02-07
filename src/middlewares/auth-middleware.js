@@ -256,7 +256,7 @@ async function checkFreeUserControllerApi(req, res, next) {
   const todaysSlot = new Date(user.todaysSlot);
   const todaysSlotTime =
     todaysSlot.getTime() + todaysSlot.getTimezoneOffset() * 60000;
-  const Offset = 0.5 * 60 * 60000;
+  const Offset = response.slotTime * 60 * 60000;
   const slot = new Date(todaysSlotTime + Offset);
   console.log(slot.getMinutes());
   const currenttime = new Date();
