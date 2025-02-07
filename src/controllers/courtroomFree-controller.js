@@ -21,6 +21,7 @@ const courtroomPlan = require("../models/CourtroomPlan");
 const { CourtroomFreeServices } = require("../services");
 const CourtroomFreeUser = require("../models/courtroomFreeUser");
 const { checkUserIdValidity } = require("../utils/common/auth");
+const prisma = require("../config/prisma-client");
 
 let storage;
 if (process.env.NODE_ENV !== "production") {
@@ -466,11 +467,34 @@ async function getUserDetails(req, res) {
       userId = updateUser.userId;
     }
 
+    const userData = await prisma.user.findFirst({
+      where: {
+        phoneNumber: userBooking.phoneNumber,
+      },
+    });
+
+    console.log(userData);
+
+    const userPrismaData = await prisma.userAllPlan.findFirst({
+      where: {
+        userId: userData.mongoId,
+      },
+      include: {
+        AllPlan: true,
+      },
+    });
+
+    console.log(userPrismaData);
+
+    let slotTime = userPrismaData.AllPlan.WarroomTime / 60;
+
     return res.status(StatusCodes.OK).json(
       SuccessResponse({
         userId: userBooking.userId,
         mongoId: userBooking._id,
         phoneNumber: userBooking.phoneNumber,
+        slot: userBooking.todaysSlot,
+        totalTime: slotTime,
       })
     );
   } catch (error) {
