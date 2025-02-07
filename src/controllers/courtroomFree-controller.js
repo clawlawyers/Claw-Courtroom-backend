@@ -486,7 +486,7 @@ async function getUserDetails(req, res) {
 
     console.log(userPrismaData);
 
-    let slotTime = userPrismaData.AllPlan.WarroomTime / 60;
+    let slotTime = userPrismaData.AllPlan.WarroomTime;
 
     return res.status(StatusCodes.OK).json(
       SuccessResponse({
