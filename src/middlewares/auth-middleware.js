@@ -342,8 +342,8 @@ async function verifyClientMiddleware(req, res, next) {
 async function checkUserPasswordReset(req, res, next) {
   try {
     console.log("Here");
-    // console.log(req.headers["passwordrest-token"]);
-    const token = req.headers["Passwordrest-Token"]; // Get the token from the request header
+    console.log(req.headers["passwordreset-token"]);
+    const token = req.headers["passwordreset-token"]; // Get the token from the request header
     if (!token) {
       throw new AppError("Missing jwt token", StatusCodes.BAD_REQUEST);
     }
