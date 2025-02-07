@@ -28,7 +28,7 @@ router.post(
 router.get("/book-courtroom", CourtroomPricingController.getBookedData);
 router.post(
   "/login",
-  verifyClientMiddleware,
+  // verifyClientMiddleware,
   CourtroomFreeController.loginToCourtRoom
 );
 router.post(

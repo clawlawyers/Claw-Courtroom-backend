@@ -31,11 +31,11 @@ const generateTokenForCourtroomPricing = (payload) => {
 };
 
 // Function to generate JWT token
-const generateToken = (payload) => {
+const generateToken = (payload, expiryMinutes) => {
   let now;
-  const utcDate = new Date(); // Get the current UTC time
-  const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30 in milliseconds
-  now = new Date(utcDate.getTime() + istOffset);
+  // const utcDate = new Date(); // Get the current UTC time
+  // const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30 in milliseconds
+  // now = new Date(utcDate.getTime() + istOffset);
 
   if (process.env.NODE_ENV === "production") {
     const utcDate = new Date(); // Get the current UTC time
@@ -46,16 +46,21 @@ const generateToken = (payload) => {
     now = new Date();
   }
 
-  // Calculate the remaining time in seconds until the next hour
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-  const remainingSeconds = (60 - minutes) * 60 - seconds;
+  // // Calculate the remaining time in seconds until the next hour
+  // const minutes = now.getMinutes();
+  // const seconds = now.getSeconds();
+  // const remainingSeconds = (60 - minutes) * 60 - seconds;
 
-  // Calculate the expiration time
-  const expiresAt = now.getTime() + remainingSeconds * 1000;
+  // // Calculate the expiration time
+  // const expiresAt = now.getTime() + remainingSeconds * 1000;
+
+  // Calculate expiration time in milliseconds
+  const expiresAt = now.getTime() + expiryMinutes * 60 * 1000;
 
   // Generate the token with the calculated expiration time
-  const token = jwt.sign(payload, jwtSecret);
+  const token = jwt.sign(payload, jwtSecret, {
+    expiresIn: `${expiryMinutes}m`,
+  });
 
   return { token, expiresAt };
 };
