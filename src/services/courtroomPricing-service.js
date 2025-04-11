@@ -201,9 +201,12 @@ async function addNewPlan(mongoId, planId, endDate) {
       user: mongoId,
     }).populate("plan");
 
-    if (existingPlan.length > 0) {
+    if (existingPlan?.length > 0) {
       existingPlan.forEach((plan) => {
-        if (plan.plan.duration === "Daily") {
+        if (
+          plan.plan.duration === "Daily" &&
+          plan.plan.planName !== "Limited Time Offer"
+        ) {
           usedHours = plan.usedHours;
         }
       });
@@ -219,13 +222,25 @@ async function addNewPlan(mongoId, planId, endDate) {
       flag = true;
     }
 
-    let updatePlan = await CourtroomUserPlan.create({
-      plan: planId,
-      user: mongoId,
-      usedHours: flag ? usedHours : 0,
-      isActive: true,
-      endData: endDate,
-    });
+    let updatePlan;
+
+    if (planId === "67f7065a722ab90b26e4c325") {
+      updatePlan = await CourtroomUserPlan.create({
+        plan: planId,
+        user: mongoId,
+        usedHours: 0,
+        isActive: true,
+        endData: endDate,
+      });
+    } else {
+      updatePlan = await CourtroomUserPlan.create({
+        plan: planId,
+        user: mongoId,
+        usedHours: flag ? usedHours : 0,
+        isActive: true,
+        endData: endDate,
+      });
+    }
 
     updatePlan = await CourtroomUserPlan.findById(updatePlan._id).populate(
       "plan"

@@ -59,7 +59,7 @@ const courtroomPlanSchema = new mongoose.Schema({
     required: true,
     enum: ["Daily", "Monthly", "LifeTime"],
   },
-  totalTime: { type: Number, required: true },
+  totalTime: { type: Number, required: true }, // It can be token or time in minute
   features: courtroomPlanFeaturesSchema,
 });
 

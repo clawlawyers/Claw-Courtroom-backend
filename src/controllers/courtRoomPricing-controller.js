@@ -3282,6 +3282,190 @@ async function addPlanUser(req, res) {
   }
 }
 
+async function BookCourtroomSlot(req, res) {
+  try {
+    const { date, time } = req.body;
+    const phoneNumber = req.body?.courtroomClient?.userBooking?.phoneNumber;
+
+    const userBooking = req.body?.courtroomClient?.userBooking?.booking;
+
+    const pricingUser = await CourtroomUserPlan.findOne({
+      user: req.body?.courtroomClient?.userBooking?._id,
+    }).populate("plan");
+
+    if (pricingUser.plan.planName !== "Limited Time Offer") {
+      return res.status(200).json({ message: "You are not able to book slot" });
+    }
+
+    console.log(userBooking);
+
+    const existingBookingSameDay = userBooking.filter((booking) => {
+      const bookingDate = new Date(booking.date);
+      const currentBookingDate = new Date(date);
+      return (
+        bookingDate.getDate() === currentBookingDate.getDate() &&
+        bookingDate.getMonth() === currentBookingDate.getMonth() &&
+        bookingDate.getFullYear() === currentBookingDate.getFullYear()
+      );
+    });
+    console.log(existingBookingSameDay);
+    if (existingBookingSameDay.length >= 2) {
+      return res
+        .status(200)
+        .json({ message: "You can't book more then 2 slot in a day" });
+    }
+
+    const existAtSameTime = existingBookingSameDay.filter(
+      (booking) => booking.time === time
+    );
+
+    if (existAtSameTime.length > 0) {
+      return res.status(200).json({ message: "You already booked this slot" });
+    }
+
+    let currentDate;
+    let currHous;
+    if (process.env.NODE_ENV === "production") {
+      const cuurDate = new Date();
+      // Get the UTC time in milliseconds
+      const utc = cuurDate.getTime() + cuurDate.getTimezoneOffset() * 60000;
+
+      // IST offset is +5:30 or 19800000 milliseconds
+      currentDate = new Date(utc + 5.5 * 60 * 60 * 1000); // <-- don't re-declare with 'const'
+      currHous = new Date(utc + 5.5 * 60 * 60 * 1000);
+    } else {
+      currentDate = new Date();
+      currHous = new Date();
+    }
+
+    const userPlan = await CourtroomUserPlan.findOne({
+      user: req.body?.courtroomClient?.userBooking._id,
+    });
+
+    const bookingDate = new Date(date);
+
+    const planEndDate = new Date(userPlan.endData);
+    bookingDate.setHours(0, 0, 0, 0); // Set the time to the booking time
+    planEndDate.setHours(0, 0, 0, 0); // Set the time to the booking time
+    currentDate.setHours(0, 0, 0, 0); // Set the time to the booking time
+
+    console.log(bookingDate);
+    console.log(planEndDate);
+    console.log(currentDate);
+
+    console.log(currHous.getHours());
+
+    console.log(time);
+
+    console.log(bookingDate === currentDate);
+
+    if (
+      bookingDate.getTime() === currentDate.getTime() &&
+      time < currHous.getHours()
+    ) {
+      return res.status(200).json({ message: "You can't book past time" });
+    }
+
+    // Date range validation
+    if (
+      bookingDate.getTime() >= currentDate.getTime() &&
+      bookingDate.getTime() < planEndDate.getTime()
+    ) {
+      const bookingObj = {
+        date: date,
+        time: time,
+      };
+      const updateBooking = await CourtroomPricingUser.findOneAndUpdate(
+        { phoneNumber },
+        { $push: { booking: bookingObj } }, // bookingObj should be a single object
+        { new: true }
+      );
+
+      return res
+        .status(201)
+        .json({ message: "booking created", updateBooking });
+    } else {
+      // Handle invalid booking time
+      return res.status(400).json({
+        message:
+          "Booking date must be between today and your plan end date (exclusive).",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function enterCourtroom(req, res) {
+  try {
+    const phoneNumber = req.body?.courtroomClient?.userBooking?.phoneNumber;
+
+    let currentDate;
+    if (process.env.NODE_ENV === "production") {
+      const cuurDate = new Date();
+
+      // Get the UTC time in milliseconds
+      const utc = cuurDate.getTime() + cuurDate.getTimezoneOffset() * 60000;
+
+      // IST offset is +5:30 or 19800000 milliseconds
+      currentDate = new Date(utc + 5.5 * 60 * 60 * 1000); // <-- don't re-declare with 'const'
+
+      console.log(currentDate);
+    } else {
+      currentDate = new Date();
+      console.log(currentDate);
+    }
+
+    // Get the start of today
+    currentDate.setHours(0, 0, 0, 0);
+    console.log(currentDate);
+
+    // Get the start of tomorrow (exclusive upper bound)
+    const endOfDay = new Date(currentDate); // Start with today
+    endOfDay.setDate(endOfDay.getDate() + 1);
+    console.log(currentDate.getHours());
+    console.log(currentDate);
+    console.log(endOfDay);
+
+    const currHous = new Date();
+
+    // Query
+    const existsBooking1 = await CourtroomPricingUser.findOne({
+      phoneNumber,
+      booking: {
+        $elemMatch: {
+          date: { $gte: currentDate, $lt: endOfDay },
+          time: currHous.getHours(),
+        },
+      },
+    });
+
+    console.log(existsBooking1);
+
+    if (existsBooking1) {
+      await existsBooking1.save();
+
+      return res
+        .status(StatusCodes.OK)
+        .json({ message: "you can enter in this slot" });
+    } else {
+      return res
+        .status(StatusCodes.OK)
+        .json({ message: "you do not have any slot right now" });
+    }
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
 module.exports = {
   storeTime,
   bookCourtRoom,
@@ -3346,4 +3530,6 @@ module.exports = {
   resetPasswordVerifyOtp,
   resetPasswordResetPassword,
   addPlanUser,
+  BookCourtroomSlot,
+  enterCourtroom,
 };

@@ -1,3 +1,4 @@
+const { required } = require("joi");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -19,6 +20,16 @@ const CourtroomUserSchema = new Schema({
     type: String,
     // unique: true,
   },
+  booking: [
+    {
+      date: {
+        type: Date,
+      },
+      time: {
+        type: Number,
+      },
+    },
+  ],
 });
 
 const CourtroomPricingUser = mongoose.model(

@@ -412,4 +412,16 @@ router.post(
 
 router.post("/addPlanUser", CourtroomPricingController.addPlanUser);
 
+router.post(
+  "/book/courtroomSlot",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomPricingController.BookCourtroomSlot
+);
+
+router.get(
+  "/enterCourtroom",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomPricingController.enterCourtroom
+);
+
 module.exports = router;
