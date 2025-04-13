@@ -20,16 +20,14 @@ const CourtroomUserSchema = new Schema({
     type: String,
     // unique: true,
   },
-  booking: [
-    {
-      date: {
-        type: Date,
-      },
-      time: {
-        type: Number,
-      },
+  booking: {
+    date: {
+      type: Date,
     },
-  ],
+    time: {
+      type: Number,
+    },
+  },
 });
 
 const CourtroomPricingUser = mongoose.model(

@@ -3297,31 +3297,7 @@ async function BookCourtroomSlot(req, res) {
       return res.status(200).json({ message: "You are not able to book slot" });
     }
 
-    console.log(userBooking);
-
-    const existingBookingSameDay = userBooking.filter((booking) => {
-      const bookingDate = new Date(booking.date);
-      const currentBookingDate = new Date(date);
-      return (
-        bookingDate.getDate() === currentBookingDate.getDate() &&
-        bookingDate.getMonth() === currentBookingDate.getMonth() &&
-        bookingDate.getFullYear() === currentBookingDate.getFullYear()
-      );
-    });
-    console.log(existingBookingSameDay);
-    if (existingBookingSameDay.length >= 2) {
-      return res
-        .status(200)
-        .json({ message: "You can't book more then 2 slot in a day" });
-    }
-
-    const existAtSameTime = existingBookingSameDay.filter(
-      (booking) => booking.time === time
-    );
-
-    if (existAtSameTime.length > 0) {
-      return res.status(200).json({ message: "You already booked this slot" });
-    }
+    console.log(userBooking?.date);
 
     let currentDate;
     let currHous;
@@ -3338,6 +3314,44 @@ async function BookCourtroomSlot(req, res) {
       currHous = new Date();
     }
 
+    const d1 = new Date(date);
+    const d2 = new Date(currentDate);
+    const d3 =
+      userBooking?.date === undefined ? null : new Date(userBooking?.date);
+
+    console.log(d1);
+    console.log(d2);
+    console.log(d3);
+
+    const dateStr1 = d1.toISOString().split("T")[0]; // "2025-05-09"
+    const dateStr2 = d2.toISOString().split("T")[0]; // "2025-05-10"
+    const dateStr3 =
+      userBooking?.date === undefined ? null : d3.toISOString().split("T")[0]; // "2025-05-10"
+
+    if (dateStr1 === dateStr2) {
+      if (time < currHous.getHours()) {
+        return res.status(200).json({ message: "You can't book past time" });
+      }
+    }
+
+    if (dateStr1 < dateStr2) {
+      return res.status(200).json({ message: "You can't book past time" });
+    }
+
+    if (dateStr3 !== null && dateStr3 === dateStr2) {
+      if (time > currHous.getHours()) {
+        return res.status(200).json({ message: "You already booked a slot" });
+      } else {
+        return res
+          .status(200)
+          .json({ message: "You already booked this slot" });
+      }
+    }
+
+    if (dateStr3 !== null && dateStr3 > dateStr2) {
+      return res.status(200).json({ message: "You already booked a slot" });
+    }
+
     const userPlan = await CourtroomUserPlan.findOne({
       user: req.body?.courtroomClient?.userBooking._id,
     });
@@ -3348,16 +3362,6 @@ async function BookCourtroomSlot(req, res) {
     bookingDate.setHours(0, 0, 0, 0); // Set the time to the booking time
     planEndDate.setHours(0, 0, 0, 0); // Set the time to the booking time
     currentDate.setHours(0, 0, 0, 0); // Set the time to the booking time
-
-    console.log(bookingDate);
-    console.log(planEndDate);
-    console.log(currentDate);
-
-    console.log(currHous.getHours());
-
-    console.log(time);
-
-    console.log(bookingDate === currentDate);
 
     if (
       bookingDate.getTime() === currentDate.getTime() &&
@@ -3377,7 +3381,7 @@ async function BookCourtroomSlot(req, res) {
       };
       const updateBooking = await CourtroomPricingUser.findOneAndUpdate(
         { phoneNumber },
-        { $push: { booking: bookingObj } }, // bookingObj should be a single object
+        { booking: bookingObj }, // bookingObj should be a single object
         { new: true }
       );
 
@@ -3391,6 +3395,26 @@ async function BookCourtroomSlot(req, res) {
           "Booking date must be between today and your plan end date (exclusive).",
       });
     }
+  } catch (error) {
+    console.log(error);
+    const errorResponse = ErrorResponse({}, error.message);
+    return res
+      .status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
+  }
+}
+
+async function DeleteCourtroomSlot(req, res) {
+  try {
+    const phoneNumber = req.body?.courtroomClient?.userBooking?.phoneNumber;
+
+    const deleteSlot = await CourtroomPricingUser.findOneAndUpdate(
+      { phoneNumber },
+      { $set: { booking: {} } },
+      { new: true }
+    );
+    console.log(deleteSlot);
+    return res.status(200).json({ message: "Slot deleted", deleteSlot });
   } catch (error) {
     console.log(error);
     const errorResponse = ErrorResponse({}, error.message);
@@ -3436,12 +3460,8 @@ async function enterCourtroom(req, res) {
     // Query
     const existsBooking1 = await CourtroomPricingUser.findOne({
       phoneNumber,
-      booking: {
-        $elemMatch: {
-          date: { $gte: currentDate, $lt: endOfDay },
-          time: currHous.getHours(),
-        },
-      },
+      "booking.date": { $gte: currentDate, $lt: endOfDay },
+      "booking.time": currHous.getHours(),
     });
 
     console.log(existsBooking1);
@@ -3532,4 +3552,5 @@ module.exports = {
   addPlanUser,
   BookCourtroomSlot,
   enterCourtroom,
+  DeleteCourtroomSlot,
 };

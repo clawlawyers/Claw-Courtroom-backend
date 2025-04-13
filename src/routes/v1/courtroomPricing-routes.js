@@ -17,7 +17,7 @@ router.get("/getAllPlans", CourtroomPricingController.getAllPlans);
 
 router.post(
   "/book-courtroom",
-  verifyClientMiddleware,
+  // verifyClientMiddleware,
   CourtroomPricingController.bookCourtRoom
 );
 router.post(
@@ -416,6 +416,12 @@ router.post(
   "/book/courtroomSlot",
   authMiddleware.checkCourtroomAuth,
   CourtroomPricingController.BookCourtroomSlot
+);
+
+router.patch(
+  "/delete/courtroomSlot",
+  authMiddleware.checkCourtroomAuth,
+  CourtroomPricingController.DeleteCourtroomSlot
 );
 
 router.get(
