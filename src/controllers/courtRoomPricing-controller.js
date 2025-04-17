@@ -3341,7 +3341,7 @@ async function BookCourtroomSlot(req, res) {
     if (dateStr3 !== null && dateStr3 === dateStr2) {
       if (time > currHous.getHours()) {
         return res.status(200).json({ message: "You already booked a slot" });
-      } else {
+      } else if (time === currHous.getHours()) {
         return res
           .status(200)
           .json({ message: "You already booked this slot" });
