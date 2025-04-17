@@ -17,7 +17,7 @@ router.get("/getAllPlans", CourtroomPricingController.getAllPlans);
 
 router.post(
   "/book-courtroom",
-  // verifyClientMiddleware,
+  verifyClientMiddleware,
   CourtroomPricingController.bookCourtRoom
 );
 router.post(
