@@ -3433,7 +3433,7 @@ async function enterCourtroom(req, res) {
     let currHous = new Date(nowHours);
 
     console.log(currentDate);
-    console.log(currHous.getHours());
+    console.log(currHous);
 
     // Query
     const existsBooking1 = await CourtroomPricingUser.findOne({
