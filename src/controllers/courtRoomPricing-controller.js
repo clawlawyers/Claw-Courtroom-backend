@@ -3308,47 +3308,47 @@ async function BookCourtroomSlot(req, res) {
 
       // IST offset is +5:30 or 19800000 milliseconds
       currentDate = new Date(utc + 5.5 * 60 * 60 * 1000); // <-- don't re-declare with 'const'
+      currentDate.setHours(0, 0, 0, 0);
       currHous = new Date(utc + 5.5 * 60 * 60 * 1000);
     } else {
       currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
       currHous = new Date();
     }
 
-    const d1 = new Date(date);
-    const d2 = new Date(currentDate);
-    const d3 =
+    const requireBooking = new Date(date);
+    // const currentDate = new Date(currentDate);
+    const bookedDate =
       userBooking?.date === undefined ? null : new Date(userBooking?.date);
 
-    console.log(d1);
-    console.log(d2);
-    console.log(d3);
+    console.log(requireBooking);
+    console.log(currentDate);
+    console.log(bookedDate);
 
-    const dateStr1 = d1.toISOString().split("T")[0]; // "2025-05-09"
-    const dateStr2 = d2.toISOString().split("T")[0]; // "2025-05-10"
-    const dateStr3 =
-      userBooking?.date === undefined ? null : d3.toISOString().split("T")[0]; // "2025-05-10"
+    const requireBookingStr = requireBooking.toISOString().split("T")[0]; // "2025-05-09"
+    const currentDateStr = currentDate.toISOString().split("T")[0]; // "2025-05-10"
+    const bookedDateStr =
+      userBooking?.date === undefined
+        ? null
+        : bookedDate.toISOString().split("T")[0]; // "2025-05-10"
 
-    if (dateStr1 === dateStr2) {
+    if (requireBookingStr === currentDateStr) {
       if (time < currHous.getHours()) {
-        return res.status(200).json({ message: "You can't book past time" });
+        return res.status(200).json({ message: "You can't book past time1" });
       }
     }
 
-    if (dateStr1 < dateStr2) {
+    if (requireBookingStr < currentDateStr) {
       return res.status(200).json({ message: "You can't book past time" });
     }
 
-    if (dateStr3 !== null && dateStr3 === dateStr2) {
+    if (bookedDateStr !== null && bookedDateStr === currentDateStr) {
       if (time > currHous.getHours()) {
         return res.status(200).json({ message: "You already booked a slot" });
-      } else if (time === currHous.getHours()) {
-        return res
-          .status(200)
-          .json({ message: "You already booked this slot" });
       }
     }
 
-    if (dateStr3 !== null && dateStr3 > dateStr2) {
+    if (bookedDateStr !== null && bookedDateStr > currentDateStr) {
       return res.status(200).json({ message: "You already booked a slot" });
     }
 
@@ -3429,33 +3429,41 @@ async function enterCourtroom(req, res) {
     const phoneNumber = req.body?.courtroomClient?.userBooking?.phoneNumber;
 
     let currentDate;
+    let currHous;
+
     if (process.env.NODE_ENV === "production") {
-      const cuurDate = new Date();
+      const now = new Date();
+      const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
 
-      // Get the UTC time in milliseconds
-      const utc = cuurDate.getTime() + cuurDate.getTimezoneOffset() * 60000;
+      // Current time in IST
+      currHous = new Date(utcTime + 5.5 * 60 * 60 * 1000);
 
-      // IST offset is +5:30 or 19800000 milliseconds
-      currentDate = new Date(utc + 5.5 * 60 * 60 * 1000); // <-- don't re-declare with 'const'
-
-      console.log(currentDate);
+      // Midnight IST
+      currentDate = new Date(currHous);
+      currentDate.setHours(0, 0, 0, 0);
     } else {
-      currentDate = new Date();
-      console.log(currentDate);
+      // Local dev environment
+      currHous = new Date();
+      currentDate = new Date(currHous);
+      currentDate.setHours(0, 0, 0, 0);
     }
 
+    console.log("currHous:", currHous.toISOString());
+    console.log("currentDate (midnight):", currentDate.toISOString());
+
+    console.log(currentDate);
+
     // Get the start of today
-    currentDate.setHours(0, 0, 0, 0);
+
     console.log(currentDate);
 
     // Get the start of tomorrow (exclusive upper bound)
     const endOfDay = new Date(currentDate); // Start with today
     endOfDay.setDate(endOfDay.getDate() + 1);
-    console.log(currentDate.getHours());
+
     console.log(currentDate);
     console.log(endOfDay);
-
-    const currHous = new Date();
+    console.log(currHous.getHours());
 
     // Query
     const existsBooking1 = await CourtroomPricingUser.findOne({
