@@ -3432,6 +3432,9 @@ async function enterCourtroom(req, res) {
     let currentDate = new Date(now);
     let currHous = new Date(nowHours);
 
+    console.log(currentDate);
+    console.log(currHous.getHours());
+
     // Query
     const existsBooking1 = await CourtroomPricingUser.findOne({
       phoneNumber,
