@@ -3317,6 +3317,7 @@ async function BookCourtroomSlot(req, res) {
     }
 
     const requireBooking = new Date(date);
+    requireBooking.setHours(0, 0, 0, 0);
     // const currentDate = new Date(currentDate);
     const bookedDate =
       userBooking?.date === undefined ? null : new Date(userBooking?.date);
