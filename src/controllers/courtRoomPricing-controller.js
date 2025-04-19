@@ -3354,16 +3354,6 @@ async function BookCourtroomSlot(req, res) {
     //   }
     // }
 
-    if (bookedDateStr !== null && bookedDateStr === currentDateStr) {
-      if (bookedHours >= currHous) {
-        return res.status(200).json({ message: "You already booked a slot" });
-      }
-    }
-
-    if (bookedDateStr !== null && bookedDateStr > currentDateStr) {
-      return res.status(200).json({ message: "You already booked a slot" });
-    }
-
     if (requireBookingStr === currentDateStr) {
       if (time < currHous) {
         return res.status(200).json({ message: "You can't book past time" });
@@ -3372,6 +3362,16 @@ async function BookCourtroomSlot(req, res) {
 
     if (requireBookingStr < currentDateStr) {
       return res.status(200).json({ message: "You can't book past time" });
+    }
+
+    if (bookedDateStr !== null && bookedDateStr === currentDateStr) {
+      if (bookedHours >= currHous) {
+        return res.status(200).json({ message: "You already booked a slot" });
+      }
+    }
+
+    if (bookedDateStr !== null && bookedDateStr > currentDateStr) {
+      return res.status(200).json({ message: "You already booked a slot" });
     }
 
     const userPlan = await CourtroomUserPlan.findOne({
