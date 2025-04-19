@@ -3306,8 +3306,8 @@ async function BookCourtroomSlot(req, res) {
     console.log(userBooking?.date);
 
     // Now returns current IST date/time
-    const now = moment().startOf("day").toISOString();
-    const nowHours = moment().toISOString();
+    const now = moment().tz("Asia/Kolkata").startOf("day").toISOString();
+    const nowHours = moment().tz("Asia/Kolkata").toISOString();
 
     let currentDate = new Date(now);
     let currHous = new Date(nowHours);
@@ -3426,8 +3426,8 @@ async function enterCourtroom(req, res) {
     const phoneNumber = req.body?.courtroomClient?.userBooking?.phoneNumber;
 
     // Now returns current IST date/time
-    const now = moment().startOf("day").toISOString();
-    const nowHours = moment().toISOString();
+    const now = moment().tz("Asia/Kolkata").startOf("day").toISOString();
+    const nowHours = moment().tz("Asia/Kolkata").toISOString();
 
     let currentDate = new Date(now);
     let currHous = new Date(nowHours);
