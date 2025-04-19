@@ -3305,12 +3305,14 @@ async function BookCourtroomSlot(req, res) {
       const cuurDate = new Date();
       // Get the UTC time in milliseconds
       const utc = cuurDate.getTime() + cuurDate.getTimezoneOffset() * 60000;
-
+      console.log("prod");
       // IST offset is +5:30 or 19800000 milliseconds
       currentDate = new Date(utc + 5.5 * 60 * 60 * 1000); // <-- don't re-declare with 'const'
-      currentDate.setHours(0, 0, 0, 0);
+      // currentDate.setHours(0, 0, 0, 0);
       currHous = new Date(utc + 5.5 * 60 * 60 * 1000);
     } else {
+      console.log("dev");
+
       currentDate = new Date();
       currentDate.setHours(0, 0, 0, 0);
       currHous = new Date();
