@@ -3309,8 +3309,6 @@ async function BookCourtroomSlot(req, res) {
     const now = moment().tz("Asia/Kolkata").startOf("day").toISOString();
     const currHous = moment().tz("Asia/Kolkata").hours();
 
-    console.log(currHous);
-
     let currentDate = new Date(now);
     // let currHous = new Date(nowHours);
 
@@ -3320,16 +3318,51 @@ async function BookCourtroomSlot(req, res) {
     const bookedDate =
       userBooking?.date === undefined ? null : new Date(userBooking?.date);
 
-    console.log(requireBooking);
-    console.log(currentDate);
-    console.log(bookedDate);
-
     const requireBookingStr = requireBooking.toISOString().split("T")[0]; // "2025-05-09"
     const currentDateStr = currentDate.toISOString().split("T")[0]; // "2025-05-10"
     const bookedDateStr =
       userBooking?.date === undefined
         ? null
         : bookedDate.toISOString().split("T")[0]; // "2025-05-10"
+
+    console.log(requireBookingStr);
+    console.log(bookedDateStr);
+    console.log(currentDateStr);
+
+    console.log(time);
+    console.log(currHous);
+    console.log(userBooking?.time);
+
+    const bookedHours =
+      userBooking?.time === undefined ? null : userBooking?.time;
+
+    // if (bookedDateStr === currentDateStr && bookedHours === currHous) {
+    //   return res
+    //     .status(200)
+    //     .json({ message: "you have already current session is on going" });
+    // }
+
+    // if (
+    //   requireBookingStr === bookedDateStr &&
+    //   bookedDateStr === currentDateStr
+    // ) {
+    //   if (time === currHous && currHous === bookedHours) {
+    //     return res.status(200).json({
+    //       message:
+    //         "You have already this slot booked. You can only use it Right now",
+    //     });
+    //   }
+    // }
+
+    if (bookedDateStr !== null && bookedDateStr === currentDateStr) {
+      if (bookedHours >= currHous) {
+        return res.status(200).json({ message: "You already booked a slot" });
+      }
+    }
+
+    if (bookedDateStr !== null && bookedDateStr > currentDateStr) {
+      return res.status(200).json({ message: "You already booked a slot" });
+    }
 
     if (requireBookingStr === currentDateStr) {
       if (time < currHous) {
@@ -3339,20 +3372,6 @@ async function BookCourtroomSlot(req, res) {
 
     if (requireBookingStr < currentDateStr) {
       return res.status(200).json({ message: "You can't book past time" });
-    }
-
-    if (bookedDateStr !== null && bookedDateStr === currentDateStr) {
-      if (time > currHous) {
-        return res.status(200).json({ message: "You already booked a slot" });
-      } else if (time === currHous) {
-        return res
-          .status(200)
-          .json({ message: "You already booked this slot" });
-      }
-    }
-
-    if (bookedDateStr !== null && bookedDateStr > currentDateStr) {
-      return res.status(200).json({ message: "You already booked a slot" });
     }
 
     const userPlan = await CourtroomUserPlan.findOne({
