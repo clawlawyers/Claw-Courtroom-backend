@@ -34,6 +34,12 @@ const {
 } = require("../utils/common/auth");
 const ResetPassword = require("../models/resetPassword");
 
+// Require Moment-Timezone, which includes Moment
+const moment = require("moment-timezone");
+
+// Force all moments to use Asia/Kolkata
+moment.tz.setDefault("Asia/Kolkata");
+
 let storage;
 if (process.env.NODE_ENV !== "production") {
   // Google Cloud Storage configuration
@@ -3299,25 +3305,12 @@ async function BookCourtroomSlot(req, res) {
 
     console.log(userBooking?.date);
 
-    let currentDate;
-    let currHous;
-    if (process.env.NODE_ENV === "production") {
-      const cuurDate = new Date();
-      // Get the UTC time in milliseconds
-      const utc = cuurDate.getTime() + cuurDate.getTimezoneOffset() * 60000;
-      console.log("prod");
-      // IST offset is +5:30 or 19800000 milliseconds
-      currentDate = new Date(utc + 5.5 * 60 * 60 * 1000); // <-- don't re-declare with 'const'
-      currentDate.setHours(0, 0, 0, 0);
-      console.log(currentDate);
-      currHous = new Date(utc + 5.5 * 60 * 60 * 1000);
-    } else {
-      console.log("dev");
+    // Now returns current IST date/time
+    const now = moment().startOf("day").toISOString();
+    const nowHours = moment().toISOString();
 
-      currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0);
-      currHous = new Date();
-    }
+    let currentDate = new Date(now);
+    let currHous = new Date(nowHours);
 
     const requireBooking = new Date(date);
     // requireBooking.setHours(0, 0, 0, 0);
@@ -3432,47 +3425,17 @@ async function enterCourtroom(req, res) {
   try {
     const phoneNumber = req.body?.courtroomClient?.userBooking?.phoneNumber;
 
-    let currentDate;
-    let currHous;
+    // Now returns current IST date/time
+    const now = moment().startOf("day").toISOString();
+    const nowHours = moment().toISOString();
 
-    if (process.env.NODE_ENV === "production") {
-      const now = new Date();
-      const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
-
-      // Current time in IST
-      currHous = new Date(utcTime + 5.5 * 60 * 60 * 1000);
-
-      // Midnight IST
-      currentDate = new Date(currHous);
-      currentDate.setHours(0, 0, 0, 0);
-    } else {
-      // Local dev environment
-      currHous = new Date();
-      currentDate = new Date(currHous);
-      currentDate.setHours(0, 0, 0, 0);
-    }
-
-    console.log("currHous:", currHous.toISOString());
-    console.log("currentDate (midnight):", currentDate.toISOString());
-
-    console.log(currentDate);
-
-    // Get the start of today
-
-    console.log(currentDate);
-
-    // Get the start of tomorrow (exclusive upper bound)
-    const endOfDay = new Date(currentDate); // Start with today
-    endOfDay.setDate(endOfDay.getDate() + 1);
-
-    console.log(currentDate);
-    console.log(endOfDay);
-    console.log(currHous.getHours());
+    let currentDate = new Date(now);
+    let currHous = new Date(nowHours);
 
     // Query
     const existsBooking1 = await CourtroomPricingUser.findOne({
       phoneNumber,
-      "booking.date": { $gte: currentDate, $lt: endOfDay },
+      "booking.date": currentDate,
       "booking.time": currHous.getHours(),
     });
 
