@@ -3307,12 +3307,12 @@ async function BookCourtroomSlot(req, res) {
 
     // Now returns current IST date/time
     const now = moment().tz("Asia/Kolkata").startOf("day").toISOString();
-    const nowHours = moment().tz("Asia/Kolkata").toISOString();
+    const currHous = moment().tz("Asia/Kolkata").hours();
 
-    console.log(nowHours);
+    console.log(currHous);
 
     let currentDate = new Date(now);
-    let currHous = new Date(nowHours);
+    // let currHous = new Date(nowHours);
 
     const requireBooking = new Date(date);
     // requireBooking.setHours(0, 0, 0, 0);
@@ -3332,8 +3332,8 @@ async function BookCourtroomSlot(req, res) {
         : bookedDate.toISOString().split("T")[0]; // "2025-05-10"
 
     if (requireBookingStr === currentDateStr) {
-      if (time < currHous.getHours()) {
-        return res.status(200).json({ message: "You can't book past time1" });
+      if (time < currHous) {
+        return res.status(200).json({ message: "You can't book past time" });
       }
     }
 
@@ -3342,8 +3342,12 @@ async function BookCourtroomSlot(req, res) {
     }
 
     if (bookedDateStr !== null && bookedDateStr === currentDateStr) {
-      if (time > currHous.getHours()) {
+      if (time > currHous) {
         return res.status(200).json({ message: "You already booked a slot" });
+      } else if (time === currHous) {
+        return res
+          .status(200)
+          .json({ message: "You already booked this slot" });
       }
     }
 
@@ -3362,10 +3366,7 @@ async function BookCourtroomSlot(req, res) {
     planEndDate.setHours(0, 0, 0, 0); // Set the time to the booking time
     currentDate.setHours(0, 0, 0, 0); // Set the time to the booking time
 
-    if (
-      bookingDate.getTime() === currentDate.getTime() &&
-      time < currHous.getHours()
-    ) {
+    if (bookingDate.getTime() === currentDate.getTime() && time < currHous) {
       return res.status(200).json({ message: "You can't book past time" });
     }
 
