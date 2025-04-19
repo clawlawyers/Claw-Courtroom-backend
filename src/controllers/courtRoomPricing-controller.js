@@ -3309,6 +3309,8 @@ async function BookCourtroomSlot(req, res) {
     const now = moment().tz("Asia/Kolkata").startOf("day").toISOString();
     const nowHours = moment().tz("Asia/Kolkata").toISOString();
 
+    console.log(nowHours);
+
     let currentDate = new Date(now);
     let currHous = new Date(nowHours);
 
@@ -3427,19 +3429,22 @@ async function enterCourtroom(req, res) {
 
     // Now returns current IST date/time
     const now = moment().tz("Asia/Kolkata").startOf("day").toISOString();
-    const nowHours = moment().tz("Asia/Kolkata").toISOString();
+    const nowHours = moment().tz("Asia/Kolkata").hours();
+
+    console.log(nowHours);
 
     let currentDate = new Date(now);
-    let currHous = new Date(nowHours);
+    // let currHous = new Date(nowHours);
 
     console.log(currentDate);
-    console.log(currHous);
+    // console.log(currHous.getHours());
+    // console.log(currHous);
 
     // Query
     const existsBooking1 = await CourtroomPricingUser.findOne({
       phoneNumber,
       "booking.date": currentDate,
-      "booking.time": currHous.getHours(),
+      "booking.time": nowHours,
     });
 
     console.log(existsBooking1);
