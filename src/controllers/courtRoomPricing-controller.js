@@ -6,6 +6,7 @@ const {
 const {
   sendConfirmationEmail,
   sendOTP,
+  sendCancellationEmail,
 } = require("../utils/coutroom/sendEmail");
 const CourtroomPricingService = require("../services/courtroomPricing-service");
 const { ErrorResponse, SuccessResponse } = require("../utils/common");
@@ -3404,6 +3405,14 @@ async function BookCourtroomSlot(req, res) {
         { new: true }
       );
 
+      await sendConfirmationEmail(
+        req.body?.courtroomClient?.userBooking?.email,
+        req.body?.courtroomClient?.userBooking?.name,
+        req.body?.courtroomClient?.userBooking?.phoneNumber,
+        bookingDate.toLocaleDateString(),
+        (hours = `${time} : 00`)
+      );
+
       return res
         .status(201)
         .json({ message: "booking created", updateBooking });
@@ -3429,10 +3438,17 @@ async function DeleteCourtroomSlot(req, res) {
 
     const deleteSlot = await CourtroomPricingUser.findOneAndUpdate(
       { phoneNumber },
-      { $set: { booking: {} } },
-      { new: true }
+      { $set: { booking: {} } }
     );
     console.log(deleteSlot);
+
+    await sendCancellationEmail(
+      req.body?.courtroomClient?.userBooking?.email,
+      req.body?.courtroomClient?.userBooking?.name,
+      req.body?.courtroomClient?.userBooking?.phoneNumber,
+      deleteSlot?.booking?.date?.toLocaleDateString(),
+      (time = `${deleteSlot?.booking?.time} : 00`)
+    );
     return res.status(200).json({ message: "Slot deleted", deleteSlot });
   } catch (error) {
     console.log(error);

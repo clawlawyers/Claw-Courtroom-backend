@@ -65,16 +65,10 @@ const htmlTemplate = `
       <p>Your booking details are as follows:</p>
       <h3><strong>Name:</strong> {{name}}</h3>
       <h3><strong>Phone Number:</strong> {{phoneNumber}}</h3>
-      <h3><strong>Password:</strong> {{password}}</h3>
       <h3><strong>Slots Booked:</strong></h3>
-      <ul class="slot-list">
-        {{#each slots}}
-        <li>
+        <p>
           <strong>Date: </strong>{{date}}, <strong>Hour: </strong>{{hour}}
-        </li>
-        {{/each}}
-      </ul>
-      <h3><strong>Total cost :</strong> {{amount}}</h3>
+        </p>
     </div>
     <div class="bottom-container">
       <img src="https://courtroom.clawlaw.in/footer.png" alt="footer.png" />
@@ -84,17 +78,10 @@ const htmlTemplate = `
 
 `;
 
-const template = handlebars.compile(htmlTemplate);
-
 // Function to send confirmation email
-const sendConfirmationEmail = async (
-  email,
-  name,
-  phoneNumber,
-  password,
-  slots,
-  amount
-) => {
+const sendConfirmationEmail = async (email, name, phoneNumber, date, hour) => {
+  console.log("Sending confirmation email to:", email);
+  console.log("confirmation details:", { name, phoneNumber, date, hour });
   const transporter = nodemailer.createTransport({
     service: "gmail",
     port: 465,
@@ -116,15 +103,117 @@ const sendConfirmationEmail = async (
   const filledTemplate = template({
     name,
     phoneNumber,
-    password,
-    slots,
-    amount: amount, // Replace with your invoice link
+    date,
+    hour,
   });
 
   const mailOptions = {
     from: "claw enterprise",
     to: email,
     subject: "Courtroom Booking Confirmation",
+    html: filledTemplate,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent: ", info.response);
+  } catch (error) {
+    console.error("Error sending email: ", error);
+  }
+  // console.log(info);
+};
+
+const cancelHtmlTemplate = `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Slot Booking Cancellation</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      .top-container {
+      }
+      .text-container {
+        padding-left: 15px;
+        text-align: left;
+        color: #333;
+      }
+      .text-container > p {
+        margin: 0;
+        color: gray;
+      }
+      .text-container > h3 {
+        margin: 5px 0px;
+      }
+      .bottom-container {
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-container">
+      <img src="https://courtroom.clawlaw.in/header.png" alt="header.png" />
+    </div>
+    <div class="text-container">
+      <p>Dear {{name}},</p>
+      <p>
+        We regret to inform you that your booking has been successfully canceled.
+      </p>
+      <p>Your canceled booking details are as follows:</p>
+      <h3><strong>Name:</strong> {{name}}</h3>
+      <h3><strong>Phone Number:</strong> {{phoneNumber}}</h3>
+      <h3><strong>Slots Canceled:</strong></h3>
+        <p>
+          <strong>Date: </strong>{{date}}, <strong>Hour: </strong>{{hour}}
+        </p>
+      <p>
+        If you have any questions or need further assistance, feel free to contact us.
+      </p>
+    </div>
+    <div class="bottom-container">
+      <img src="https://courtroom.clawlaw.in/footer.png" alt="footer.png" />
+    </div>
+  </body>
+</html>
+`;
+
+const sendCancellationEmail = async (email, name, phoneNumber, date, hour) => {
+  console.log("Sending cancellation email to:", email);
+  console.log("Cancellation details:", { name, phoneNumber, date, hour });
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    port: 465,
+    secure: true, // true for 465, false for other ports
+    logger: true,
+    debug: true,
+    secureConnection: true,
+    auth: {
+      user: MAIL_USER, // Replace with your email
+      pass: MAIL_PASS, // Replace with your email password
+    },
+    tls: {
+      rejectUnauthorized: true,
+    },
+  });
+
+  const template = handlebars.compile(cancelHtmlTemplate);
+
+  const filledTemplate = template({
+    name,
+    phoneNumber,
+    date,
+    hour,
+  });
+
+  const mailOptions = {
+    from: "claw enterprise",
+    to: email,
+    subject: "Slot Booking Cancellation",
     html: filledTemplate,
   };
 
@@ -288,6 +377,7 @@ async function sendAdminContactUsNotification(contactDetails) {
 
 module.exports = {
   sendConfirmationEmail,
+  sendCancellationEmail,
   sendAdminContactUsNotification,
   sendOTP,
 };
