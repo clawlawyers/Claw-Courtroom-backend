@@ -494,7 +494,7 @@ async function loginToCourtRoom(phoneNumber, name) {
 
     let slotTime;
     if (userPrismaData !== null) {
-      slotTime = userPrismaData?.AllPlan?.WarroomTime / 60;
+      slotTime = userPrismaData?.plan?.WarroomTime / 60;
     }
 
     if (slotTime === null) {
