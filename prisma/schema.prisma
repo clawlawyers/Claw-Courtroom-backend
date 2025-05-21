@@ -9,22 +9,26 @@ datasource db {
 }
 
 model ReferralCode {
-  id                        String               @default(cuid())
-  redeemed                  Boolean              @default(false)
-  generatedById             String               @unique
-  createdAt                 DateTime             @default(now())
-  updatedAt                 DateTime             @updatedAt
-  referralCode              String               @id @unique
-  discount                  Int                  @default(50)
-  freeTrial                 Int                  @default(7)
-  NewUserPlan               NewUserPlan[]
-  generatedBy               User                 @relation("GeneratedByUser", fields: [generatedById], references: [mongoId])
-  redeemedBy                User[]               @relation("RedeemedByUser")
-  UserAdiraPlan             UserAdiraPlan[]
-  UserAdiraPurchases        UserAdiraPurchases[]
-  UserAllPlan               UserAllPlan[]
-  UserPurchases             UserPurchases[]
-  User_RedeemedAndPayByUser User[]               @relation("RedeemedAndPayByUser")
+  id                 String               @default(cuid())
+  redeemed           Boolean              @default(false)
+  generatedById      String               @unique
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  referralCode       String               @id @unique
+  discount           Int                  @default(50)
+  freeTrial          Int                  @default(7)
+  newUserPlans       NewUserPlan[]
+  generatedBy        User                 @relation("GeneratedByUser", fields: [generatedById], references: [mongoId])
+  redeemedBy         User[]               @relation("RedeemedByUser")
+  UserAdiraPlan      UserAdiraPlan[]
+  UserAdiraPurchases UserAdiraPurchases[]
+  UserPurchases      UserPurchases[]
+  redeemedAndPayBy   User[]               @relation("RedeemedAndPayByUser")
+  UserAllPlan        UserAllPlan[]
+
+  UserAllUKPlan UserAllUKPlan[]
+
+  UserAllUSPlan UserAllUSPlan[]
 }
 
 model Plan {
@@ -46,39 +50,48 @@ model Admin {
 }
 
 model User {
-  mongoId                           String               @id
-  phoneNumber                       String               @unique @db.VarChar(10)
-  planName                          String               @default("free")
-  createdAt                         DateTime             @default(now())
-  updatedAt                         DateTime             @updatedAt
-  tokenUsed                         Float                @default(0.0)
-  generatedReferralCodeId           String?
-  StateLocation                     String               @default("")
-  duration                          Int                  @default(0)
-  totalTokenUsed                    Float                @default(0.0)
-  numberOfSessions                  Int                  @default(1)
-  redeemedReferralCodeId            String?
-  adminUserId                       String?
-  isCasesearch                      Boolean              @default(true)
-  caseSearchTokenUsed               Int                  @default(0)
-  gptTokenUsed                      Int                  @default(0)
-  totalCaseSearchTokens             Int                  @default(0)
-  totalGptTokens                    Int                  @default(0)
-  isambassadorBenifined             Boolean?
-  Feedback                          Feedback[]
-  NewUserPlan                       NewUserPlan[]
-  generatedReferralCode             ReferralCode?        @relation("GeneratedByUser")
-  sessions                          Session[]
-  adminUser                         Admin?               @relation("AdminUsers", fields: [adminUserId], references: [id])
-  plan                              Plan                 @relation(fields: [planName], references: [name])
-  redeemedReferralCode              ReferralCode?        @relation("RedeemedByUser", fields: [redeemedReferralCodeId], references: [referralCode])
-  UserAdiraPlan                     UserAdiraPlan[]
-  UserAdiraPurchases                UserAdiraPurchases[]
-  UserAllPlan                       UserAllPlan[]
-  plans                             UserPlan[]
-  UserPurchases                     UserPurchases[]
-  NewPlan                           NewPlan[]
-  ReferralCode_RedeemedAndPayByUser ReferralCode[]       @relation("RedeemedAndPayByUser")
+  mongoId                 String               @id
+  phoneNumber             String               @unique @db.VarChar(10)
+  planName                String               @default("free")
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+  tokenUsed               Float                @default(0.0)
+  generatedReferralCodeId String?
+  StateLocation           String               @default("")
+  currencyType            String?              @default("INR")
+  duration                Int                  @default(0)
+  totalTokenUsed          Float                @default(0.0)
+  numberOfSessions        Int                  @default(1)
+  redeemedReferralCodeId  String?
+  adminUserId             String?
+  isCasesearch            Boolean              @default(true)
+  caseSearchTokenUsed     Int                  @default(0)
+  gptTokenUsed            Int                  @default(0)
+  totalCaseSearchTokens   Int                  @default(0)
+  totalGptTokens          Int                  @default(0)
+  isambassadorBenifined   Boolean?
+  feedbacks               Feedback[]           @relation("UserFeedback")
+  newplans                NewUserPlan[]
+  generatedReferralCode   ReferralCode?        @relation("GeneratedByUser")
+  sessions                Session[]
+  adminUser               Admin?               @relation("AdminUsers", fields: [adminUserId], references: [id])
+  plan                    Plan                 @relation(fields: [planName], references: [name])
+  redeemedReferralCode    ReferralCode?        @relation("RedeemedByUser", fields: [redeemedReferralCodeId], references: [referralCode])
+  UserAdiraPlan           UserAdiraPlan[]
+  UserAdiraPurchases      UserAdiraPurchases[]
+  plans                   UserPlan[]
+  UserPurchases           UserPurchases[]
+  NewPlan                 NewPlan[]            @relation("NewPlanToUser")
+  redeemedAndPayByCodes   ReferralCode[]       @relation("RedeemedAndPayByUser")
+  UserAllPlan             UserAllPlan[]
+
+  UserAllUKPlan UserAllUKPlan[]
+
+  UserAllUSPlan UserAllUSPlan[]
+
+  UKSession UKSession[]
+
+  USSession USSession[]
 }
 
 model UserPlan {
@@ -93,57 +106,71 @@ model UserPlan {
   @@id([userId, planName])
 }
 
-model Model {
-  name      String    @id
-  version   Float
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  sessions  Session[]
+model NewUserPlan {
+  userId         String
+  planName       String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now())
+  expiresAt      DateTime?
+  isActive       Boolean       @default(false)
+  subscriptionId String        @default("")
+  isCouponCode   String        @default("")
+  referralCodeId String?
+  Paidprice      Int           @default(0)
+  plan           NewPlan       @relation(fields: [planName], references: [name], onDelete: Cascade)
+  referralCode   ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
+  user           User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+
+  @@id([userId, planName])
 }
 
-model Session {
-  id        String    @id @default(uuid())
-  name      String
-  userId    String
-  modelName String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  messages  Message[]
-  model     Model     @relation(fields: [modelName], references: [name])
-  user      User      @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
-
-  @@index([userId])
+model NewPlan {
+  name               String          @id @unique
+  legalGptAccess     Boolean         @default(false)
+  AICaseSearchAccess Boolean         @default(false)
+  AISummerizer       Boolean         @default(false)
+  AddOnAccess        Boolean         @default(false)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  session            Int             @default(1)
+  duration           String          @default("monthly")
+  planUsers          NewUserPlan[]
+  UserPurchases      UserPurchases[]
+  users              User[]          @relation("NewPlanToUser")
 }
 
-model Message {
-  id            String    @id @default(uuid())
-  text          String
-  isUser        Boolean
-  sessionId     String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  textArray     String[]  @default([])
-  contextId     String?
-  isDocument    String?
-  feedback      Feedback?
-  Message       Message?  @relation("MessageToMessage", fields: [contextId], references: [id])
-  other_Message Message[] @relation("MessageToMessage")
-  session       Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+model UserPurchases {
+  userId         String
+  planName       String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now())
+  subscriptionId String        @default("")
+  expiresAt      DateTime?
+  referralCodeId String?
+  Paidprice      Int           @default(0)
+  isCouponCode   String        @default("")
+  plan           NewPlan       @relation(fields: [planName], references: [name], onDelete: Cascade)
+  referralCode   ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
+  user           User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
 
-  @@index([sessionId])
+  @@id([userId, planName])
 }
 
-model Feedback {
-  id              String   @id @default(uuid())
-  rating          Int?
-  messageId       String   @unique
-  createdAt       DateTime @default(now())
-  feedbackMessage String
-  feedbackType    String   @default("ResponseGenerated")
-  impression      String   @default("Positive")
-  userId          String
-  message         Message  @relation(fields: [messageId], references: [id])
-  User            User     @relation(fields: [userId], references: [mongoId])
+model UserAdiraPurchases {
+  userId         String
+  planName       String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now())
+  subscriptionId String        @default("")
+  expiresAt      DateTime?
+  referralCodeId String?
+  Paidprice      Int           @default(0)
+  isCouponCode   String        @default("")
+  plan           AdiraPlan     @relation(fields: [planName], references: [name], onDelete: Cascade)
+  referralCode   ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
+  user           User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+
+  @@id([userId, planName])
 }
 
 model AdiraPlan {
@@ -179,35 +206,108 @@ model AllPlan {
   UserAllPlan   UserAllPlan[]
 }
 
-model NewPlan {
-  name               String          @id @unique
-  legalGptAccess     Boolean         @default(false)
-  AICaseSearchAccess Boolean         @default(false)
-  AISummerizer       Boolean         @default(false)
-  AddOnAccess        Boolean         @default(false)
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime
-  session            Int             @default(1)
-  duration           String          @default("monthly")
-  NewUserPlan        NewUserPlan[]
-  UserPurchases      UserPurchases[]
-  User               User[]
+model AllUKPlan {
+  name          String   @id
+  price         Float
+  duration      String
+  legalGptToken Int
+  LegalGPTime   Int
+  AdiraToken    Int
+  AdiraTime     Int
+  WarroomToken  Int
+  WarroomTime   Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  // UserAllPlan   UserAllPlan[]
+
+  UserAllUKPlan UserAllUKPlan[]
 }
 
-model NewUserPlan {
-  userId         String
-  planName       String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @default(now())
-  expiresAt      DateTime?
-  isActive       Boolean       @default(false)
-  subscriptionId String        @default("")
-  isCouponCode   String        @default("")
-  referralCodeId String?
-  Paidprice      Int           @default(0)
-  NewPlan        NewPlan       @relation(fields: [planName], references: [name], onDelete: Cascade)
-  ReferralCode   ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
-  User           User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+model AllUSPlan {
+  name          String   @id
+  price         Float
+  duration      String
+  legalGptToken Int
+  LegalGPTime   Int
+  AdiraToken    Int
+  AdiraTime     Int
+  WarroomToken  Int
+  WarroomTime   Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  // UserAllPlan   UserAllPlan[]
+
+  UserAllUSPlan UserAllUSPlan[]
+}
+
+model UserAllPlan {
+  userId            String
+  planName          String
+  UsedlegalGptToken Int           @default(0)
+  UsedLegalGPTime   Int           @default(0)
+  UsedAdiraToken    Int           @default(0)
+  UsedAdiraTime     Int           @default(0)
+  UsedWarroomToken  Int           @default(0)
+  UsedWarroomTime   Int           @default(0)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @default(now())
+  subscriptionId    String        @default("")
+  expiresAt         DateTime?
+  isActive          Boolean       @default(false)
+  referralCodeId    String?
+  Paidprice         Int           @default(0)
+  isCouponCode      String        @default("")
+  plan              AllPlan       @relation(fields: [planName], references: [name], onDelete: Cascade)
+  referralCode      ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
+  user              User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+
+  @@id([userId, planName])
+}
+
+model UserAllUKPlan {
+  userId            String
+  planName          String
+  UsedlegalGptToken Int           @default(0)
+  UsedLegalGPTime   Int           @default(0)
+  UsedAdiraToken    Int           @default(0)
+  UsedAdiraTime     Int           @default(0)
+  UsedWarroomToken  Int           @default(0)
+  UsedWarroomTime   Int           @default(0)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @default(now())
+  subscriptionId    String        @default("")
+  expiresAt         DateTime?
+  isActive          Boolean       @default(false)
+  referralCodeId    String?
+  Paidprice         Float         @default(0)
+  isCouponCode      String        @default("")
+  plan              AllUKPlan     @relation(fields: [planName], references: [name], onDelete: Cascade)
+  referralCode      ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
+  user              User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+
+  @@id([userId, planName])
+}
+
+model UserAllUSPlan {
+  userId            String
+  planName          String
+  UsedlegalGptToken Int           @default(0)
+  UsedLegalGPTime   Int           @default(0)
+  UsedAdiraToken    Int           @default(0)
+  UsedAdiraTime     Int           @default(0)
+  UsedWarroomToken  Int           @default(0)
+  UsedWarroomTime   Int           @default(0)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @default(now())
+  subscriptionId    String        @default("")
+  expiresAt         DateTime?
+  isActive          Boolean       @default(false)
+  referralCodeId    String?
+  Paidprice         Float         @default(0)
+  isCouponCode      String        @default("")
+  plan              AllUSPlan     @relation(fields: [planName], references: [name], onDelete: Cascade)
+  referralCode      ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
+  user              User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
 
   @@id([userId, planName])
 }
@@ -225,67 +325,97 @@ model UserAdiraPlan {
   isCouponCode       String        @default("")
   totalDocuments     Int?
   totalDocumentsUsed Int?
-  AdiraPlan          AdiraPlan     @relation(fields: [planName], references: [name], onDelete: Cascade)
-  ReferralCode       ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
-  User               User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+  plan               AdiraPlan     @relation(fields: [planName], references: [name], onDelete: Cascade)
+  referralCode       ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
+  user               User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
 
   @@id([userId, planName])
 }
 
-model UserAdiraPurchases {
-  userId         String
-  planName       String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @default(now())
-  subscriptionId String        @default("")
-  expiresAt      DateTime?
-  referralCodeId String?
-  Paidprice      Int           @default(0)
-  isCouponCode   String        @default("")
-  AdiraPlan      AdiraPlan     @relation(fields: [planName], references: [name], onDelete: Cascade)
-  ReferralCode   ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
-  User           User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+model Model {
+  name      String    @id
+  version   Float
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  sessions  Session[]
 
-  @@id([userId, planName])
+  UKSession UKSession[]
+
+  USSession USSession[]
 }
 
-model UserAllPlan {
-  userId            String
-  planName          String
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @default(now())
-  subscriptionId    String        @default("")
-  expiresAt         DateTime?
-  isActive          Boolean       @default(false)
-  referralCodeId    String?
-  Paidprice         Int           @default(0)
-  isCouponCode      String        @default("")
-  UsedAdiraTime     Int           @default(0)
-  UsedAdiraToken    Int           @default(0)
-  UsedLegalGPTime   Int           @default(0)
-  UsedWarroomTime   Int           @default(0)
-  UsedWarroomToken  Int           @default(0)
-  UsedlegalGptToken Int           @default(0)
-  AllPlan           AllPlan       @relation(fields: [planName], references: [name], onDelete: Cascade)
-  ReferralCode      ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
-  User              User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+model Session {
+  id        String    @id @default(uuid())
+  name      String
+  userId    String
+  modelName String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+  model     Model     @relation(fields: [modelName], references: [name])
+  user      User      @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
 
-  @@id([userId, planName])
+  @@index([userId])
 }
 
-model UserPurchases {
-  userId         String
-  planName       String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @default(now())
-  subscriptionId String        @default("")
-  expiresAt      DateTime?
-  referralCodeId String?
-  Paidprice      Int           @default(0)
-  isCouponCode   String        @default("")
-  NewPlan        NewPlan       @relation(fields: [planName], references: [name], onDelete: Cascade)
-  ReferralCode   ReferralCode? @relation(fields: [referralCodeId], references: [referralCode])
-  User           User          @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+model UKSession {
+  id        String    @id @default(uuid())
+  name      String
+  userId    String
+  modelName String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+  model     Model     @relation(fields: [modelName], references: [name])
+  user      User      @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
 
-  @@id([userId, planName])
+  @@index([userId])
+}
+
+model USSession {
+  id        String    @id @default(uuid())
+  name      String
+  userId    String
+  modelName String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+  model     Model     @relation(fields: [modelName], references: [name])
+  user      User      @relation(fields: [userId], references: [mongoId], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Message {
+  id             String     @id @default(uuid())
+  text           String
+  isUser         Boolean
+  sessionId      String?
+  ukSessionId    String?
+  usSessionId    String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  contextId      String?
+  isDocument     String?
+  feedback       Feedback?
+  contextMessage Message?   @relation("MessageContext", fields: [contextId], references: [id])
+  Message        Message[]  @relation("MessageContext")
+  session        Session?   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  UKSession      UKSession? @relation(fields: [ukSessionId], references: [id], onDelete: Cascade, map: "Message_UKSession_fkey")
+  USSession      USSession? @relation(fields: [usSessionId], references: [id], onDelete: Cascade, map: "Message_USSession_fkey")
+
+  @@index([sessionId])
+}
+
+model Feedback {
+  id              String   @id @default(uuid())
+  rating          Int?
+  messageId       String   @unique
+  createdAt       DateTime @default(now())
+  feedbackMessage String
+  feedbackType    String   @default("ResponseGenerated")
+  impression      String   @default("Positive")
+  userId          String
+  message         Message  @relation(fields: [messageId], references: [id])
+  user            User     @relation("UserFeedback", fields: [userId], references: [mongoId])
 }
