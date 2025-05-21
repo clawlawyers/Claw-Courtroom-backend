@@ -486,7 +486,7 @@ async function loginToCourtRoom(phoneNumber, name) {
         userId: userData.mongoId,
       },
       include: {
-        AllPlan: true,
+        plan: true,
       },
     });
 
